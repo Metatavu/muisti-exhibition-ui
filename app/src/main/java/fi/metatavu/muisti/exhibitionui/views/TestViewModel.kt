@@ -23,13 +23,18 @@ class TestViewModel(application: Application): AndroidViewModel(application) {
     private val updateUserValueTaskRepository: UpdateUserValueTaskRepository
 
     init {
-        val updateUserValueTaskDao = ExhibitionUIDatabase.getDatabase(application).updateUserValueTaskDao()
+        val updateUserValueTaskDao = ExhibitionUIDatabase.getDatabase().updateUserValueTaskDao()
         updateUserValueTaskRepository = UpdateUserValueTaskRepository(updateUserValueTaskDao)
     }
 
-    fun list(): LiveData<List<UpdateUserValueTask>> {
-        return updateUserValueTaskRepository.list
+    suspend fun list(limit: Int): List<UpdateUserValueTask> {
+        return updateUserValueTaskRepository.list(limit)
     }
+
+    fun listLive(limit: Int): LiveData<List<UpdateUserValueTask>> {
+        return updateUserValueTaskRepository.listLive(limit)
+    }
+
 
     fun insert(updateUserValueTask: UpdateUserValueTask) = viewModelScope.launch {
         updateUserValueTaskRepository.insert(updateUserValueTask)

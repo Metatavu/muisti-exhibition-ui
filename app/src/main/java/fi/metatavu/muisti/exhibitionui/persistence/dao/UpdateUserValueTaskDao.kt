@@ -18,12 +18,26 @@ interface UpdateUserValueTaskDao {
     @Insert
     suspend fun insert(entity: UpdateUserValueTask)
 
+    @Query("SELECT * FROM UpdateUserValueTask WHERE ID = :id")
+    suspend fun find(id: Long): UpdateUserValueTask
+
     /**
      * Lists all tasks from the database
      *
      * @return all tasks from the database
      */
-    @Query ("SELECT * FROM UpdateUserValueTask ORDER BY priority, time")
-    fun list(): LiveData<List<UpdateUserValueTask>>
+    @Query ("SELECT * FROM UpdateUserValueTask ORDER BY -priority, time LIMIT :limit")
+    suspend fun list(limit: Int): List<UpdateUserValueTask>
+
+    /**
+     * Lists all tasks from the database
+     *
+     * @return all tasks from the database
+     */
+    @Query ("SELECT * FROM UpdateUserValueTask ORDER BY -priority, time LIMIT :limit")
+    fun listLive(limit: Int): LiveData<List<UpdateUserValueTask>>
+
+    @Delete
+    suspend fun delete(entity: UpdateUserValueTask)
 
 }

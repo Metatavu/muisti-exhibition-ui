@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.persistence.dao.UpdateUserValueTaskDao
 import fi.metatavu.muisti.exhibitionui.persistence.model.UpdateUserValueTask
 
@@ -34,14 +35,14 @@ abstract class ExhibitionUIDatabase : RoomDatabase() {
          * @param context context
          * @return database instance
          */
-        fun getDatabase(context: Context): ExhibitionUIDatabase {
+        fun getDatabase(): ExhibitionUIDatabase {
             val tempInstance = INSTANCE
             if (tempInstance != null) {
                 return tempInstance
             }
 
             synchronized(this) {
-                val instance = Room.databaseBuilder(context.applicationContext, ExhibitionUIDatabase::class.java, "ExhibitionUI.db")
+                val instance = Room.databaseBuilder(ExhibitionUIApplication.instance.applicationContext, ExhibitionUIDatabase::class.java, "ExhibitionUI.db")
                     .fallbackToDestructiveMigration()
                     .build()
 

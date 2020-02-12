@@ -1,16 +1,20 @@
 package fi.metatavu.muisti.exhibitionui.views
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.ListAdapter
 import android.widget.Toast
+import androidx.core.app.JobIntentService
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.persistence.model.UpdateUserValueTask
+import fi.metatavu.muisti.exhibitionui.services.UpdateUserValueService
 import kotlinx.android.synthetic.main.activity_test.*
 import java.util.*
 
@@ -56,7 +60,7 @@ class TestActivity : AppCompatActivity() {
     }
 
     private val mButtonClick = View.OnClickListener {
-        mViewModel!!.insert(UpdateUserValueTask("session", System.currentTimeMillis(), 3, "avain", "arvo"))
+        mViewModel!!.insert(UpdateUserValueTask("session", System.currentTimeMillis(), Math.round(Math.random() * 5 - 10), "avain", "arvo"))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,12 +81,13 @@ class TestActivity : AppCompatActivity() {
 
         button.setOnClickListener(mButtonClick)
 
-        mViewModel!!.list().observe(this, Observer {
+        mViewModel!!.listLive(100).observe(this, Observer {
             t -> run {
                 val listItems = arrayOfNulls<String>(t.size)
                 for (i in 0 until t.size) {
                     val item = t[i]
-                    listItems[i] = "${Date(item.time).toString()} - ${item.priority}"
+                    listItems[i] = "${Date(item.time).toString()} / ${item.priority}"
+
                 }
 
                 val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, listItems)
