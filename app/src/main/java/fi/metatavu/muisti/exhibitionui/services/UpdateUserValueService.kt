@@ -24,6 +24,8 @@ class UpdateUserValueService : JobIntentService() {
                 Log.d(javaClass.name, "DELETE ID: " + updateUserValueTasks.get(0).id)
                 updateUserValueTaskRepository.delete(updateUserValueTasks.get(0))
             }
+            val tokenProvider = KeycloakAccessTokenProvider()
+            tokenProvider.getAccessToken()
         }
     }
 

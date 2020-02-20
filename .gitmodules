@@ -1,0 +1,6 @@
+[submodule "muisti-api"]
+	path = muisti-api
+	url = git@github.com:Metatavu/muisti-api.git
+[submodule "muisti-api-spec"]
+	path = muisti-api-spec
+	url = git@github.com:Metatavu/muisti-api-spec.git
