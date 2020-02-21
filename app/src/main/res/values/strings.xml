@@ -6,4 +6,12 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
 
     <string name="title_activity_test">TestActivity</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Preference Titles -->
+    <string name="devicesettings">Device settings</string>
+
+    <!-- Device settings -->
+    <string name="exhibitionperference_title">Exhibition</string>
+
 </resources>

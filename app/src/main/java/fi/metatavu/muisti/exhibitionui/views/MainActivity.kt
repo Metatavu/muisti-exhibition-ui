@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import fi.metatavu.muisti.exhibitionui.R
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -57,9 +57,14 @@ class MainActivity : AppCompatActivity() {
         this.startActivity(intent)
     }
 
+    private val mSettingsClick = View.OnClickListener {
+        val intent = Intent(this, SettingsActivity::class.java)
+        this.startActivity(intent)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+        mViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
         setContentView(R.layout.activity_main)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -74,6 +79,7 @@ class MainActivity : AppCompatActivity() {
         // while interacting with the UI.
         dummy_button.setOnTouchListener(mDelayHideTouchListener)
         nappi.setOnClickListener(mNappiClick)
+        settings.setOnClickListener(mSettingsClick)
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
