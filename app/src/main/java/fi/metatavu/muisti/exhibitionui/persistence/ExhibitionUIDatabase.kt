@@ -53,7 +53,7 @@ abstract class ExhibitionUIDatabase : RoomDatabase() {
 
             val MIGRATION_1_2 = object : Migration(1, 2) {
                 override fun migrate(database: SupportSQLiteDatabase) {
-                    database.execSQL("CREATE TABLE `DeviceSetting` (`id` INTEGER, `name` TEXT, `value` TEXT, PRIMARY KEY(`id`))")
+                    database.execSQL("CREATE TABLE `DeviceSetting` (`id` INTEGER, `name` TEXT NOT NULL, `value` TEXT NOT NULL, PRIMARY KEY(`id`))")
                 }
             }
 

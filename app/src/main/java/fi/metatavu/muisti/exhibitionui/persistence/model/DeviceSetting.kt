@@ -1,5 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.persistence.model
 
+import androidx.annotation.NonNull
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -13,8 +14,10 @@ import androidx.room.PrimaryKey
 @Entity (indices = arrayOf(Index("name", unique = true)))
 data class DeviceSetting (
 
+    @NonNull
     var name: String,
 
+    @NonNull
     var value: String
 
 ) {
