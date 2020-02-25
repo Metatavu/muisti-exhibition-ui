@@ -12,13 +12,8 @@ enum class DeviceSettingName {
     EXHIBITION_ID,
 
     /**
-     * Setting for storing device's exhibition room id
+     * Setting for storing device's exhibition device id
      */
-    EXHIBITION_ROOM_ID,
-
-    /**
-     * Setting for storing device's exhibition room group id
-     */
-    EXHIBITION_ROOM_GROUP_ID
+    EXHIBITION_DEVICE_ID
 
 }

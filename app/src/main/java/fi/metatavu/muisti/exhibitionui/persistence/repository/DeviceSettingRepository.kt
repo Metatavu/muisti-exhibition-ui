@@ -1,5 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.persistence.repository
 
+import android.util.Log
 import fi.metatavu.muisti.exhibitionui.persistence.dao.DeviceSettingDao
 import fi.metatavu.muisti.exhibitionui.persistence.model.DeviceSetting
 import fi.metatavu.muisti.exhibitionui.persistence.model.DeviceSettingName
@@ -30,7 +31,6 @@ class DeviceSettingRepository(private val deviceSettingDao: DeviceSettingDao) {
      */
     suspend fun setValue(name: DeviceSettingName, value: String?) {
         val entity = deviceSettingDao.findByName(name.name)
-
         if (entity != null) {
             if (value != null) {
                 entity.value = value

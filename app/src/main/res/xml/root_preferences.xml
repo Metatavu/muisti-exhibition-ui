@@ -14,17 +14,20 @@
   ~ limitations under the License.
   -->
 
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <PreferenceCategory app:title="@string/devicesettings" app:key="devicesettings">
+    <PreferenceCategory app:title="@string/device_settings" app:key="device_settings">
 
         <ListPreference
-            app:defaultValue="reply"
-            app:entries="@array/reply_entries"
-            app:entryValues="@array/reply_values"
             app:key="exhibition"
-            app:title="@string/exhibitionperference_title"
-            app:useSimpleSummaryProvider="true" />
+            app:summary="@string/exhibition_perference_loading"
+            app:title="@string/exhibition_perference_title" />
+
+        <ListPreference
+            app:summary="@string/exhibition_perference_loading"
+            app:key="exhibition_device"
+            app:title="@string/exhibition_device_perference_title" />
 
     </PreferenceCategory>
 

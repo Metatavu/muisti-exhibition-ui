@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
 import fi.metatavu.muisti.exhibitionui.persistence.model.UpdateUserValueTask
 import fi.metatavu.muisti.exhibitionui.persistence.repository.UpdateUserValueTaskRepository
+import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import kotlinx.coroutines.launch
 
 /**
@@ -36,8 +37,19 @@ class TestViewModel(application: Application): AndroidViewModel(application) {
     }
 
 
-    fun insert(updateUserValueTask: UpdateUserValueTask) = viewModelScope.launch {
-        updateUserValueTaskRepository.insert(updateUserValueTask)
+    fun addUpdateUserValueTask(key: String, value: String) = viewModelScope.launch {
+        val visitorSessionId = VisitorSessionContainer.getVisitorSessionId()
+        if (visitorSessionId != null) {
+            val updateUserValueTask = UpdateUserValueTask(
+                visitorSessionId.toString(),
+                System.currentTimeMillis(),
+                Math.round(Math.random() * 5 - 10),
+                key,
+                value
+            )
+
+            updateUserValueTaskRepository.insert(updateUserValueTask)
+        }
     }
 
 }

@@ -9,9 +9,14 @@
     <string name="title_activity_settings">Settings</string>
 
     <!-- Preference Titles -->
-    <string name="devicesettings">Device settings</string>
+
+    <string name="device_settings">Device settings</string>
 
     <!-- Device settings -->
-    <string name="exhibitionperference_title">Exhibition</string>
+
+    <string name="exhibition_perference_loading">Loading…</string>
+    <string name="exhibition_perference_not_set">Not set</string>
+    <string name="exhibition_perference_title">Exhibition</string>
+    <string name="exhibition_device_perference_title">Exhibition Device</string>
 
 </resources>
