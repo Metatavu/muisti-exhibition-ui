@@ -53,8 +53,8 @@ class SettingsActivity : AppCompatActivity() {
                     val exhibition = exhibitions.find { it.id!!.equals(exhibitionId) }
 
                     val exhibitionPreference: ListPreference = findPreference<ListPreference>("exhibition")!!
-                    exhibitionPreference.entries = exhibitions.map { exhibition: Exhibition -> exhibition.name }.toTypedArray()
-                    exhibitionPreference.entryValues = exhibitions.map { exhibition: Exhibition -> exhibition.id.toString() }.toTypedArray()
+                    exhibitionPreference.entries = exhibitions.map { it.name }.toTypedArray()
+                    exhibitionPreference.entryValues = exhibitions.map { it.id.toString() }.toTypedArray()
                     exhibitionPreference.value = exhibitionId.toString()
                     exhibitionPreference.summary = exhibition?.name
 
@@ -124,8 +124,8 @@ class SettingsActivity : AppCompatActivity() {
             val exhibitionDevice = exhibitionDevices?.find { it.id!!.equals(exhibitionDeviceId) }
 
             val exhibitionDevicesPreference: ListPreference = findPreference<ListPreference>("exhibition_device")!!
-            exhibitionDevicesPreference.entries = exhibitionDevices?.map { exhibitionDevice: ExhibitionDevice -> exhibitionDevice.name }?.toTypedArray()
-            exhibitionDevicesPreference.entryValues = exhibitionDevices?.map { exhibitionDevice: ExhibitionDevice -> exhibitionDevice.id.toString() }?.toTypedArray()
+            exhibitionDevicesPreference.entries = exhibitionDevices?.map { it.name }?.toTypedArray()
+            exhibitionDevicesPreference.entryValues = exhibitionDevices?.map { it.id.toString() }?.toTypedArray()
             exhibitionDevicesPreference.value = exhibitionId?.toString()
             exhibitionDevicesPreference.summary = exhibitionDevice?.name
             updateListPreferenceSummary(exhibitionDevicesPreference, exhibitionDeviceId?.toString())
@@ -176,9 +176,12 @@ class SettingsActivity : AppCompatActivity() {
         private fun onExhibitionPreferenceChange(exhibitionPreference: ListPreference, newValue: String) {
             val exhibitionDevicePreference: ListPreference = findPreference<ListPreference>("exhibition_device")!!
             exhibitionDevicePreference.summary = getString(R.string.exhibition_perference_loading)
-            updateListPreferenceSummary(exhibitionPreference, newValue)
             mViewModel?.setExhibitionDeviceId(null)
             mViewModel?.setExhibitionId(newValue)
+
+            updateListPreferenceSummary(exhibitionPreference, newValue)
+            updateListPreferenceSummary(exhibitionDevicePreference, null)
+            reloadExhibitionDevicesPreference(UUID.fromString(newValue))
         }
 
         /**
