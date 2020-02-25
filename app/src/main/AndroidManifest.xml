@@ -2,13 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="fi.metatavu.muisti.exhibitionui">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application android:label="@string/app_name"
         android:name=".ExhibitionUIApplication">
+
         <activity
             android:name=".views.TestActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_test"
-            android:theme="@style/FullscreenTheme"/>
+            android:theme="@style/FullscreenTheme" />
+
         <activity
             android:name=".views.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -21,11 +26,20 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".views.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:theme="@style/AppTheme"/>
+
         <service
             android:name=".services.UpdateUserValueService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            android:exported="false"/>
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
 
+        <service
+            android:name=".services.UpdateKeycloakTokenService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 
 </manifest>
