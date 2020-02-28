@@ -11,15 +11,15 @@ class KeycloakAccessTokenProvider{
     fun getAccessToken() : String {
         Log.d(javaClass.name, "Retrieving access token")
 
-        val baseUrl = ""
+        val baseUrl = "https://staging-muisti-auth.metatavu.io/auth"
 
-        val realm = ""
+        val realm = "muisti"
 
-        val clientId= ""
+        val clientId= "exhibitionui"
 
-        val username = ""
+        val username = "exhibitionui"
 
-        val password = ""
+        val password = "dff79e86-c43f-43aa-9439-a096a4481e2b"
 
         val httpUrl = baseUrl.toHttpUrlOrNull() ?: throw IllegalStateException("baseUrl is invalid.")
 

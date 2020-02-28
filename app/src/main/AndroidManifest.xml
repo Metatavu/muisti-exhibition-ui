@@ -2,16 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="fi.metatavu.muisti.exhibitionui">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <application android:label="@string/app_name"
-        android:name=".ExhibitionUIApplication">
+    <application
+        android:name=".ExhibitionUIApplication"
+        android:label="@string/app_name">
+        <activity
+            android:name=".views.PageActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_page"
+            android:theme="@style/FullscreenTheme"></activity>
         <activity
             android:name=".views.TestActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_test"
-            android:theme="@style/FullscreenTheme"/>
+            android:theme="@style/FullscreenTheme" />
         <activity
             android:name=".views.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -26,9 +32,8 @@
 
         <service
             android:name=".services.UpdateUserValueService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            android:exported="false"/>
-
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 
 </manifest>

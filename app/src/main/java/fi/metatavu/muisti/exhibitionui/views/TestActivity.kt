@@ -11,12 +11,24 @@ import android.widget.ListAdapter
 import android.widget.Toast
 import androidx.core.app.JobIntentService
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
-import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.persistence.model.UpdateUserValueTask
 import fi.metatavu.muisti.exhibitionui.services.UpdateUserValueService
 import kotlinx.android.synthetic.main.activity_test.*
 import java.util.*
+import androidx.core.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import org.xmlpull.v1.XmlPullParser
+import android.util.Xml.newPullParser
+import org.xmlpull.v1.XmlPullParserFactory
+import androidx.core.app.ComponentActivity.ExtraData
+import androidx.core.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import android.R
+import android.widget.FrameLayout
+import java.io.StringReader
+
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -65,11 +77,21 @@ class TestActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mViewModel = ViewModelProviders.of(this).get(TestViewModel::class.java)
+        mViewModel = ViewModelProvider(this).get(TestViewModel::class.java)
+        /*
+        val factory = XmlPullParserFactory.newInstance()
+        factory.isNamespaceAware = true
+        val xpp = factory.newPullParser()
+        xpp.setInput(StringReader("<view/>"))
 
-        setContentView(R.layout.activity_test)
+
+
+        val child = layoutInflater.inflate(xpp, null)
+
+        setContentView(fi.metatavu.muisti.exhibitionui.R.layout.dumbdumb)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
+        val layout = findViewById<FrameLayout>(fi.metatavu.muisti.exhibitionui.R.id.inflateTest)
+        layout.addView(child)*/
         mVisible = true
 
         // Set up the user interaction to manually show or hide the system UI.
@@ -78,7 +100,7 @@ class TestActivity : AppCompatActivity() {
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
-
+        setContentView(fi.metatavu.muisti.exhibitionui.R.layout.activity_test)
         button.setOnClickListener(mButtonClick)
 
         mViewModel!!.listLive(100).observe(this, Observer {

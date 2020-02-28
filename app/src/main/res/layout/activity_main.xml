@@ -39,10 +39,10 @@
 
             <Button
                 android:id="@+id/dummy_button"
-                style="?metaButtonBarButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:background="@color/design_default_color_error"
                 android:text="@string/dummy_button" />
 
         </LinearLayout>
@@ -51,7 +51,14 @@
             android:id="@+id/nappi"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Button" />
+            android:text="Go to peruna" />
+        <Button
+            android:id="@+id/nappi2"
+            android:layout_marginTop="100dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/design_default_color_error"
+            android:text="Go to porkkana" />
     </FrameLayout>
 
 </FrameLayout>
