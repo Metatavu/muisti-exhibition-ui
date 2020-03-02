@@ -45,22 +45,28 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
         }
     }
 
+    /**
+     * Sets an array of layouts into the database
+     *
+     * @param layouts an array of layouts to insert into the database if layout with same id exists it will be updated
+     */
     suspend fun setLayouts(layouts: Array<ExhibitionPageLayout>) {
         layouts.forEach {
             val existing = layoutDao.findByLayoutId(it.id.toString())
-            if(existing == null){
-                val layout = Layout(
-                    it.name,
-                    it.data,
-                    it.id.toString(),
-                    it.exhibitionId.toString(),
-                    it.creatorId.toString(),
-                    it.lastModifierId.toString(),
-                    it.createdAt,
-                    it.modifiedAt
-                )
-                Log.d(javaClass.name, layout.name)
+            val layout = Layout(
+                it.name,
+                it.data,
+                it.id.toString(),
+                it.exhibitionId.toString(),
+                it.creatorId.toString(),
+                it.lastModifierId.toString(),
+                it.createdAt,
+                it.modifiedAt
+            )
+            if (existing == null) {
                 layoutDao.insert(layout)
+            } else {
+                layoutDao.update(layout)
             }
         }
     }

@@ -22,6 +22,7 @@ class ExhibitionUIApplication : Application() {
         instance = this
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateKeycloakTokenServiceTask() }, 0, 60, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 1, 1, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateLayoutsServiceTask() }, 1, 60, TimeUnit.SECONDS)
     }
 
     /**

@@ -1,5 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.persistence.model
 
+import androidx.annotation.NonNull
 import androidx.room.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -19,15 +20,17 @@ import fi.metatavu.muisti.api.client.models.ExhibitionPageLayoutView
  */
 @Entity (indices = [Index("layoutId", unique = true)])
 data class Layout (
-
+    @NonNull
     val name: String,
 
     @TypeConverters(ExhibitionPageLayoutViewConverter::class)
     val data: ExhibitionPageLayoutView,
 
+    @NonNull
     val layoutId: String,
 
-    val exhibitionId: String? = null,
+    @NonNull
+    val exhibitionId: String,
 
     val creatorId: String? = null,
 

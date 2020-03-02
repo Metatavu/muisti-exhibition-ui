@@ -51,7 +51,7 @@ class MuistiApiFactory {
         /**
          * Returns initialized exhibition page layouts API
          *
-         * @return initialized visitor sessions API
+         * @return initialized exhibition page layouts API
          */
         suspend fun exhibitionPageLayoutsApi(): ExhibitionPageLayoutsApi {
             waitForToken()

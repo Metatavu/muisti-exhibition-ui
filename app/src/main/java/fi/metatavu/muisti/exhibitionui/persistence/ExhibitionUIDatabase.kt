@@ -82,7 +82,7 @@ abstract class ExhibitionUIDatabase : RoomDatabase() {
             synchronized(this) {
                 val builder =  Room.databaseBuilder(ExhibitionUIApplication.instance.applicationContext, ExhibitionUIDatabase::class.java, "ExhibitionUI.db")
 
-                if(BuildConfig.DESTRUCTIVE_MIGRATIONS){
+                if(BuildConfig.DESTRUCTIVE_MIGRATIONS) {
                     builder.fallbackToDestructiveMigration()
                 }
 

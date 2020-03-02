@@ -33,14 +33,8 @@ class UpdateLayoutsService : JobIntentService() {
 
     override fun onHandleWork(intent: Intent) {
         GlobalScope.launch {
-            val allLayouts = layoutRepository.listAll()
-
-            allLayouts?.forEach {
-                Log.d(javaClass.name, it.name)
-            }
-
             val exhibitionId = DeviceSettings.getExhibitionId()
-            if(exhibitionId != null){
+            if (exhibitionId != null) {
                 val layouts = MuistiApiFactory.exhibitionPageLayoutsApi().listExhibitionPageLayouts(exhibitionId)
                 addLayouts(layouts)
             }
@@ -50,7 +44,7 @@ class UpdateLayoutsService : JobIntentService() {
     /**
      * Adds a list of layouts to Database
      *
-     * @param updateUserValueTask task
+     * @param layouts an array of layouts to add to the database
      * @return a visitor session for a task
      */
     private suspend fun addLayouts(layouts: Array<ExhibitionPageLayout>) {
