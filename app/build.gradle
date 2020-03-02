@@ -48,6 +48,7 @@ android {
             buildConfigField("String", "KEYCLOAK_CLIENT_ID", "\"${System.getProperty('KEYCLOAK_CLIENT_ID')}\"")
             buildConfigField("String", "KEYCLOAK_USERNAME", "\"${System.getProperty('KEYCLOAK_USERNAME')}\"")
             buildConfigField("String", "KEYCLOAK_PASSWORD", "\"${System.getProperty('KEYCLOAK_PASSWORD')}\"")
+            buildConfigField("Boolean", "DESTRUCTIVE_MIGRATIONS", System.getProperty('DESTRUCTIVE_MIGRATIONS'))
         }
     }
 
