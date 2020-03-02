@@ -2,8 +2,9 @@ package fi.metatavu.muisti.exhibitionui.persistence.model
 
 import androidx.annotation.NonNull
 import androidx.room.*
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fi.metatavu.muisti.api.client.models.ExhibitionPageLayoutView
 
 /**
@@ -13,9 +14,6 @@ import fi.metatavu.muisti.api.client.models.ExhibitionPageLayoutView
  * @property data layout data content
  * @property id layout id
  * @property exhibitionId layout exhibitionId
- * @property creatorId layout creatorId
- * @property lastModifierId layout lastModifier user Id
- * @property createdAt layout createdAt
  * @property modifiedAt layout modifiedAt
  */
 @Entity (indices = [Index("layoutId", unique = true)])
@@ -32,13 +30,8 @@ data class Layout (
     @NonNull
     val exhibitionId: String,
 
-    val creatorId: String? = null,
-
-    val lastModifierId: String? = null,
-
-    val createdAt: String? = null,
-
-    val modifiedAt: String? = null
+    @NonNull
+    val modifiedAt: String
 
 ) {
 
@@ -47,18 +40,37 @@ data class Layout (
 
 }
 
+/**
+ * Converter class for Exhibition Page Layout Views
+ *
+ */
 class ExhibitionPageLayoutViewConverter {
-    private var gson = Gson()
+    private val moshi = Moshi.Builder()
+        .add(KotlinJsonAdapterFactory())
+        .build()
 
+    private val jsonAdapter: JsonAdapter<ExhibitionPageLayoutView> = moshi.adapter<ExhibitionPageLayoutView>(
+        ExhibitionPageLayoutView::class.java)
+
+    /**
+     * Returns a exhibition page layout
+     *
+     * @param data json data of the Exhibition Page Layout View
+     * @return Exhibition page layout view object
+     */
     @TypeConverter
-    fun stringToExhibitionPageLayoutView(data: String?): ExhibitionPageLayoutView {
-        val listType = object : TypeToken<ExhibitionPageLayoutView>() {}.type
-
-        return gson.fromJson(data, listType)
+    fun stringToExhibitionPageLayoutView(data: String): ExhibitionPageLayoutView? {
+        return jsonAdapter.fromJson(data)
     }
 
+    /**
+     * Returns a json exhibition page layout
+     *
+     * @param exhibitionPageLayoutView page layout view to convert to json
+     * @return json data of the Exhibition Page Layout View
+     */
     @TypeConverter
-    fun exhibitionPageLayoutViewToJson(someObjects: ExhibitionPageLayoutView): String {
-        return gson.toJson(someObjects)
+    fun exhibitionPageLayoutViewToJson(exhibitionPageLayoutView: ExhibitionPageLayoutView): String {
+        return jsonAdapter.toJson(exhibitionPageLayoutView)
     }
 }

@@ -2,7 +2,6 @@ package fi.metatavu.muisti.exhibitionui
 
 import android.app.Application
 import android.content.Intent
-import android.util.Log
 import androidx.core.app.JobIntentService
 import fi.metatavu.muisti.exhibitionui.services.UpdateKeycloakTokenService
 import fi.metatavu.muisti.exhibitionui.services.UpdateLayoutsService

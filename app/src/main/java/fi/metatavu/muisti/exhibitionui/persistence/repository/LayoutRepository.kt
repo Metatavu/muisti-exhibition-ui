@@ -1,6 +1,5 @@
 package fi.metatavu.muisti.exhibitionui.persistence.repository
 
-import android.util.Log
 import fi.metatavu.muisti.api.client.models.ExhibitionPageLayout
 import fi.metatavu.muisti.exhibitionui.persistence.dao.LayoutDao
 import fi.metatavu.muisti.exhibitionui.persistence.model.Layout
@@ -32,7 +31,7 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
     }
 
     /**
-     * Sets a Layout
+     * Sets a Layout into the database
      *
      * @param layout set Layout to database if layout with same id exists it will be updated
      */
@@ -58,10 +57,7 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
                 it.data,
                 it.id.toString(),
                 it.exhibitionId.toString(),
-                it.creatorId.toString(),
-                it.lastModifierId.toString(),
-                it.createdAt,
-                it.modifiedAt
+                it.modifiedAt!!
             )
             if (existing == null) {
                 layoutDao.insert(layout)

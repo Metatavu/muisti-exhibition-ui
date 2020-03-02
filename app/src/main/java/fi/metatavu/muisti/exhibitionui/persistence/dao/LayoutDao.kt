@@ -1,7 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.persistence.dao
 
 import androidx.room.*
-import fi.metatavu.muisti.exhibitionui.persistence.model.DeviceSetting
 import fi.metatavu.muisti.exhibitionui.persistence.model.Layout
 
 /**
