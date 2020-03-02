@@ -28,7 +28,7 @@ class VisitorSessionContainer {
                 if (visitorSessionId == null) {
                     val users: Array<VisitorSessionUser> = arrayOf(VisitorSessionUser(UUID.randomUUID(), "faketag"))
                     val exhibitionId = DeviceSettings.getExhibitionId()!!
-                    val visitorSession = VisitorSession(users, null, exhibitionId, VisitorSessionState.aCTIVE )
+                    val visitorSession = VisitorSession(VisitorSessionState.aCTIVE ,users, null, exhibitionId)
                     val result = MuistiApiFactory.getVisitorSessionsApi().createVisitorSession(exhibitionId, visitorSession)
                     visitorSessionId = result.id!!
                 }

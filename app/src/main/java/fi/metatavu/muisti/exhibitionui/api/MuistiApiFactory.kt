@@ -1,10 +1,12 @@
 package fi.metatavu.muisti.exhibitionui.api
 
 import fi.metatavu.muisti.api.client.apis.ExhibitionDevicesApi
+import fi.metatavu.muisti.api.client.apis.ExhibitionPageLayoutsApi
 import fi.metatavu.muisti.api.client.apis.ExhibitionsApi
 import fi.metatavu.muisti.api.client.apis.VisitorSessionsApi
 import fi.metatavu.muisti.api.client.infrastructure.ApiClient
 import fi.metatavu.muisti.api.client.infrastructure.ClientException
+import fi.metatavu.muisti.api.client.models.ExhibitionPageLayout
 import fi.metatavu.muisti.api.client.models.VisitorSessionUser
 import fi.metatavu.muisti.exhibitionui.BuildConfig
 import kotlinx.coroutines.delay
@@ -44,6 +46,16 @@ class MuistiApiFactory {
         suspend fun getExhibitionDevicesApi(): ExhibitionDevicesApi {
             waitForToken()
             return ExhibitionDevicesApi(BuildConfig.MUISTI_API_BASE_URL)
+        }
+
+        /**
+         * Returns initialized exhibition page layouts API
+         *
+         * @return initialized visitor sessions API
+         */
+        suspend fun exhibitionPageLayoutsApi(): ExhibitionPageLayoutsApi {
+            waitForToken()
+            return ExhibitionPageLayoutsApi(BuildConfig.MUISTI_API_BASE_URL)
         }
 
         /**

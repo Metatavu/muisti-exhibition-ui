@@ -2,8 +2,10 @@ package fi.metatavu.muisti.exhibitionui
 
 import android.app.Application
 import android.content.Intent
+import android.util.Log
 import androidx.core.app.JobIntentService
 import fi.metatavu.muisti.exhibitionui.services.UpdateKeycloakTokenService
+import fi.metatavu.muisti.exhibitionui.services.UpdateLayoutsService
 import fi.metatavu.muisti.exhibitionui.services.UpdateUserValueService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.Executors
@@ -36,6 +38,14 @@ class ExhibitionUIApplication : Application() {
     private fun enqueueUpdateUserValueServiceTask() {
         val serviceIntent = Intent().apply { }
         JobIntentService.enqueueWork(this, UpdateUserValueService::class.java, 500, serviceIntent)
+    }
+
+    /**
+     * Enqueues update layouts task
+     */
+    private fun enqueueUpdateLayoutsServiceTask() {
+        val serviceIntent = Intent().apply { }
+        JobIntentService.enqueueWork(this, UpdateLayoutsService::class.java, 500, serviceIntent)
     }
 
     companion object {
