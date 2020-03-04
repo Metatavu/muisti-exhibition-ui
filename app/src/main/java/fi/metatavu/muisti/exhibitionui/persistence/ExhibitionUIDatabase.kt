@@ -10,17 +10,16 @@ import fi.metatavu.muisti.exhibitionui.BuildConfig
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.persistence.dao.DeviceSettingDao
 import fi.metatavu.muisti.exhibitionui.persistence.dao.LayoutDao
+import fi.metatavu.muisti.exhibitionui.persistence.dao.PageDao
 import fi.metatavu.muisti.exhibitionui.persistence.dao.UpdateUserValueTaskDao
-import fi.metatavu.muisti.exhibitionui.persistence.model.DeviceSetting
-import fi.metatavu.muisti.exhibitionui.persistence.model.ExhibitionPageLayoutViewConverter
-import fi.metatavu.muisti.exhibitionui.persistence.model.Layout
-import fi.metatavu.muisti.exhibitionui.persistence.model.UpdateUserValueTask
+import fi.metatavu.muisti.exhibitionui.persistence.model.*
+import fi.metatavu.muisti.exhibitionui.persistence.types.UUIDConverter
 
 /**
  * The Room database
  */
-@Database(entities = [ UpdateUserValueTask::class, DeviceSetting::class, Layout::class], version = 3)
-@TypeConverters(ExhibitionPageLayoutViewConverter::class)
+@Database(entities = [ UpdateUserValueTask::class, DeviceSetting::class, Layout::class, Page::class], version = 4)
+@TypeConverters(ExhibitionPageLayoutViewConverter::class, ExhibitionPageViewConverter::class, UUIDConverter::class)
 abstract class ExhibitionUIDatabase : RoomDatabase() {
 
     /**
@@ -43,6 +42,13 @@ abstract class ExhibitionUIDatabase : RoomDatabase() {
      * @return layoutDao
      */
     abstract fun layoutDao(): LayoutDao
+
+    /**
+     * Getter for PageDao
+     *
+     * @return pageDao
+     */
+    abstract fun pageDao(): PageDao
 
     companion object {
 
@@ -77,6 +83,13 @@ abstract class ExhibitionUIDatabase : RoomDatabase() {
                 }
             }
 
+            val MIGRATION_3_4 = object : Migration(3, 4) {
+                override fun migrate(database: SupportSQLiteDatabase) {
+                    database.execSQL("CREATE TABLE `Page` (`id` INTEGER NOT NULL,`name` TEXT NOT NULL, `layoutId` TEXT NOT NULL, `pageId` TEXT NOT NULL, `exhibitionId` TEXT NOT NULL, `modifiedAt` TEXT NOT NULL, `resources` TEXT NOT NULL, `eventTriggers` TEXT NOT NULL, PRIMARY KEY(`id`))")
+                    database.execSQL("CREATE INDEX index_Page_layoutId ON Page (layoutId)")
+                }
+            }
+
             synchronized(this) {
                 val builder =  Room.databaseBuilder(ExhibitionUIApplication.instance.applicationContext, ExhibitionUIDatabase::class.java, "ExhibitionUI.db")
 
@@ -85,7 +98,7 @@ abstract class ExhibitionUIDatabase : RoomDatabase() {
                 }
 
                 val instance = builder
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
 
                 INSTANCE = instance
