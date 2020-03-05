@@ -29,7 +29,7 @@ class UpdatePagesService : JobIntentService() {
         GlobalScope.launch {
             val exhibitionId = DeviceSettings.getExhibitionId()
             if (exhibitionId != null) {
-                val pages = MuistiApiFactory.exhibitionPagesApi().listExhibitionPages(exhibitionId)
+                val pages = MuistiApiFactory.getExhibitionPagesApi().listExhibitionPages(exhibitionId)
                 addPages(pages)
             }
         }

@@ -1,8 +1,10 @@
 package fi.metatavu.muisti.exhibitionui.persistence.repository
 
-import fi.metatavu.muisti.api.client.models.ExhibitionPageLayout
+import android.util.Log
+import fi.metatavu.muisti.api.client.models.PageLayout
 import fi.metatavu.muisti.exhibitionui.persistence.dao.LayoutDao
 import fi.metatavu.muisti.exhibitionui.persistence.model.Layout
+import java.util.*
 
 /**
  * Repository class for Layout
@@ -17,7 +19,7 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
      * @param layoutId layoutId to match layout with
      * @return a layout or null if not found
      */
-    suspend fun getLayout(layoutId: String): Layout? {
+    suspend fun getLayout(layoutId: UUID): Layout? {
         return layoutDao.findByLayoutId(layoutId)
     }
 
@@ -49,15 +51,20 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
      *
      * @param layouts an array of layouts to insert into the database if layout with same id exists it will be updated
      */
-    suspend fun setLayouts(layouts: Array<ExhibitionPageLayout>) {
+    suspend fun setLayouts(layouts: Array<PageLayout>) {
         layouts.forEach {
-            val existing = layoutDao.findByLayoutId(it.id.toString())
+            val id = it.id
+            if (id == null) {
+                Log.d(LayoutRepository::javaClass.name, "id was null")
+                return
+            }
+
+            val existing = layoutDao.findByLayoutId(id)
             val layout = Layout(
-                it.name,
-                it.data,
-                it.id.toString(),
-                it.exhibitionId.toString(),
-                it.modifiedAt!!
+                name = it.name,
+                data = it.data,
+                layoutId = id,
+                modifiedAt = it.modifiedAt!!
             )
             if (existing == null) {
                 layoutDao.insert(layout)

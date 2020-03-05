@@ -44,13 +44,13 @@ class MuistiApiFactory {
         }
 
         /**
-         * Returns initialized exhibition page layouts API
+         * Returns initialized page layouts API
          *
-         * @return initialized exhibition page layouts API
+         * @return initialized page layouts API
          */
-        suspend fun exhibitionPageLayoutsApi(): ExhibitionPageLayoutsApi {
+        suspend fun getPageLayoutsApi(): PageLayoutsApi {
             waitForToken()
-            return ExhibitionPageLayoutsApi(BuildConfig.MUISTI_API_BASE_URL)
+            return PageLayoutsApi(BuildConfig.MUISTI_API_BASE_URL)
         }
 
         /**
@@ -58,7 +58,7 @@ class MuistiApiFactory {
          *
          * @return initialized exhibition pages API
          */
-        suspend fun exhibitionPagesApi(): ExhibitionPagesApi {
+        suspend fun getExhibitionPagesApi(): ExhibitionPagesApi {
             waitForToken()
             return ExhibitionPagesApi(BuildConfig.MUISTI_API_BASE_URL)
         }

@@ -1,20 +1,14 @@
 package fi.metatavu.muisti.exhibitionui.services
 
 import android.content.Intent
-import android.util.Log
 import androidx.core.app.JobIntentService
-import fi.metatavu.muisti.api.client.models.ExhibitionPageLayout
-import fi.metatavu.muisti.api.client.models.VisitorSession
-import fi.metatavu.muisti.api.client.models.VisitorSessionVariable
+import fi.metatavu.muisti.api.client.models.PageLayout
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
 import fi.metatavu.muisti.exhibitionui.persistence.repository.LayoutRepository
-import fi.metatavu.muisti.exhibitionui.persistence.repository.UpdateUserValueTaskRepository
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.*
-import fi.metatavu.muisti.exhibitionui.persistence.model.UpdateUserValueTask as UpdateUserValueTask1
 
 /**
  * Service for getting layouts from the API
@@ -35,7 +29,7 @@ class UpdateLayoutsService : JobIntentService() {
         GlobalScope.launch {
             val exhibitionId = DeviceSettings.getExhibitionId()
             if (exhibitionId != null) {
-                val layouts = MuistiApiFactory.exhibitionPageLayoutsApi().listExhibitionPageLayouts(exhibitionId)
+                val layouts = MuistiApiFactory.getPageLayoutsApi().listPageLayouts()
                 addLayouts(layouts)
             }
         }
@@ -47,7 +41,7 @@ class UpdateLayoutsService : JobIntentService() {
      * @param layouts an array of layouts to add to the database
      * @return a visitor session for a task
      */
-    private suspend fun addLayouts(layouts: Array<ExhibitionPageLayout>) {
+    private suspend fun addLayouts(layouts: Array<PageLayout>) {
         layoutRepository.setLayouts(layouts)
     }
 }
