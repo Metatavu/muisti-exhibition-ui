@@ -2,6 +2,7 @@ package fi.metatavu.muisti.exhibitionui.persistence.dao
 
 import androidx.room.*
 import fi.metatavu.muisti.exhibitionui.persistence.model.Layout
+import java.util.*
 
 /**
  * DAO class for Layout entity
@@ -24,7 +25,7 @@ interface LayoutDao {
      * @return found layout or null if not found
      */
     @Query("SELECT * FROM Layout WHERE layoutId = :layoutId")
-    suspend fun findByLayoutId(layoutId: String): Layout?
+    suspend fun findByLayoutId(layoutId: UUID): Layout?
 
     /**
      * Lists all layouts
