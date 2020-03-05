@@ -55,7 +55,7 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
         layouts.forEach {
             val id = it.id
             if (id == null) {
-                Log.d(PageRepository::javaClass.name, "id was null")
+                Log.d(LayoutRepository::javaClass.name, "id was null")
                 return
             }
 
