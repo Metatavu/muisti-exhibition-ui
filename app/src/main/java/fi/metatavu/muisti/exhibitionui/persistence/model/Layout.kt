@@ -40,7 +40,7 @@ data class Layout (
 }
 
 /**
- * Converter class for Exhibition Page Layout Views
+ * Converter class for Page Layout Views
  *
  */
 class PageLayoutViewConverter {
