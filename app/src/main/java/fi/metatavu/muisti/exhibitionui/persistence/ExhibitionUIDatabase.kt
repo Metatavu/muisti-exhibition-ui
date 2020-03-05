@@ -86,7 +86,7 @@ abstract class ExhibitionUIDatabase : RoomDatabase() {
             val MIGRATION_3_4 = object : Migration(3, 4) {
                 override fun migrate(database: SupportSQLiteDatabase) {
                     database.execSQL("CREATE TABLE `Page` (`id` INTEGER NOT NULL,`name` TEXT NOT NULL, `layoutId` TEXT NOT NULL, `pageId` TEXT NOT NULL, `exhibitionId` TEXT NOT NULL, `modifiedAt` TEXT NOT NULL, `resources` TEXT NOT NULL, `eventTriggers` TEXT NOT NULL, PRIMARY KEY(`id`))")
-                    database.execSQL("CREATE INDEX index_Page_layoutId ON Page (layoutId)")
+                    database.execSQL("CREATE INDEX index_Page_pageId ON Page (pageId)")
                 }
             }
 

@@ -26,7 +26,7 @@ class PageRepository(private val pageDao: PageDao) {
     /**
      * Returns all pages from Database
      *
-     * @return a device setting value or null if not found
+     * @return list of pages
      */
     suspend fun listAll(): List<Page>? {
         return pageDao.listAll()
