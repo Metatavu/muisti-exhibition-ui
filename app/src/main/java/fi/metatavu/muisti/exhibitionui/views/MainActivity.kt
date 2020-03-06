@@ -3,22 +3,11 @@ package fi.metatavu.muisti.exhibitionui.views
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProviders
-import dagger.Component
+import androidx.lifecycle.ViewModelProvider
 import fi.metatavu.muisti.exhibitionui.R
 import kotlinx.android.synthetic.main.activity_main.*
-import javax.inject.Inject
-import android.view.Gravity
-import android.widget.LinearLayout
-import android.widget.Button
-import com.google.gson.Gson
-import fi.metatavu.muisti.exhibitionui.pages.PageLayoutContainer
-import fi.metatavu.muisti.exhibitionui.persistence.model.UpdateUserValueTask
-import java.time.Instant.now
-import java.util.*
 
 
 /**
@@ -26,9 +15,6 @@ import java.util.*
  * status bar and navigation/system bar) with user interaction.
  */
 class MainActivity : AppCompatActivity() {
-
-    @Inject
-    lateinit var info: Info
 
     private var mViewModel: MainViewModel? = null
 
@@ -73,8 +59,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(javaClass.name, info.text)
-        mViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+        mViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+
         setContentView(R.layout.activity_main)
 
         val layout = LinearLayout(this)
@@ -90,8 +76,6 @@ class MainActivity : AppCompatActivity() {
 
         mVisible = true
 
-
-
         // Set up the user interaction to manually show or hide the system UI.
         fullscreen_content.setOnClickListener { toggle() }
 
@@ -99,12 +83,8 @@ class MainActivity : AppCompatActivity() {
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         dummy_button.setOnTouchListener(mDelayHideTouchListener)
-        nappi.setOnClickListener {
-            goToPage(1)
-        }
-        nappi2.setOnClickListener{
-            goToPage(2)
-        }
+        nappi.setOnClickListener(mNappiClick)
+        settings.setOnClickListener(mSettingsClick)
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
@@ -125,30 +105,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun goToPage(pageId: Int) {
-        /*
-        val layout = LinearLayout(this)
-
-        layout.gravity = Gravity.CENTER
-
-        val params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-
-*/
-        //val button = Button(this)
-        //button.setText("PERUNA?")
-        //layout.addView(button)
-
-/*
-        val layout = LinearLayout(this)
-        layout.gravity = Gravity.CENTER
-        val params = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-
-        val button = Button(this)
-        button.setText("PERUNA?")
-
-        layout.addView(button, params)
-
-        PageLayoutContainer.set("peruna", layout)
-*/
         val intent = Intent(this, PageActivity::class.java).apply{
             putExtra("pageId", pageId.toString())
         }
@@ -206,14 +162,4 @@ class MainActivity : AppCompatActivity() {
          */
         private val UI_ANIMATION_DELAY = 300
     }
-}
-
-class Info @Inject constructor() {
-    val text = "Hello Dagger 2"
-
-}
-
-@Component
-interface MagicBox {
-    fun inject(app: MainActivity)
 }

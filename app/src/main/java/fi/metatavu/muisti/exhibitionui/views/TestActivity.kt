@@ -1,21 +1,19 @@
 package fi.metatavu.muisti.exhibitionui.views
 
-import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.ListAdapter
-import android.widget.Toast
-import androidx.core.app.JobIntentService
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
+import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.persistence.model.UpdateUserValueTask
-import fi.metatavu.muisti.exhibitionui.services.UpdateUserValueService
+import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import kotlinx.android.synthetic.main.activity_test.*
+import java.time.OffsetDateTime
 import java.util.*
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
@@ -72,26 +70,16 @@ class TestActivity : AppCompatActivity() {
     }
 
     private val mButtonClick = View.OnClickListener {
-        mViewModel!!.insert(UpdateUserValueTask("session", System.currentTimeMillis(), Math.round(Math.random() * 5 - 10), "avain", "arvo"))
+        mViewModel!!.addUpdateUserValueTask("avain", "arvo " + OffsetDateTime.now())
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mViewModel = ViewModelProvider(this).get(TestViewModel::class.java)
-        /*
-        val factory = XmlPullParserFactory.newInstance()
-        factory.isNamespaceAware = true
-        val xpp = factory.newPullParser()
-        xpp.setInput(StringReader("<view/>"))
 
-
-
-        val child = layoutInflater.inflate(xpp, null)
-
-        setContentView(fi.metatavu.muisti.exhibitionui.R.layout.dumbdumb)
+        setContentView(R.layout.activity_test)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        val layout = findViewById<FrameLayout>(fi.metatavu.muisti.exhibitionui.R.id.inflateTest)
-        layout.addView(child)*/
+
         mVisible = true
 
         // Set up the user interaction to manually show or hide the system UI.
