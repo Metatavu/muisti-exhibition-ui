@@ -1,31 +1,16 @@
 package fi.metatavu.muisti.exhibitionui.views
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
 import android.widget.ArrayAdapter
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProviders
-import androidx.lifecycle.ViewModelProvider
 import fi.metatavu.muisti.exhibitionui.R
-import fi.metatavu.muisti.exhibitionui.persistence.model.UpdateUserValueTask
-import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import kotlinx.android.synthetic.main.activity_test.*
 import java.time.OffsetDateTime
 import java.util.*
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-import org.xmlpull.v1.XmlPullParser
-import android.util.Xml.newPullParser
-import org.xmlpull.v1.XmlPullParserFactory
-import androidx.core.app.ComponentActivity.ExtraData
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-import android.R
-import android.widget.FrameLayout
-import java.io.StringReader
 
 
 /**
