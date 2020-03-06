@@ -3,7 +3,10 @@ package fi.metatavu.muisti.exhibitionui.views
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
+import android.view.Gravity
 import android.view.View
+import android.widget.Button
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import fi.metatavu.muisti.exhibitionui.R
@@ -54,6 +57,11 @@ class MainActivity : AppCompatActivity() {
 
     private val mNappiClick = View.OnClickListener {
         val intent = Intent(this, TestActivity::class.java)
+        this.startActivity(intent)
+    }
+
+    private val mSettingsClick = View.OnClickListener {
+        val intent = Intent(this, SettingsActivity::class.java)
         this.startActivity(intent)
     }
 
