@@ -14,11 +14,17 @@ import java.util.*
  *
  * @property name layout name
  * @property data layout data content
- * @property id layout id
+ * @property layoutId layout id
  * @property modifiedAt layout modifiedAt
  */
-@Entity (indices = [Index("layoutId", unique = true)])
+@Entity
 data class Layout (
+
+    @PrimaryKey
+    @NonNull
+    @TypeConverters(UUIDConverter::class)
+    val layoutId: UUID,
+
     @NonNull
     val name: String,
 
@@ -26,18 +32,9 @@ data class Layout (
     val data: PageLayoutView,
 
     @NonNull
-    @TypeConverters(UUIDConverter::class)
-    val layoutId: UUID,
-
-    @NonNull
     val modifiedAt: String
 
-) {
-
-    @PrimaryKey(autoGenerate = true)
-    var id: Long = 0
-
-}
+)
 
 /**
  * Converter class for Page Layout Views

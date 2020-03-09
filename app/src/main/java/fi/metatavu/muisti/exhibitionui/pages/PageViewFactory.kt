@@ -1,56 +1,86 @@
 package fi.metatavu.muisti.exhibitionui.pages
 
 import android.content.Context
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import fi.metatavu.muisti.api.client.models.ExhibitionPageLayoutView
-import fi.metatavu.muisti.api.client.models.ExhibitionPageLayoutViewProperty
-import fi.metatavu.muisti.api.client.models.ExhibitionPageLayoutViewPropertyType
-import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
+import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.exhibitionui.pages.components.*
-import java.util.*
 
+/**
+ * Page view factory
+ */
 class PageViewFactory {
-    private val imps = mutableListOf<ComponentFactory<*>>()
 
-    init {
-        imps.add(TextViewComponentFactory())
-        imps.add(ButtonComponentFactory())
-        imps.add(ImageViewComponentFactory())
-        imps.add(LinearLayoutComponentFactory())
-    }
+    companion object {
 
+        private val componentFactories = mutableListOf<ComponentFactory<*>>()
 
-    fun setLayoutToMap(layout: ExhibitionPageLayoutView){
-        val context = ExhibitionUIApplication.instance.applicationContext
-        val completeLayout = getLayout(layout, context)
-
-        PageLayoutContainer.set(layout.id, completeLayout)
-    }
-
-    private fun getLayout(layout: ExhibitionPageLayoutView, context: Context) : ViewGroup {
-        val factory = imps.find { it.name == layout.widget }
-        val root = factory?.buildComponent(context, layout.properties) as ViewGroup
-
-        layout.children.forEach {
-            if(it.children.isNotEmpty()){
-                root.addView(getLayout(it, context))
-            } else {
-                val childView = getView(it, context)
-                root.addView(childView)
-            }
+        init {
+            componentFactories.add(TextViewComponentFactory())
+            componentFactories.add(ButtonComponentFactory())
+            componentFactories.add(ImageViewComponentFactory())
+            componentFactories.add(LinearLayoutComponentFactory())
+            componentFactories.add(FrameLayoutComponentFactory())
+            componentFactories.add(RelativeLayoutComponentFactory())
         }
-        return root
+
+        /**
+         * Builds a page view
+         *
+         * @param context context
+         * @param layout
+         * @return
+         */
+        fun buildPageView(context: Context, layout: PageLayoutView) : View? {
+            return buildViewGroup(context, arrayOf(), layout)
+        }
+
+        /**
+         * Builds a view group
+         *
+         * @param context context
+         * @param parents view parents
+         * @param pageView page view
+         * @return build view group or null if failed
+         */
+        private fun buildViewGroup(context: Context, parents: Array<View>, pageView: PageLayoutView) : View? {
+            val factory = componentFactories.find { it.name == pageView.widget }
+            val root = factory?.buildComponent(context, arrayOf(), pageView.properties)
+            root?: return null
+            val childParents = parents.plus(root)
+
+            if (root is ViewGroup) {
+                pageView.children.forEach {
+                    if (it.children.isNotEmpty()) {
+                        val view = buildViewGroup(context, childParents, it)
+                        if (view != null) {
+                            root.addView(view)
+                        }
+                    } else {
+                        val childView = buildView(context, childParents, it)
+                        if (childView != null) {
+                            root.addView(childView)
+                        }
+                    }
+                }
+            }
+
+            return root
+        }
+
+        /**
+         * Builds a view
+         *
+         * @param context context
+         * @param parents view parents
+         * @param pageView page view
+         * @return build view or null if failed
+         */
+        private fun buildView(context: Context, parents: Array<View>, pageView: PageLayoutView) : View? {
+            val componentFactory = componentFactories.firstOrNull { it.name == pageView.widget }
+            return componentFactory?.buildComponent(context, parents, pageView.properties)
+        }
+
     }
 
-    private fun getView(layout: ExhibitionPageLayoutView, context: Context) : View? {
-        imps.forEach {
-            if(layout.widget == it.name){
-                return it.buildComponent(context, layout.properties)
-            }
-        }
-        return null
-    }
 }

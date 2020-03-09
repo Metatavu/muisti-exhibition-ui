@@ -4,60 +4,125 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import android.util.Log
-import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.LinearLayout
-import fi.metatavu.muisti.api.client.models.ExhibitionPageLayoutViewProperty
-import fi.metatavu.muisti.api.client.models.ExhibitionPageLayoutViewPropertyType
+import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import fi.metatavu.muisti.api.client.models.PageLayoutViewPropertyType
+import java.lang.Exception
 
-class ButtonComponentFactory : ComponentFactory<Button>{
+/**
+ * Component factory for buttons
+ */
+class ButtonComponentFactory : AbstractComponentFactory<Button>() {
+
     override val name: String
         get() = "Button"
 
-    override fun buildComponent(context: Context, properties: Array<ExhibitionPageLayoutViewProperty>): Button {
+    override fun buildComponent(context: Context, parents: Array<View>, properties: Array<PageLayoutViewProperty>): Button {
         val button = Button(context)
+        val parent = parents.last()
+
         button.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         properties.forEach {
-            when(it.name) {
-                "layout_width" -> when(it.type){
-                    ExhibitionPageLayoutViewPropertyType.number ->  button.layoutParams.width = it.value.toInt()
-                    ExhibitionPageLayoutViewPropertyType.string ->  when(it.value){
-                        "match_parent" -> button.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                        "wrap_content" -> button.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
+            this.setProperty(parent, button, it )
+        }
+
+        return button
+    }
+
+    /**
+     * Sets button property
+     *
+     * @param parent parent view
+     * @param button button
+     * @param property property
+     */
+    private fun setProperty(parent: View, button: Button, property: PageLayoutViewProperty) {
+        try {
+            when(property.name) {
+                "layout_width" -> when (property.type) {
+                    PageLayoutViewPropertyType.number -> setWidth(button, property.value)
+                    PageLayoutViewPropertyType.string -> when (property.value) {
+                        "match_parent" -> button.layoutParams.width =
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        "wrap_content" -> button.layoutParams.width =
+                            ViewGroup.LayoutParams.WRAP_CONTENT
                     }
                 }
-                "layout_height" -> when(it.type){
-                    ExhibitionPageLayoutViewPropertyType.number ->  button.layoutParams.height = it.value.toInt()
-                    ExhibitionPageLayoutViewPropertyType.string ->  when(it.value){
-                        "match_parent" -> button.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-                        "wrap_content" -> button.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                "layout_height" -> when (property.type) {
+                    PageLayoutViewPropertyType.number -> setHeight(button, property.value)
+                    PageLayoutViewPropertyType.string -> when (property.value) {
+                        "match_parent" -> button.layoutParams.height =
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        "wrap_content" -> button.layoutParams.height =
+                            ViewGroup.LayoutParams.WRAP_CONTENT
                     }
                 }
-                "width" -> button.width = it.value.toInt()
-                "height" -> button.height = it.value.toInt()
-                "textColor" -> button.setTextColor(Color.parseColor(it.value))
-                "textSize" -> button.textSize = it.value.toFloat()
-                "text" -> button.text = it.value
-                "textStyle" -> when(it.value){
+                "width" -> button.width = property.value.toInt()
+                "height" -> button.height = property.value.toInt()
+                "textColor" -> button.setTextColor(Color.parseColor(property.value))
+                "textSize" -> button.textSize = property.value.toFloat()
+                "text" -> button.text = property.value
+                "textStyle" -> when (property.value) {
                     "bold" -> button.typeface = Typeface.DEFAULT_BOLD
                     "normal" -> button.typeface = Typeface.DEFAULT
                 }
-                "layout_gravity" -> when(it.value){
-                    "center" -> button.gravity = Gravity.CENTER
-                    "center_vertical" -> button.gravity = Gravity.CENTER_VERTICAL
-                    "center_horizontal" -> button.gravity = Gravity.CENTER_HORIZONTAL
-                    "bottom" -> button.gravity = Gravity.BOTTOM
-                }
-                "background" -> button.setBackgroundColor(Color.parseColor(it.value))
-                "paddingLeft" -> button.setPadding(it.value.toInt(), button.paddingTop, button.paddingRight, button.paddingBottom)
-                "paddingTop" -> button.setPadding(button.paddingLeft, it.value.toInt(), button.paddingRight, button.paddingBottom)
-                "paddingRight" -> button.setPadding(button.paddingLeft, button.paddingTop, it.value.toInt(), button.paddingBottom)
-                "paddingBottom" -> button.setPadding(button.paddingLeft, button.paddingTop, button.paddingRight, it.value.toInt())
-                "tag" -> button.tag = it.value
-                else -> Log.d(javaClass.name, "Property ${it.name} not supported")
+                "layout_gravity" -> setLayoutGravity(parent, button, property.value)
+                "background" -> button.setBackgroundColor(Color.parseColor(property.value))
+                "paddingLeft" -> button.setPadding(
+                    property.value.toInt(),
+                    button.paddingTop,
+                    button.paddingRight,
+                    button.paddingBottom
+                )
+                "paddingTop" -> button.setPadding(
+                    button.paddingLeft,
+                    property.value.toInt(),
+                    button.paddingRight,
+                    button.paddingBottom
+                )
+                "paddingRight" -> button.setPadding(
+                    button.paddingLeft,
+                    button.paddingTop,
+                    property.value.toInt(),
+                    button.paddingBottom
+                )
+                "paddingBottom" -> button.setPadding(
+                    button.paddingLeft,
+                    button.paddingTop,
+                    button.paddingRight,
+                    property.value.toInt()
+                )
+                "tag" -> button.tag = property.value
+                else -> Log.d(ButtonComponentFactory::javaClass.name, "Property ${property.name} not supported")
             }
+        } catch (e: Exception) {
+            Log.d(ButtonComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
         }
-        return button
+    }
+
+    /**
+     * Sets button width
+     *
+     * @param button button
+     * @param value value
+     */
+    private fun setWidth(button: Button, value: String?) {
+        val dps = getDps(value)
+        dps ?: return
+        button.layoutParams.width = dps
+    }
+
+    /**
+     * Sets button height
+     *
+     * @param button button
+     * @param value value
+     */
+    private fun setHeight(button: Button, value: String) {
+        val dps = getDps(value)
+        dps ?: return
+        button.layoutParams.height = dps
     }
 }

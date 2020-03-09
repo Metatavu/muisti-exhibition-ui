@@ -14,9 +14,10 @@ import java.util.*
  * Database entity for page
  *
  */
-@Entity (indices = [Index("pageId")])
+@Entity
 data class Page (
 
+    @PrimaryKey
     @NonNull
     @TypeConverters(UUIDConverter::class)
     val pageId: UUID,
@@ -42,13 +43,7 @@ data class Page (
     @NonNull
     @TypeConverters(ExhibitionPageViewConverter::class)
     val eventTriggers: Array<ExhibitionPageEventTrigger> = emptyArray()
-
-    ) {
-
-    @PrimaryKey(autoGenerate = true)
-    var id: Long = 0
-
-}
+)
 
 /**
  * Converter class for Exhibition Page

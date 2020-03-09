@@ -56,8 +56,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val mNappiClick = View.OnClickListener {
-        val intent = Intent(this, TestActivity::class.java)
-        this.startActivity(intent)
+        // val intent = Intent(this, TestActivity::class.java)
+        // this.startActivity(intent)
+        goToPage("6d870c83-7501-4be4-96eb-abafae649fe3")
     }
 
     private val mSettingsClick = View.OnClickListener {
@@ -74,11 +75,6 @@ class MainActivity : AppCompatActivity() {
         val layout = LinearLayout(this)
         layout.gravity = Gravity.CENTER
         val params = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-
-        val button = Button(this)
-        button.text = "PERUNA?"
-
-        layout.addView(button, params)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -112,10 +108,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun goToPage(pageId: Int) {
+    fun goToPage(pageId: String) {
         val intent = Intent(this, PageActivity::class.java).apply{
-            putExtra("pageId", pageId.toString())
+            putExtra("pageId", pageId)
         }
+
         startActivity(intent)
     }
 

@@ -1,53 +1,108 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
 import android.content.Context
-import android.widget.TextView
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.util.Log
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.LinearLayout
-import fi.metatavu.muisti.api.client.models.ExhibitionPageLayoutViewProperty
-import fi.metatavu.muisti.api.client.models.ExhibitionPageLayoutViewPropertyType
-import fi.metatavu.muisti.exhibitionui.R
+import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import fi.metatavu.muisti.api.client.models.PageLayoutViewPropertyType
 
-class ImageViewComponentFactory : ComponentFactory<ImageView>{
+/**
+ * Component factory for image components
+ */
+class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
     override val name: String
         get() = "ImageView"
 
-    override fun buildComponent(context: Context, properties: Array<ExhibitionPageLayoutViewProperty>): ImageView {
+    override fun buildComponent(context: Context, parents: Array<View>, properties: Array<PageLayoutViewProperty>): ImageView {
         val imageView = ImageView(context)
         imageView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         properties.forEach {
-            when(it.name) {
-                "layout_width" -> when(it.type){
-                    ExhibitionPageLayoutViewPropertyType.number ->  imageView.layoutParams.width = it.value.toInt()
-                    ExhibitionPageLayoutViewPropertyType.string ->  when(it.value){
-                        "match_parent" -> imageView.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                        "wrap_content" -> imageView.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
-                    }
-                }
-                "layout_height" -> when(it.type){
-                    ExhibitionPageLayoutViewPropertyType.number ->  imageView.layoutParams.height = it.value.toInt()
-                    ExhibitionPageLayoutViewPropertyType.string ->  when(it.value){
-                        "match_parent" -> imageView.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-                        "wrap_content" -> imageView.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                    }
-                }
-                "width" -> imageView.layoutParams.width = it.value.toInt()
-                "height" -> imageView.layoutParams.height = it.value.toInt()
-                "background" -> imageView.setBackgroundColor(Color.parseColor(it.value))
-                "paddingLeft" -> imageView.setPadding(it.value.toInt(), imageView.paddingTop, imageView.paddingRight, imageView.paddingBottom)
-                "paddingTop" -> imageView.setPadding(imageView.paddingLeft, it.value.toInt(), imageView.paddingRight, imageView.paddingBottom)
-                "paddingRight" -> imageView.setPadding(imageView.paddingLeft, imageView.paddingTop, it.value.toInt(), imageView.paddingBottom)
-                "paddingBottom" -> imageView.setPadding(imageView.paddingLeft, imageView.paddingTop, imageView.paddingRight, it.value.toInt())
-                "src" -> imageView.setImageResource(R.drawable.cat)
-                "tag" -> imageView.tag = it.value
-                else -> Log.d(javaClass.name, "Property ${it.name} not supported")
-            }
+            this.setProperty(imageView, it)
         }
+
         return imageView
     }
+
+    /**
+     * Sets view image property
+     *
+     * @param imageView image view component
+     * @param property property
+     */
+    private fun setProperty(imageView: ImageView, property: PageLayoutViewProperty) {
+        try {
+            when (property.name) {
+                "layout_width" -> when (property.type) {
+                    PageLayoutViewPropertyType.number -> imageView.layoutParams.width =
+                        property.value.toInt()
+                    PageLayoutViewPropertyType.string -> when (property.value) {
+                        "match_parent" -> imageView.layoutParams.width =
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        "wrap_content" -> imageView.layoutParams.width =
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    }
+                }
+                "layout_height" -> when (property.type) {
+                    PageLayoutViewPropertyType.number -> imageView.layoutParams.height =
+                        property.value.toInt()
+                    PageLayoutViewPropertyType.string -> when (property.value) {
+                        "match_parent" -> imageView.layoutParams.height =
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        "wrap_content" -> imageView.layoutParams.height =
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    }
+                }
+                "width" -> imageView.layoutParams.width = property.value.toInt()
+                "height" -> imageView.layoutParams.height = property.value.toInt()
+                "background" -> imageView.setBackgroundColor(Color.parseColor(property.value))
+                "paddingLeft" -> imageView.setPadding(
+                    property.value.toInt(),
+                    imageView.paddingTop,
+                    imageView.paddingRight,
+                    imageView.paddingBottom
+                )
+                "paddingTop" -> imageView.setPadding(
+                    imageView.paddingLeft,
+                    property.value.toInt(),
+                    imageView.paddingRight,
+                    imageView.paddingBottom
+                )
+                "paddingRight" -> imageView.setPadding(
+                    imageView.paddingLeft,
+                    imageView.paddingTop,
+                    property.value.toInt(),
+                    imageView.paddingBottom
+                )
+                "paddingBottom" -> imageView.setPadding(
+                    imageView.paddingLeft,
+                    imageView.paddingTop,
+                    imageView.paddingRight,
+                    property.value.toInt()
+                )
+                "src" -> setSrc(imageView, property.value)
+                "tag" -> imageView.tag = property.value
+                else -> Log.d(javaClass.name, "Property ${property.name} not supported")
+            }
+        } catch (e: Exception) {
+            Log.d(ImageViewComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
+        }
+    }
+
+    /**
+     * Sets a image src
+     *
+     * @param imageView image view component
+     * @param value value
+     */
+    private fun setSrc(imageView: ImageView, value: String?) {
+        val url = getUrl(value)
+        url ?: return
+        val bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+        imageView.setImageBitmap(bmp)
+    }
+
 }

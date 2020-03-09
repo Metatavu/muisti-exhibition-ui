@@ -1,7 +1,11 @@
 package fi.metatavu.muisti.exhibitionui.persistence.repository
 
 import android.util.Log
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fi.metatavu.muisti.api.client.models.ExhibitionPage
+import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.exhibitionui.persistence.dao.PageDao
 import fi.metatavu.muisti.exhibitionui.persistence.model.Page
 import java.util.*

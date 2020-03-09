@@ -23,40 +23,47 @@ class KeycloakAccessTokenProvider {
      * @throws IOException on communication failure
      */
     fun getAccessToken() : KeycloakAccessToken? {
-        Log.d(KeycloakAccessTokenProvider::javaClass.name, "Request fresh token...")
+        try {
+            Log.d(KeycloakAccessTokenProvider::javaClass.name, "Request fresh token...")
 
-        val baseUrl = BuildConfig.KEYCLOAK_URL
-        val realm = BuildConfig.KEYCLOAK_REALM
-        val clientId = BuildConfig.KEYCLOAK_CLIENT_ID
-        val username = BuildConfig.KEYCLOAK_USERNAME
-        val password = BuildConfig.KEYCLOAK_PASSWORD
-        val httpUrl = baseUrl.toHttpUrlOrNull() ?: throw IOException("baseUrl is invalid.")
+            val baseUrl = BuildConfig.KEYCLOAK_URL
+            val realm = BuildConfig.KEYCLOAK_REALM
+            val clientId = BuildConfig.KEYCLOAK_CLIENT_ID
+            val username = BuildConfig.KEYCLOAK_USERNAME
+            val password = BuildConfig.KEYCLOAK_PASSWORD
+            val httpUrl = baseUrl.toHttpUrlOrNull() ?: throw IOException("baseUrl is invalid.")
 
-        val url = httpUrl.newBuilder()
-            .addPathSegments("realms/$realm/protocol/openid-connect/token")
-            .build()
+            val url = httpUrl.newBuilder()
+                .addPathSegments("realms/$realm/protocol/openid-connect/token")
+                .build()
 
-        val formBody = FormBody.Builder()
-            .add("client_id", clientId)
-            .add("grant_type", "password")
-            .add("username", username)
-            .add("password", password)
-            .build()
+            val formBody = FormBody.Builder()
+                .add("client_id", clientId)
+                .add("grant_type", "password")
+                .add("username", username)
+                .add("password", password)
+                .build()
 
-        val request = Request.Builder()
-            .url(url)
-            .post(formBody)
-            .build()
+            val request = Request.Builder()
+                .url(url)
+                .post(formBody)
+                .build()
 
-        val response = OkHttpClient().newCall(request).execute()
-        val token = response.body!!.string()
+            val response = OkHttpClient().newCall(request).execute()
+            val token = response.body!!.string()
 
-        val moshi = Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
-            .build()
+            val moshi = Moshi.Builder()
+                .add(KotlinJsonAdapterFactory())
+                .build()
 
-        val jsonAdapter: JsonAdapter<KeycloakAccessToken> = moshi.adapter<KeycloakAccessToken>(KeycloakAccessToken::class.java)
+            val jsonAdapter: JsonAdapter<KeycloakAccessToken> =
+                moshi.adapter<KeycloakAccessToken>(KeycloakAccessToken::class.java)
 
-        return jsonAdapter.fromJson(token)
+            return jsonAdapter.fromJson(token)
+        } catch (e: Exception) {
+            Log.d(this.javaClass.name, "Failed to retrieve access token", e)
+            return null
+        }
+
     }
 }

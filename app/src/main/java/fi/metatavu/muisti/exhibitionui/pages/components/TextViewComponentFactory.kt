@@ -6,29 +6,33 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.util.Log
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
-import fi.metatavu.muisti.api.client.models.ExhibitionPageLayoutViewProperty
-import fi.metatavu.muisti.api.client.models.ExhibitionPageLayoutViewPropertyType
+import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import fi.metatavu.muisti.api.client.models.PageLayoutViewPropertyType
 
-class TextViewComponentFactory : ComponentFactory<TextView>{
+/**
+ * Component factory for text view components
+ */
+class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
     override val name: String
         get() = "TextView"
 
-    override fun buildComponent(context: Context, properties: Array<ExhibitionPageLayoutViewProperty>): TextView {
+    override fun buildComponent(context: Context, parents: Array<View>, properties: Array<PageLayoutViewProperty>): TextView {
         val textView = TextView(context)
         textView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         properties.forEach {
             when(it.name) {
                 "layout_width" -> when(it.type){
-                    ExhibitionPageLayoutViewPropertyType.number ->  textView.layoutParams.width = it.value.toInt()
-                    ExhibitionPageLayoutViewPropertyType.string ->  when(it.value){
+                    PageLayoutViewPropertyType.number ->  textView.layoutParams.width = it.value.toInt()
+                    PageLayoutViewPropertyType.string ->  when(it.value){
                         "match_parent" -> textView.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
                         "wrap_content" -> textView.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
                     }
                 }
                 "layout_height" -> when(it.type){
-                    ExhibitionPageLayoutViewPropertyType.number ->  textView.layoutParams.height = it.value.toInt()
-                    ExhibitionPageLayoutViewPropertyType.string ->  when(it.value){
+                    PageLayoutViewPropertyType.number ->  textView.layoutParams.height = it.value.toInt()
+                    PageLayoutViewPropertyType.string ->  when(it.value){
                         "match_parent" -> textView.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
                         "wrap_content" -> textView.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
                     }
@@ -36,7 +40,7 @@ class TextViewComponentFactory : ComponentFactory<TextView>{
                 "width" -> textView.width = it.value.toInt()
                 "height" -> textView.height = it.value.toInt()
                 "textColor" -> textView.setTextColor(Color.parseColor(it.value))
-                "textSize" -> textView.textSize = it.value.toFloat()
+                // "textSize" -> textView.textSize = it.value.toFloat()
                 "text" -> textView.text = it.value
                 "textStyle" -> when(it.value){
                     "bold" -> textView.typeface = Typeface.DEFAULT_BOLD

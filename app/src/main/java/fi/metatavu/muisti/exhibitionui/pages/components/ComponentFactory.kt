@@ -1,13 +1,29 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
 import android.content.Context
-import android.graphics.Color
-import android.util.Log
 import android.view.View
-import android.widget.TextView
-import fi.metatavu.muisti.api.client.models.ExhibitionPageLayoutViewProperty
+import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 
+/**
+ * Interface descrining component factory
+ *
+ * @param T view
+ */
 interface ComponentFactory <T : View> {
+
+    /**
+     * Component factory name
+     */
     val name: String
-    fun buildComponent(context: Context, properties : Array<ExhibitionPageLayoutViewProperty>) : T
+
+    /**
+     * Builds a view component
+     *
+     * @param context context
+     * @param parents list of parent components
+     * @param properties array of view properties
+     * @return build view
+     */
+    fun buildComponent(context: Context, parents: Array<View>, properties : Array<PageLayoutViewProperty>) : T
+
 }

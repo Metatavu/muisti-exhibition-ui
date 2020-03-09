@@ -1,12 +1,12 @@
 package fi.metatavu.muisti.exhibitionui.services
 
 import android.content.Intent
+import android.util.Log
 import androidx.core.app.JobIntentService
 import fi.metatavu.muisti.api.client.models.PageLayout
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
 import fi.metatavu.muisti.exhibitionui.persistence.repository.LayoutRepository
-import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -27,11 +27,9 @@ class UpdateLayoutsService : JobIntentService() {
 
     override fun onHandleWork(intent: Intent) {
         GlobalScope.launch {
-            val exhibitionId = DeviceSettings.getExhibitionId()
-            if (exhibitionId != null) {
-                val layouts = MuistiApiFactory.getPageLayoutsApi().listPageLayouts()
-                addLayouts(layouts)
-            }
+            val layouts = MuistiApiFactory.getPageLayoutsApi().listPageLayouts()
+            addLayouts(layouts)
+            Log.d(UpdatePagesService::javaClass.name, "Updated ${layouts.size} layouts.")
         }
     }
 
@@ -42,6 +40,6 @@ class UpdateLayoutsService : JobIntentService() {
      * @return a visitor session for a task
      */
     private suspend fun addLayouts(layouts: Array<PageLayout>) {
-        layoutRepository.setLayouts(layouts)
+        layoutRepository.updateLayouts(layouts)
     }
 }

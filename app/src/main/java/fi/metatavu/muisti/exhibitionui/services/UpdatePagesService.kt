@@ -1,6 +1,7 @@
 package fi.metatavu.muisti.exhibitionui.services
 
 import android.content.Intent
+import android.util.Log
 import androidx.core.app.JobIntentService
 import fi.metatavu.muisti.api.client.models.ExhibitionPage
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
@@ -29,8 +30,10 @@ class UpdatePagesService : JobIntentService() {
         GlobalScope.launch {
             val exhibitionId = DeviceSettings.getExhibitionId()
             if (exhibitionId != null) {
+                Log.d(UpdatePagesService::javaClass.name, "Updating pages...")
                 val pages = MuistiApiFactory.getExhibitionPagesApi().listExhibitionPages(exhibitionId)
                 addPages(pages)
+                Log.d(UpdatePagesService::javaClass.name, "Updated ${pages.size} pages.")
             }
         }
     }
