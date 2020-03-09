@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.api.client.models.PageLayoutViewPropertyType
 
@@ -17,11 +18,11 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
     override val name: String
         get() = "ImageView"
 
-    override fun buildComponent(context: Context, parents: Array<View>, properties: Array<PageLayoutViewProperty>): ImageView {
+    override fun buildComponent(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): ImageView {
         val imageView = ImageView(context)
         imageView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         properties.forEach {
-            this.setProperty(imageView, it)
+            this.setProperty(imageView, resources, it)
         }
 
         return imageView
@@ -33,7 +34,7 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
      * @param imageView image view component
      * @param property property
      */
-    private fun setProperty(imageView: ImageView, property: PageLayoutViewProperty) {
+    private fun setProperty(imageView: ImageView, resources: Array<ExhibitionPageResource>, property: PageLayoutViewProperty) {
         try {
             when (property.name) {
                 "layout_width" -> when (property.type) {
@@ -83,7 +84,7 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
                     imageView.paddingRight,
                     property.value.toInt()
                 )
-                "src" -> setSrc(imageView, property.value)
+                "src" -> setSrc(imageView, resources, property.value)
                 "tag" -> imageView.tag = property.value
                 else -> Log.d(javaClass.name, "Property ${property.name} not supported")
             }
@@ -98,8 +99,9 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
      * @param imageView image view component
      * @param value value
      */
-    private fun setSrc(imageView: ImageView, value: String?) {
-        val url = getUrl(value)
+    private fun setSrc(imageView: ImageView, resources: Array<ExhibitionPageResource>, value: String?) {
+        val resource = getResource(resources, value)
+        val url = getUrl(resource ?: value)
         url ?: return
         val bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream())
         imageView.setImageBitmap(bmp)

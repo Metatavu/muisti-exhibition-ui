@@ -3,6 +3,7 @@ package fi.metatavu.muisti.exhibitionui.pages
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
+import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.exhibitionui.pages.components.*
 
@@ -28,11 +29,12 @@ class PageViewFactory {
          * Builds a page view
          *
          * @param context context
-         * @param layout
+         * @param resources list of resources
+         * @param pageView pageView
          * @return
          */
-        fun buildPageView(context: Context, layout: PageLayoutView) : View? {
-            return buildViewGroup(context, arrayOf(), layout)
+        fun buildPageView(context: Context, resources: Array<ExhibitionPageResource>, pageView: PageLayoutView) : View? {
+            return buildViewGroup(context, arrayOf(), resources, pageView)
         }
 
         /**
@@ -40,24 +42,25 @@ class PageViewFactory {
          *
          * @param context context
          * @param parents view parents
+         * @param resources list of resources
          * @param pageView page view
          * @return build view group or null if failed
          */
-        private fun buildViewGroup(context: Context, parents: Array<View>, pageView: PageLayoutView) : View? {
+        private fun buildViewGroup(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, pageView: PageLayoutView) : View? {
             val factory = componentFactories.find { it.name == pageView.widget }
-            val root = factory?.buildComponent(context, arrayOf(), pageView.properties)
+            val root = factory?.buildComponent(context, arrayOf(), resources, pageView.properties)
             root?: return null
             val childParents = parents.plus(root)
 
             if (root is ViewGroup) {
                 pageView.children.forEach {
                     if (it.children.isNotEmpty()) {
-                        val view = buildViewGroup(context, childParents, it)
+                        val view = buildViewGroup(context, childParents, resources, it)
                         if (view != null) {
                             root.addView(view)
                         }
                     } else {
-                        val childView = buildView(context, childParents, it)
+                        val childView = buildView(context, childParents, resources, it)
                         if (childView != null) {
                             root.addView(childView)
                         }
@@ -76,9 +79,9 @@ class PageViewFactory {
          * @param pageView page view
          * @return build view or null if failed
          */
-        private fun buildView(context: Context, parents: Array<View>, pageView: PageLayoutView) : View? {
+        private fun buildView(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, pageView: PageLayoutView) : View? {
             val componentFactory = componentFactories.firstOrNull { it.name == pageView.widget }
-            return componentFactory?.buildComponent(context, parents, pageView.properties)
+            return componentFactory?.buildComponent(context, parents, resources, pageView.properties)
         }
 
     }

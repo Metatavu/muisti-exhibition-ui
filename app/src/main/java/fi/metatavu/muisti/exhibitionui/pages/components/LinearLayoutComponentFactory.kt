@@ -6,6 +6,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.api.client.models.PageLayoutViewPropertyType
 
@@ -16,7 +17,7 @@ class LinearLayoutComponentFactory : AbstractComponentFactory<LinearLayout>() {
     override val name: String
         get() = "LinearLayout"
 
-    override fun buildComponent(context: Context, parents: Array<View>, properties: Array<PageLayoutViewProperty>): LinearLayout {
+    override fun buildComponent(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): LinearLayout {
         val linearLayout = LinearLayout(context)
         linearLayout.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 

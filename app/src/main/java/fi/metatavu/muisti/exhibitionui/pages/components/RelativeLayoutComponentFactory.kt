@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
+import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.api.client.models.PageLayoutViewPropertyType
 
@@ -16,7 +17,7 @@ class RelativeLayoutComponentFactory : AbstractComponentFactory<RelativeLayout>(
     override val name: String
         get() = "RelativeLayout"
 
-    override fun buildComponent(context: Context, parents: Array<View>, properties: Array<PageLayoutViewProperty>): RelativeLayout {
+    override fun buildComponent(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): RelativeLayout {
         val frameLayout = RelativeLayout(context)
         frameLayout.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         properties.forEach {

@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.api.client.models.PageLayoutViewPropertyType
 import java.lang.Exception
@@ -19,7 +20,7 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
     override val name: String
         get() = "Button"
 
-    override fun buildComponent(context: Context, parents: Array<View>, properties: Array<PageLayoutViewProperty>): Button {
+    override fun buildComponent(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): Button {
         val button = Button(context)
         val parent = parents.last()
 

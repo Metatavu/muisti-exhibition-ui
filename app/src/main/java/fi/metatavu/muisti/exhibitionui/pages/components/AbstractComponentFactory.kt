@@ -7,6 +7,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.regex.Matcher
@@ -63,6 +64,23 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     protected fun getUri(value: String?): Uri? {
         value?: return null
         return Uri.parse(value)
+    }
+
+    /**
+     * Returns resource value for given property
+     *
+     * @param value property value
+     * @return resource value for given property
+     */
+    protected fun getResource(resources: Array<ExhibitionPageResource>, value: String?): String? {
+        value ?: return null
+        if (!value.startsWith("@resources/")) {
+            return null
+        }
+
+        val resourceName = value.substring(11)
+        val resource = resources.firstOrNull { resourceName == it.id }
+        return resource?.data
     }
 
     /**
