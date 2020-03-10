@@ -76,6 +76,7 @@ class PageViewFactory {
          *
          * @param context context
          * @param parents view parents
+         * @param resources resources
          * @param pageView page view
          * @return build view or null if failed
          */

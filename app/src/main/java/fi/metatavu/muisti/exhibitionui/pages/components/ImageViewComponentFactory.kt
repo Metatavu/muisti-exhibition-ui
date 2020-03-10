@@ -97,6 +97,7 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
      * Sets a image src
      *
      * @param imageView image view component
+     * @param resources resources
      * @param value value
      */
     private fun setSrc(imageView: ImageView, resources: Array<ExhibitionPageResource>, value: String?) {
