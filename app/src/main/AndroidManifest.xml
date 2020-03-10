@@ -7,12 +7,17 @@
 
     <application android:label="@string/app_name"
         android:name=".ExhibitionUIApplication">
-
         <activity
             android:name=".views.TestActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_test"
-            android:theme="@style/FullscreenTheme" />
+            android:theme="@style/FullscreenTheme"/>
+
+        <activity
+            android:name=".views.PageActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="loading..."
+            android:theme="@style/FullscreenTheme"/>
 
         <activity
             android:name=".views.MainActivity"
@@ -40,14 +45,27 @@
             android:name=".services.UpdateKeycloakTokenService"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+
         <service
             android:name=".services.UpdateLayoutsService"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+
         <service
             android:name=".services.UpdatePagesService"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <service
+            android:name=".services.ConstructPagesService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <service
+            android:name=".services.ConstructPagesService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
     </application>
 
 </manifest>

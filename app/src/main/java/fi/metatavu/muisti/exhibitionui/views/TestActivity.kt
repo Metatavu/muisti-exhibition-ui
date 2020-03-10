@@ -1,18 +1,17 @@
 package fi.metatavu.muisti.exhibitionui.views
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
 import android.widget.ArrayAdapter
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import fi.metatavu.muisti.exhibitionui.R
-import fi.metatavu.muisti.exhibitionui.persistence.model.UpdateUserValueTask
-import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import kotlinx.android.synthetic.main.activity_test.*
 import java.time.OffsetDateTime
 import java.util.*
+
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -74,7 +73,7 @@ class TestActivity : AppCompatActivity() {
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
-
+        setContentView(fi.metatavu.muisti.exhibitionui.R.layout.activity_test)
         button.setOnClickListener(mButtonClick)
 
         mViewModel!!.listLive(100).observe(this, Observer {

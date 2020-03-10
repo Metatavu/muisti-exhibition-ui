@@ -20,30 +20,7 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
      * @return a layout or null if not found
      */
     suspend fun getLayout(layoutId: UUID): Layout? {
-        return layoutDao.findByLayoutId(layoutId)
-    }
-
-    /**
-     * Returns all layouts from Database
-     *
-     * @return a device setting value or null if not found
-     */
-    suspend fun listAll(): List<Layout>? {
-        return layoutDao.listAll()
-    }
-
-    /**
-     * Sets a Layout into the database
-     *
-     * @param layout set Layout to database if layout with same id exists it will be updated
-     */
-    suspend fun setLayout(layout: Layout) {
-        val entity = layoutDao.findByLayoutId(layout.layoutId)
-        if (entity != null) {
-            layoutDao.update(layout)
-        } else {
-            layoutDao.insert(layout)
-        }
+        return layoutDao.findByLayoutId(layoutId.toString())
     }
 
     /**
@@ -51,25 +28,33 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
      *
      * @param layouts an array of layouts to insert into the database if layout with same id exists it will be updated
      */
-    suspend fun setLayouts(layouts: Array<PageLayout>) {
+    suspend fun updateLayouts(layouts: Array<PageLayout>) {
         layouts.forEach {
             val id = it.id
+
             if (id == null) {
                 Log.d(LayoutRepository::javaClass.name, "id was null")
                 return
             }
 
-            val existing = layoutDao.findByLayoutId(id)
-            val layout = Layout(
-                name = it.name,
-                data = it.data,
-                layoutId = id,
-                modifiedAt = it.modifiedAt!!
-            )
+            val existing = layoutDao.findByLayoutId(id.toString())
             if (existing == null) {
-                layoutDao.insert(layout)
+                Log.d(LayoutRepository::javaClass.name, "Adding layout $id to database")
+
+                layoutDao.insert(Layout(
+                    name = it.name,
+                    data = it.data,
+                    layoutId = id,
+                    modifiedAt = it.modifiedAt!!
+                ))
             } else {
-                layoutDao.update(layout)
+                Log.d(LayoutRepository::javaClass.name, "Update layout $id to database")
+
+                layoutDao.update(existing.copy(
+                    name = it.name,
+                    data = it.data,
+                    modifiedAt = it.modifiedAt!!
+                ))
             }
         }
     }

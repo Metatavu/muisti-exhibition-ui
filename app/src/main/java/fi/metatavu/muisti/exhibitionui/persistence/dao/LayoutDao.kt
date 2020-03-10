@@ -25,7 +25,7 @@ interface LayoutDao {
      * @return found layout or null if not found
      */
     @Query("SELECT * FROM Layout WHERE layoutId = :layoutId")
-    suspend fun findByLayoutId(layoutId: UUID): Layout?
+    suspend fun findByLayoutId(layoutId: String): Layout?
 
     /**
      * Lists all layouts
