@@ -160,10 +160,10 @@ class PageActivity : AppCompatActivity() {
      * @param event event to be triggered
      */
     private fun triggerEvent(event: ExhibitionPageEvent) {
-        val properties = event.properties ?: arrayOf()
-        val provider: PageActionProvider? = PageActionProviderFactory.buildProvider(event.type, properties)
+        val properties = event.properties
+        val provider: PageActionProvider? = PageActionProviderFactory.buildProvider(event.action, properties)
         if (provider == null) {
-            Log.d(this.javaClass.name, "Could not find page action provider for ${event.type}")
+            Log.d(this.javaClass.name, "Could not find page action provider for ${event.action}")
             return
         }
 
