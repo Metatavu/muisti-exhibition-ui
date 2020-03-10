@@ -1,35 +1,34 @@
 package fi.metatavu.muisti.exhibitionui.pages
 
-import android.view.View
 import java.util.*
 
 /**
- * Page view container
+ * Container for generated page views
  */
 class PageViewContainer {
 
     companion object {
 
-        private val layoutMap= mutableMapOf<UUID, View>()
+        private val pageViews= mutableMapOf<UUID, PageView>()
 
         /**
-         * Returns constructed view by view id
+         * Returns generated page view by id
          *
          * @param id view id
          * @return constructed view or null if not found
          */
-        fun get(id: UUID): View? {
-            return layoutMap[id]
+        fun getPageView(id: UUID): PageView? {
+            return pageViews[id]
         }
 
         /**
-         * Stored constructed view container
+         * Stores generated page view
          *
          * @param id view id
-         * @param view constructed view
+         * @param pageView constructed view
          */
-        fun set(id: UUID, view: View){
-            layoutMap[id] = view
+        fun setPageView(id: UUID, pageView: PageView) {
+            pageViews[id] = pageView
         }
     }
 

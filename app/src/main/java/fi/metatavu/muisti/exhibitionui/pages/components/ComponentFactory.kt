@@ -22,10 +22,11 @@ interface ComponentFactory <T : View> {
      *
      * @param context context
      * @param parents list of parent components
+     * @param id id
      * @param resources list of resources
      * @param properties array of view properties
      * @return build view
      */
-    fun buildComponent(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, properties : Array<PageLayoutViewProperty>) : T
+    fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties : Array<PageLayoutViewProperty>) : T
 
 }

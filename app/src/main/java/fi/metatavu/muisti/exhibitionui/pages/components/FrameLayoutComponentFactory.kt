@@ -17,7 +17,7 @@ class FrameLayoutComponentFactory : AbstractComponentFactory<FrameLayout>() {
     override val name: String
         get() = "FrameLayout"
 
-    override fun buildComponent(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): FrameLayout {
+    override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): FrameLayout {
         val frameLayout = FrameLayout(context)
         frameLayout.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         properties.forEach {

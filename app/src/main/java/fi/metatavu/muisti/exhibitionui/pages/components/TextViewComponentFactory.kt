@@ -19,7 +19,7 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
     override val name: String
         get() = "TextView"
 
-    override fun buildComponent(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): TextView {
+    override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): TextView {
         val textView = TextView(context)
         textView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 

@@ -90,7 +90,11 @@ class ExhibitionPageViewConverter {
      */
     @TypeConverter
     fun stringToExhibitionPageEventTrigger(data: String): Array<ExhibitionPageEventTrigger>? {
-        return pageEventJsonAdapter.fromJson(data)
+        try {
+            return pageEventJsonAdapter.fromJson(data)
+        } catch (e: Exception) {
+            return arrayOf()
+        }
     }
 
     /**
