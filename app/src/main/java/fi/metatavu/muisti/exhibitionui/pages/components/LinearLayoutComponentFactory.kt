@@ -17,7 +17,7 @@ class LinearLayoutComponentFactory : AbstractComponentFactory<LinearLayout>() {
     override val name: String
         get() = "LinearLayout"
 
-    override fun buildComponent(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): LinearLayout {
+    override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): LinearLayout {
         val linearLayout = LinearLayout(context)
         linearLayout.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 

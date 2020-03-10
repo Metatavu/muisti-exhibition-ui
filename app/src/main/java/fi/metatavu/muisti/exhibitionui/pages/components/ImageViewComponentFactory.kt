@@ -18,7 +18,7 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
     override val name: String
         get() = "ImageView"
 
-    override fun buildComponent(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): ImageView {
+    override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): ImageView {
         val imageView = ImageView(context)
         imageView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         properties.forEach {

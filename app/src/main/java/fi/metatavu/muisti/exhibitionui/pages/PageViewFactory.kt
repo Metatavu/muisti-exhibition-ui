@@ -48,7 +48,7 @@ class PageViewFactory {
          */
         private fun buildViewGroup(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, pageView: PageLayoutView) : View? {
             val factory = componentFactories.find { it.name == pageView.widget }
-            val root = factory?.buildComponent(context, arrayOf(), resources, pageView.properties)
+            val root = factory?.buildComponent(context, arrayOf(), pageView.id, resources, pageView.properties)
             root?: return null
             val childParents = parents.plus(root)
 
@@ -81,7 +81,7 @@ class PageViewFactory {
          */
         private fun buildView(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, pageView: PageLayoutView) : View? {
             val componentFactory = componentFactories.firstOrNull { it.name == pageView.widget }
-            return componentFactory?.buildComponent(context, parents, resources, pageView.properties)
+            return componentFactory?.buildComponent(context, parents, pageView.id, resources, pageView.properties)
         }
 
     }

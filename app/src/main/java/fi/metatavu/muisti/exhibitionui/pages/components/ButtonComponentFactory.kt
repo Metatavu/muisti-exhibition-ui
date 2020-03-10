@@ -20,11 +20,14 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
     override val name: String
         get() = "Button"
 
-    override fun buildComponent(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): Button {
+    override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): Button {
         val button = Button(context)
         val parent = parents.last()
 
         button.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+
+        setId(button, id)
+
         properties.forEach {
             this.setProperty(parent, button, it )
         }
@@ -95,12 +98,21 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
                     button.paddingRight,
                     property.value.toInt()
                 )
-                "tag" -> button.tag = property.value
                 else -> Log.d(ButtonComponentFactory::javaClass.name, "Property ${property.name} not supported")
             }
         } catch (e: Exception) {
             Log.d(ButtonComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
         }
+    }
+
+    /**
+     * Sets button id
+     *
+     * @param button button
+     * @param value value
+     */
+    private fun setId(button: Button, value: String?) {
+        button.tag = value
     }
 
     /**

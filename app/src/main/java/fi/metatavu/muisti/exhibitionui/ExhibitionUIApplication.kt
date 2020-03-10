@@ -1,5 +1,6 @@
 package fi.metatavu.muisti.exhibitionui
 
+import android.app.Activity
 import android.app.Application
 import android.content.Intent
 import androidx.core.app.JobIntentService
@@ -12,6 +13,8 @@ import java.util.concurrent.TimeUnit
  */
 class ExhibitionUIApplication : Application() {
 
+    private var currentActivity: Activity? = null
+
     /**
      * Constructor
      */
@@ -23,6 +26,24 @@ class ExhibitionUIApplication : Application() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 1, 1, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 1, 1, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueConstructPagesServiceTask() }, 1, 15, TimeUnit.SECONDS)
+    }
+
+    /**
+     * Returns currently active activity
+     *
+     * @return currently active activity
+     */
+    fun getCurrentActivity(): Activity? {
+        return currentActivity
+    }
+
+    /**
+     * Sets currently active activity
+     *
+     * @param activity activity
+     */
+    fun setCurrentActivity(activity: Activity?) {
+        currentActivity = activity
     }
 
     /**
