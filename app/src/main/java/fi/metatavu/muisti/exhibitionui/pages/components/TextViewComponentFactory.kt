@@ -34,6 +34,7 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
      * Sets view text property
      *
      * @param textView text component
+     * @param resources resources
      * @param property property
      */
     private fun setProperty(textView: TextView, resources: Array<ExhibitionPageResource>, property: PageLayoutViewProperty) {
