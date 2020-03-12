@@ -9,8 +9,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
-import fi.metatavu.muisti.api.client.models.PageLayoutViewPropertyType
-import java.lang.Exception
 
 /**
  * Component factory for buttons
@@ -43,35 +41,18 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
      * @param property property
      */
     private fun setProperty(parent: View, button: Button, property: PageLayoutViewProperty) {
+        Log.d(javaClass.name, "Setting property ${property.name} to ${property.value}")
+
         try {
             when(property.name) {
-                "layout_width" -> when (property.type) {
-                    PageLayoutViewPropertyType.number -> setWidth(button, property.value)
-                    PageLayoutViewPropertyType.string -> when (property.value) {
-                        "match_parent" -> button.layoutParams.width =
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        "wrap_content" -> button.layoutParams.width =
-                            ViewGroup.LayoutParams.WRAP_CONTENT
-                    }
-                }
-                "layout_height" -> when (property.type) {
-                    PageLayoutViewPropertyType.number -> setHeight(button, property.value)
-                    PageLayoutViewPropertyType.string -> when (property.value) {
-                        "match_parent" -> button.layoutParams.height =
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        "wrap_content" -> button.layoutParams.height =
-                            ViewGroup.LayoutParams.WRAP_CONTENT
-                    }
-                }
+                "layout_width" -> setLayoutWidths(button, property)
+                "layout_height" -> setLayoutHeights(button, property)
                 "width" -> button.width = property.value.toInt()
                 "height" -> button.height = property.value.toInt()
                 "textColor" -> button.setTextColor(Color.parseColor(property.value))
                 "textSize" -> button.textSize = property.value.toFloat()
                 "text" -> button.text = property.value
-                "textStyle" -> when (property.value) {
-                    "bold" -> button.typeface = Typeface.DEFAULT_BOLD
-                    "normal" -> button.typeface = Typeface.DEFAULT
-                }
+                "textStyle" -> setTextStyle(property, button)
                 "layout_gravity" -> setLayoutGravity(parent, button, property.value)
                 "background" -> button.setBackgroundColor(Color.parseColor(property.value))
                 "paddingLeft" -> button.setPadding(
@@ -98,10 +79,28 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
                     button.paddingRight,
                     property.value.toInt()
                 )
+
+                "layout_marginTop" -> setLayoutMargin(parent, button, property)
+                "layout_marginBottom" -> setLayoutMargin(parent, button, property)
+                "layout_marginRight" -> setLayoutMargin(parent, button, property)
+                "layout_marginLeft" -> setLayoutMargin(parent, button, property)
                 else -> Log.d(ButtonComponentFactory::javaClass.name, "Property ${property.name} not supported")
             }
         } catch (e: Exception) {
             Log.d(ButtonComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
+        }
+    }
+
+    /**
+     * Sets text styles
+     *
+     * @param property
+     * @param button
+     */
+    private fun setTextStyle(property: PageLayoutViewProperty, button: Button) {
+        when (property.value) {
+            "bold" -> button.typeface = Typeface.DEFAULT_BOLD
+            "normal" -> button.typeface = Typeface.DEFAULT
         }
     }
 

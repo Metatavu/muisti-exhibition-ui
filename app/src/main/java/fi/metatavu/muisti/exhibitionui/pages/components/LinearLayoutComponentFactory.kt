@@ -23,49 +23,79 @@ class LinearLayoutComponentFactory : AbstractComponentFactory<LinearLayout>() {
 
         properties.forEach {
             when(it.name) {
-                "layout_width" -> when(it.type){
-                    PageLayoutViewPropertyType.number ->  linearLayout.layoutParams.width = it.value.toInt()
-                    PageLayoutViewPropertyType.string ->  when(it.value){
-                        "match_parent" -> linearLayout.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                        "wrap_content" -> linearLayout.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
-                    }
-                }
-                "layout_height" -> when(it.type){
-                    PageLayoutViewPropertyType.number ->  linearLayout.layoutParams.height = it.value.toInt()
-                    PageLayoutViewPropertyType.string ->  when(it.value){
-                        "match_parent" -> linearLayout.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-                        "wrap_content" -> linearLayout.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                    }
-                }
+                "layout_width" -> setLayoutWidths(linearLayout, it)
+                "layout_height" -> setLayoutHeights(linearLayout, it)
                 "background" -> setBackgroundColor(linearLayout, it.value)
-                "paddingLeft" -> linearLayout.setPadding(it.value.toInt(), linearLayout.paddingTop, linearLayout.paddingRight, linearLayout.paddingBottom)
-                "paddingTop" -> linearLayout.setPadding(linearLayout.paddingLeft, it.value.toInt(), linearLayout.paddingRight, linearLayout.paddingBottom)
-                "paddingRight" -> linearLayout.setPadding(linearLayout.paddingLeft, linearLayout.paddingTop, it.value.toInt(), linearLayout.paddingBottom)
-                "paddingBottom" -> linearLayout.setPadding(linearLayout.paddingLeft, linearLayout.paddingTop, linearLayout.paddingRight, it.value.toInt())
-                "orientation" -> when(it.type){
-                    PageLayoutViewPropertyType.number -> linearLayout.orientation = it.value.toInt()
-                    PageLayoutViewPropertyType.string -> when(it.value) {
-                        "horizontal" -> linearLayout.orientation = LinearLayout.HORIZONTAL
-                        "vertical" -> linearLayout.orientation = LinearLayout.VERTICAL
-                    }
-                    else -> linearLayout.orientation = LinearLayout.HORIZONTAL
-                }
-                "layout_gravity" -> when(it.value){
-                    "center" -> linearLayout.gravity = Gravity.CENTER
-                    "center_vertical" -> linearLayout.gravity = Gravity.CENTER_VERTICAL
-                    "center_horizontal" -> linearLayout.gravity = Gravity.CENTER_HORIZONTAL
-                    "bottom" -> linearLayout.gravity = Gravity.BOTTOM
-                    "bottom|center_horizontal" -> {
-                        linearLayout.setHorizontalGravity(Gravity.CENTER_HORIZONTAL)
-                        linearLayout.setVerticalGravity(Gravity.BOTTOM)
-                    }
-                }
+                "paddingLeft" -> linearLayout.setPadding(
+                    it.value.toInt(),
+                    linearLayout.paddingTop,
+                    linearLayout.paddingRight,
+                    linearLayout.paddingBottom
+                )
+
+                "paddingTop" -> linearLayout.setPadding(
+                    linearLayout.paddingLeft,
+                    it.value.toInt(),
+                    linearLayout.paddingRight,linearLayout.paddingBottom
+                )
+
+                "paddingRight" -> linearLayout.setPadding(
+                    linearLayout.paddingLeft,
+                    linearLayout.paddingTop,
+                    it.value.toInt(),
+                    linearLayout.paddingBottom
+                )
+
+                "paddingBottom" -> linearLayout.setPadding(
+                    linearLayout.paddingLeft,
+                    linearLayout.paddingTop, linearLayout.paddingRight,
+                    it.value.toInt()
+                )
+
+                "orientation" -> setOrientation(linearLayout, it)
+                "layout_gravity" -> setGravity(linearLayout, it)
                 "tag" -> linearLayout.tag = it.value
                 else -> Log.d(javaClass.name, "Property ${it.name} not supported")
             }
         }
 
         return linearLayout
+    }
+
+    /**
+     * Sets gravities
+     * 
+     * @param linearLayout linear layout
+     * @param pageLayoutViewProperty PageLayoutViewProperty to be set
+     */
+    private fun setGravity(linearLayout: LinearLayout, pageLayoutViewProperty: PageLayoutViewProperty) {
+        when (pageLayoutViewProperty.value) {
+            "center" -> linearLayout.gravity = Gravity.CENTER
+            "center_vertical" -> linearLayout.gravity = Gravity.CENTER_VERTICAL
+            "center_horizontal" -> linearLayout.gravity = Gravity.CENTER_HORIZONTAL
+            "bottom" -> linearLayout.gravity = Gravity.BOTTOM
+            "bottom|center_horizontal" -> {
+                linearLayout.setHorizontalGravity(Gravity.CENTER_HORIZONTAL)
+                linearLayout.setVerticalGravity(Gravity.BOTTOM)
+            }
+        }
+    }
+
+    /**
+     * Sets orientations
+     * 
+     * @param linearLayout linear layout
+     * @param pageLayoutViewProperty property to be set
+     */
+    private fun setOrientation(linearLayout: LinearLayout, pageLayoutViewProperty: PageLayoutViewProperty) {
+        when (pageLayoutViewProperty.type) {
+            PageLayoutViewPropertyType.number -> linearLayout.orientation = pageLayoutViewProperty.value.toInt()
+            PageLayoutViewPropertyType.string -> when (pageLayoutViewProperty.value) {
+                "horizontal" -> linearLayout.orientation = LinearLayout.HORIZONTAL
+                "vertical" -> linearLayout.orientation = LinearLayout.VERTICAL
+            }
+            else -> linearLayout.orientation = LinearLayout.HORIZONTAL
+        }
     }
 
     /**
