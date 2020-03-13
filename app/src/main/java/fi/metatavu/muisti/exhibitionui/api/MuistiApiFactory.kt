@@ -1,5 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.api
 
+import android.util.Log
 import fi.metatavu.muisti.api.client.apis.*
 import fi.metatavu.muisti.api.client.infrastructure.ApiClient
 import fi.metatavu.muisti.api.client.infrastructure.ClientException

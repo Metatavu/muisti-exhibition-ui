@@ -5,11 +5,9 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.util.Log
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ImageView
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
-import fi.metatavu.muisti.api.client.models.PageLayoutViewPropertyType
 
 /**
  * Component factory for image components
@@ -20,9 +18,13 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
 
     override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): ImageView {
         val imageView = ImageView(context)
-        imageView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        setId(imageView, id)
+
+        val parent = parents.lastOrNull()
+        imageView.layoutParams = getInitialLayoutParams(parent)
+
         properties.forEach {
-            this.setProperty(imageView, resources, it)
+            this.setProperty(parent, imageView, resources, it)
         }
 
         return imageView
@@ -30,33 +32,16 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
 
     /**
      * Sets view image property
-     *
+     * @param parent parent component
      * @param imageView image view component
+     * @param resources resources
      * @param property property
      */
-    private fun setProperty(imageView: ImageView, resources: Array<ExhibitionPageResource>, property: PageLayoutViewProperty) {
+    private fun setProperty(parent: View?, imageView: ImageView, resources: Array<ExhibitionPageResource>, property: PageLayoutViewProperty) {
         try {
             when (property.name) {
-                "layout_width" -> when (property.type) {
-                    PageLayoutViewPropertyType.number -> imageView.layoutParams.width =
-                        property.value.toInt()
-                    PageLayoutViewPropertyType.string -> when (property.value) {
-                        "match_parent" -> imageView.layoutParams.width =
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        "wrap_content" -> imageView.layoutParams.width =
-                            ViewGroup.LayoutParams.WRAP_CONTENT
-                    }
-                }
-                "layout_height" -> when (property.type) {
-                    PageLayoutViewPropertyType.number -> imageView.layoutParams.height =
-                        property.value.toInt()
-                    PageLayoutViewPropertyType.string -> when (property.value) {
-                        "match_parent" -> imageView.layoutParams.height =
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        "wrap_content" -> imageView.layoutParams.height =
-                            ViewGroup.LayoutParams.WRAP_CONTENT
-                    }
-                }
+                "layout_width" -> setLayoutWidth(parent, imageView, property)
+                "layout_height" -> setLayoutHeight(parent, imageView, property)
                 "width" -> imageView.layoutParams.width = property.value.toInt()
                 "height" -> imageView.layoutParams.height = property.value.toInt()
                 "background" -> imageView.setBackgroundColor(Color.parseColor(property.value))
@@ -85,8 +70,13 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
                     property.value.toInt()
                 )
                 "src" -> setSrc(imageView, resources, property.value)
-                "tag" -> imageView.tag = property.value
-                else -> Log.d(javaClass.name, "Property ${property.name} not supported")
+                "layout_gravity" -> setLayoutGravity(imageView, property.value)
+                "layout_marginTop" -> setLayoutMargin(parent, imageView, property)
+                "layout_marginBottom" -> setLayoutMargin(parent, imageView, property)
+                "layout_marginRight" -> setLayoutMargin(parent, imageView, property)
+                "layout_marginLeft" -> setLayoutMargin(parent, imageView, property)
+
+                else -> Log.d(ImageViewComponentFactory::javaClass.name, "Property ${property.name} not supported")
             }
         } catch (e: Exception) {
             Log.d(ImageViewComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)

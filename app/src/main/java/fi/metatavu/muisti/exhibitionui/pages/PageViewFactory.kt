@@ -1,6 +1,7 @@
 package fi.metatavu.muisti.exhibitionui.pages
 
 import android.content.Context
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
@@ -48,41 +49,19 @@ class PageViewFactory {
          */
         private fun buildViewGroup(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, pageView: PageLayoutView) : View? {
             val factory = componentFactories.find { it.name == pageView.widget }
-            val root = factory?.buildComponent(context, arrayOf(), pageView.id, resources, pageView.properties)
+            val root = factory?.buildComponent(context, parents, pageView.id, resources, pageView.properties)
             root?: return null
-            val childParents = parents.plus(root)
 
             if (root is ViewGroup) {
                 pageView.children.forEach {
-                    if (it.children.isNotEmpty()) {
-                        val view = buildViewGroup(context, childParents, resources, it)
-                        if (view != null) {
-                            root.addView(view)
-                        }
-                    } else {
-                        val childView = buildView(context, childParents, resources, it)
-                        if (childView != null) {
-                            root.addView(childView)
-                        }
+                    val child = buildViewGroup(context, parents.plus(root), resources, it)
+                    if (child!= null) {
+                        root.addView(child)
                     }
                 }
             }
 
             return root
-        }
-
-        /**
-         * Builds a view
-         *
-         * @param context context
-         * @param parents view parents
-         * @param resources resources
-         * @param pageView page view
-         * @return build view or null if failed
-         */
-        private fun buildView(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, pageView: PageLayoutView) : View? {
-            val componentFactory = componentFactories.firstOrNull { it.name == pageView.widget }
-            return componentFactory?.buildComponent(context, parents, pageView.id, resources, pageView.properties)
         }
 
     }

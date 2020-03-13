@@ -5,6 +5,7 @@ import android.os.Handler
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEvent
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventTrigger
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
@@ -36,6 +37,9 @@ class PageActivity : AppCompatActivity() {
             // TODO: Handle error
             return
         }
+
+        pageView.view.layoutParams.height = ConstraintLayout.LayoutParams.MATCH_PARENT
+        pageView.view.layoutParams.width = ConstraintLayout.LayoutParams.MATCH_PARENT
 
         this.openView(pageView)
     }
