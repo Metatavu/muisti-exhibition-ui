@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#0099cc"
@@ -59,4 +60,19 @@
             android:visibility="visible" />
     </LinearLayout>
 
+    <uk.co.deanwild.flowtextview.FlowTextView
+        android:id="@+id/test_text"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="@string/testText">
+
+        <ImageView
+            android:id="@+id/thumbnail_view"
+            android:src="@drawable/cat"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="200dp"
+            />
+    </uk.co.deanwild.flowtextview.FlowTextView>
 </FrameLayout>

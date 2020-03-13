@@ -5,12 +5,15 @@ import android.os.Bundle
 import android.os.Handler
 import android.view.Gravity
 import android.view.View
-import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import fi.metatavu.muisti.exhibitionui.R
 import kotlinx.android.synthetic.main.activity_main.*
+import uk.co.deanwild.flowtextview.FlowTextView
+
+
 
 
 /**
@@ -58,7 +61,7 @@ class MainActivity : AppCompatActivity() {
     private val mNappiClick = View.OnClickListener {
         // val intent = Intent(this, TestActivity::class.java)
         // this.startActivity(intent)
-        goToPage("6d870c83-7501-4be4-96eb-abafae649fe3")
+        goToPage("60b3b8b1-9a09-42e9-ba59-3b5bbade69cd")
     }
 
     private val mSettingsClick = View.OnClickListener {
@@ -70,7 +73,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         mViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
-        setContentView(R.layout.activity_main)
+        setContentView(fi.metatavu.muisti.exhibitionui.R.layout.activity_main)
 
         val layout = LinearLayout(this)
         layout.gravity = Gravity.CENTER
@@ -89,6 +92,18 @@ class MainActivity : AppCompatActivity() {
         dummy_button.setOnTouchListener(mDelayHideTouchListener)
         nappi.setOnClickListener(mNappiClick)
         settings.setOnClickListener(mSettingsClick)
+
+        val flowView = FlowTextView(this)
+        flowView.layoutParams = RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT)
+
+        main_view.addView(flowView)
+        val text = getString(R.string.testText)
+        val flowTextView = findViewById(fi.metatavu.muisti.exhibitionui.R.id.test_text) as FlowTextView
+        flowTextView.text = text
+/*
+        val flowTextView = findViewById(fi.metatavu.muisti.exhibitionui.R.id.test_text) as FlowTextView
+        val text = getString(R.string.testText)
+        flowTextView.text = text*/
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {

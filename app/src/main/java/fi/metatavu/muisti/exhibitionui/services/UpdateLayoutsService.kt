@@ -9,6 +9,7 @@ import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
 import fi.metatavu.muisti.exhibitionui.persistence.repository.LayoutRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.*
 
 /**
  * Service for getting layouts from the API
@@ -30,6 +31,13 @@ class UpdateLayoutsService : JobIntentService() {
             val layouts = MuistiApiFactory.getPageLayoutsApi().listPageLayouts()
             addLayouts(layouts)
             Log.d(UpdatePagesService::javaClass.name, "Updated ${layouts.size} layouts.")
+        }
+    }
+
+    private fun getUpdatedLayout(layoutId: UUID) {
+        GlobalScope.launch {
+            val layout = MuistiApiFactory.getPageLayoutsApi().findPageLayout(layoutId)
+            addLayouts(arrayOf(layout))
         }
     }
 

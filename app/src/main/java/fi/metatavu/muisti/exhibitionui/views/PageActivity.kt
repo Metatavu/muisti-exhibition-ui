@@ -14,7 +14,18 @@ import fi.metatavu.muisti.exhibitionui.actions.PageActionProviderFactory
 import fi.metatavu.muisti.exhibitionui.pages.PageView
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import kotlinx.android.synthetic.main.activity_page.*
+import uk.co.deanwild.flowtextview.FlowTextView
 import java.util.*
+import android.view.ViewGroup
+import androidx.core.app.ComponentActivity.ExtraData
+import androidx.core.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import androidx.core.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+
+
+
+
 
 /**
  * Activity for displaying pages from API
@@ -38,6 +49,19 @@ class PageActivity : AppCompatActivity() {
         }
 
         this.openView(pageView)
+        val flowTextView = findViewWithTag("flowtext") as FlowTextView
+        val text = getString(R.string.testText)
+        flowTextView.setPageHeight(500)
+        flowTextView.text = text
+        flowTextView.invalidate()
+    }
+
+    private fun reLayoutChildren(view: View) {
+        view.measure(
+            View.MeasureSpec.makeMeasureSpec(view.measuredWidth, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(view.measuredHeight, View.MeasureSpec.EXACTLY)
+        )
+        view.layout(view.left, view.top, view.right, view.bottom)
     }
 
     override fun onResume() {

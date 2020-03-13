@@ -3,7 +3,9 @@ package fi.metatavu.muisti.exhibitionui
 import android.app.Activity
 import android.app.Application
 import android.content.Intent
+import android.util.Log
 import androidx.core.app.JobIntentService
+import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientProvider
 import fi.metatavu.muisti.exhibitionui.services.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -20,12 +22,12 @@ class ExhibitionUIApplication : Application() {
      */
     init {
         instance = this
-
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateKeycloakTokenServiceTask() }, 0, 60, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateKeycloakTokenServiceTask() }, 1, 10, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateLayoutsServiceTask() }, 1, 15, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 1, 1, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 1, 1, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 1, 4, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueConstructPagesServiceTask() }, 1, 15, TimeUnit.SECONDS)
+        MqttService.connect()
     }
 
     /**
