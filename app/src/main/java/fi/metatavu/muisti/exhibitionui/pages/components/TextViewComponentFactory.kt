@@ -60,6 +60,7 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
             "layout_marginBottom" -> setLayoutMargin(parent, textView, property)
             "layout_marginRight" -> setLayoutMargin(parent, textView, property)
             "layout_marginLeft" -> setLayoutMargin(parent, textView, property)
+            "layout_toRightOf" -> setLayoutOf(textView, property)
             else -> Log.d(this.javaClass.name, "Property ${property.name} not supported")
         }
     }

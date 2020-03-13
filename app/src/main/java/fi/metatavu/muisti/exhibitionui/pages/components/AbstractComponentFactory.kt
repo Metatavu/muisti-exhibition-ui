@@ -192,6 +192,28 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         }
     }
 
+
+    /**
+     * Updates component layout left|right|start|end of values
+     *
+     * @param view view component
+     * @param property property to be set
+     */
+    protected fun setLayoutOf(view: View, property: PageLayoutViewProperty) {
+        val value = property.value
+
+        if (view.layoutParams is RelativeLayout.LayoutParams) {
+            when (property.name) {
+                "layout_toRightOf" -> (view.layoutParams as RelativeLayout.LayoutParams).addRule(RelativeLayout.RIGHT_OF)
+                "layout_toLeftOf" -> (view.layoutParams as RelativeLayout.LayoutParams).addRule(RelativeLayout.LEFT_OF)
+                "layout_toEndOf" -> (view.layoutParams as RelativeLayout.LayoutParams).addRule(RelativeLayout.END_OF)
+                "layout_toStartOf" -> (view.layoutParams as RelativeLayout.LayoutParams).addRule(RelativeLayout.START_OF)
+            }
+        } else {
+            Log.d(this.javaClass.name, "Unsupported layout ${view.layoutParams.javaClass.name} for layoutOf $value")
+        }
+    }
+
     /**
      * Returns initial layout params value for generated component
      *
