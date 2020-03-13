@@ -55,7 +55,7 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
             "paddingTop" -> textView.setPadding(textView.paddingLeft, property.value.toInt(), textView.paddingRight, textView.paddingBottom)
             "paddingRight" -> textView.setPadding(textView.paddingLeft, textView.paddingTop, property.value.toInt(), textView.paddingBottom)
             "paddingBottom" -> textView.setPadding(textView.paddingLeft, textView.paddingTop, textView.paddingRight, property.value.toInt())
-            "layout_gravity" -> setLayoutGravities(property, textView)
+            "layout_gravity" -> setLayoutGravity(textView, property.value)
             "layout_marginTop" -> setLayoutMargin(parent, textView, property)
             "layout_marginBottom" -> setLayoutMargin(parent, textView, property)
             "layout_marginRight" -> setLayoutMargin(parent, textView, property)
@@ -158,20 +158,6 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
         }
     }
 
-    /**
-     * Sets gravities
-     *
-     * @param property to be set
-     * @param textView text view component
-     */
-    private fun setLayoutGravities(property: PageLayoutViewProperty, textView: TextView) {
-        when (property.value) {
-            "center" -> textView.gravity = Gravity.CENTER
-            "center_vertical" -> textView.gravity = Gravity.CENTER_VERTICAL
-            "center_horizontal" -> textView.gravity = Gravity.CENTER_HORIZONTAL
-            "bottom" -> textView.gravity = Gravity.BOTTOM
-        }
-    }
 
     /**
      * Sets text view text

@@ -16,6 +16,7 @@ import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.api.client.models.PageLayoutViewPropertyType
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
+import uk.co.deanwild.flowtextview.FlowTextView
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.regex.Matcher
@@ -155,6 +156,8 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             (view.layoutParams as FrameLayout.LayoutParams).gravity = gravity
         } else if (view.layoutParams is LinearLayout.LayoutParams) {
             (view.layoutParams as LinearLayout.LayoutParams).gravity = gravity
+        }else if (view.layoutParams is RelativeLayout.LayoutParams) {
+            (view.layoutParams as RelativeLayout.LayoutParams).alignWithParent = true
         } else {
             Log.d(this.javaClass.name, "Unsupported layout ${view.layoutParams.javaClass.name} for gravity")
         }
@@ -204,7 +207,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
 
         if (view.layoutParams is RelativeLayout.LayoutParams) {
             when (property.name) {
-                "layout_toRightOf" -> (view.layoutParams as RelativeLayout.LayoutParams).addRule(RelativeLayout.RIGHT_OF)
+                "layout_toRightOf" -> (view.layoutParams as RelativeLayout.LayoutParams).addRule(RelativeLayout.ALIGN_PARENT_END)
                 "layout_toLeftOf" -> (view.layoutParams as RelativeLayout.LayoutParams).addRule(RelativeLayout.LEFT_OF)
                 "layout_toEndOf" -> (view.layoutParams as RelativeLayout.LayoutParams).addRule(RelativeLayout.END_OF)
                 "layout_toStartOf" -> (view.layoutParams as RelativeLayout.LayoutParams).addRule(RelativeLayout.START_OF)
@@ -226,6 +229,8 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
                 return FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             } else if (parent is LinearLayout) {
                 return LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
+            } else if (parent is MuistiFlowTextView) {
+                return RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT)
             }
         }
 

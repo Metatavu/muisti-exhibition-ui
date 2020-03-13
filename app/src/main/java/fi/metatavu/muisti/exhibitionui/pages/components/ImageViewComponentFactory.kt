@@ -75,6 +75,7 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
                 "layout_marginBottom" -> setLayoutMargin(parent, imageView, property)
                 "layout_marginRight" -> setLayoutMargin(parent, imageView, property)
                 "layout_marginLeft" -> setLayoutMargin(parent, imageView, property)
+                "layout_toRightOf" -> setLayoutOf(imageView, property)
 
                 else -> Log.d(ImageViewComponentFactory::javaClass.name, "Property ${property.name} not supported")
             }

@@ -1,8 +1,12 @@
 package fi.metatavu.muisti.exhibitionui.views
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
+import android.os.Parcel
+import android.os.Parcelable
+import android.util.AttributeSet
 import android.view.Gravity
 import android.view.View
 import android.widget.Button
@@ -11,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import fi.metatavu.muisti.exhibitionui.R
 import kotlinx.android.synthetic.main.activity_main.*
+import org.xml.sax.helpers.AttributesImpl
+import uk.co.deanwild.flowtextview.FlowTextView
 
 
 /**
@@ -58,7 +64,7 @@ class MainActivity : AppCompatActivity() {
     private val mNappiClick = View.OnClickListener {
         // val intent = Intent(this, TestActivity::class.java)
         // this.startActivity(intent)
-        goToPage("6d870c83-7501-4be4-96eb-abafae649fe3")
+        goToPage("60b3b8b1-9a09-42e9-ba59-3b5bbade69cd")
     }
 
     private val mSettingsClick = View.OnClickListener {
@@ -168,3 +174,4 @@ class MainActivity : AppCompatActivity() {
         private val UI_ANIMATION_DELAY = 300
     }
 }
+
