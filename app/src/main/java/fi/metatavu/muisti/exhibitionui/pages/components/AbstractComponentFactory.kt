@@ -1,5 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.net.Uri
@@ -10,10 +11,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.View.*
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.api.client.models.PageLayoutViewPropertyType
@@ -33,6 +31,16 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
 
     private val context: Context = ExhibitionUIApplication.instance.applicationContext
     private val displayMetrics: DisplayMetrics = context.resources.displayMetrics
+
+    /**
+     * Sets view id
+     *
+     * @param view view
+     * @param value value
+     */
+    protected fun setId(view: T, value: String?) {
+        view.tag = value
+    }
 
     /**
      * Returns color property value
@@ -56,17 +64,18 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param value value
      * @return dps property value
      */
-    protected fun getDps(value: String?): Int {
+    protected fun getDps(value: String?): Int? {
         value ?: return 0
 
         try {
             val pattern: Pattern = Pattern.compile("dp$", Pattern.MULTILINE)
             val matcher: Matcher = pattern.matcher(value)
             val result: String = matcher.replaceAll("")
+
             return convertDpToPixel(result.toDouble()).toInt()
 
         } catch (e: IllegalArgumentException) {
-            return 0
+            return null
         }
     }
 
@@ -76,14 +85,14 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param value value
      * @return dps property value
      */
-    protected fun getSp(value: String?): Int? {
+    protected fun getSp(value: String?): Float? {
         value ?: return null
 
         try {
             val pattern: Pattern = Pattern.compile("sp$", Pattern.MULTILINE)
             val matcher: Matcher = pattern.matcher(value)
             val result: String = matcher.replaceAll("")
-            return result.toInt()
+            return result.toFloat()
         } catch (e: IllegalArgumentException) {
             return null
         }
@@ -135,23 +144,19 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     /**
      * Updates component layout gravity value
      *
-     * @param parent parent component
      * @param view view component
      * @param value value
      */
-    protected fun setLayoutGravity(parent: View, view: View, value: String?) {
-        if (parent is FrameLayout) {
-            val layoutParams = view.layoutParams
-            val updatedParams = FrameLayout.LayoutParams(layoutParams.width, layoutParams.height)
-            updatedParams.gravity = parseGravity(value)
-            view.layoutParams = updatedParams
-        } else if (parent is LinearLayout) {
-            val layoutParams = view.layoutParams
-            val updatedParams = LinearLayout.LayoutParams(layoutParams.width, layoutParams.height)
-            updatedParams.gravity = parseGravity(value)
-            view.layoutParams = updatedParams
+    protected fun setLayoutGravity(view: View, value: String?) {
+        val gravity = parseGravity(value)
+        gravity ?: return
+
+        if (view.layoutParams is FrameLayout.LayoutParams) {
+            (view.layoutParams as FrameLayout.LayoutParams).gravity = gravity
+        } else if (view.layoutParams is LinearLayout.LayoutParams) {
+            (view.layoutParams as LinearLayout.LayoutParams).gravity = gravity
         } else {
-            Log.d(this.javaClass.name, "Unsupported layout ${parent.javaClass.name} for gravity")
+            Log.d(this.javaClass.name, "Unsupported layout ${view.layoutParams.javaClass.name} for gravity")
         }
     }
 
@@ -162,79 +167,136 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param view view component
      * @param property property to be set
      */
-    protected fun setLayoutMargin(parent: View, view: View, property: PageLayoutViewProperty) {
+    protected fun setLayoutMargin(parent: View?, view: View, property: PageLayoutViewProperty) {
+        val dps = getDps(property.value)
+        dps ?: return
 
-        if(view.layoutParams is ViewGroup.MarginLayoutParams && view !is ImageView){
-            val updatedParams = (view.layoutParams as? ViewGroup.MarginLayoutParams)
-            when(property.name){
-                "layout_marginTop" -> updatedParams?.topMargin = getDps(property.value)
-                "layout_marginBottom" -> updatedParams?.bottomMargin = getDps(property.value)
-                "layout_marginRight" -> updatedParams?.rightMargin = getDps(property.value)
-                "layout_marginLeft" -> updatedParams?.leftMargin = getDps(property.value)
-            }
-            view.layoutParams = updatedParams
+        if (parent == null) {
+            Log.d(this.javaClass.name, "Parent is null, could not set layout margin")
         } else if (parent is FrameLayout) {
-            val layoutParams = view.layoutParams
-            val updatedParams = FrameLayout.LayoutParams(layoutParams.width, layoutParams.height)
-            when(property.name){
-                "layout_marginTop" -> updatedParams.topMargin = getDps(property.value)
-                "layout_marginBottom" -> updatedParams.bottomMargin = getDps(property.value)
-                "layout_marginRight" -> updatedParams.rightMargin = getDps(property.value)
-                "layout_marginLeft" -> updatedParams.leftMargin = getDps(property.value)
+            when (property.name) {
+                "layout_marginTop" -> (view.layoutParams as FrameLayout.LayoutParams).topMargin = dps
+                "layout_marginBottom" -> (view.layoutParams as FrameLayout.LayoutParams).bottomMargin = dps
+                "layout_marginRight" -> (view.layoutParams as FrameLayout.LayoutParams).rightMargin = dps
+                "layout_marginLeft" -> (view.layoutParams as FrameLayout.LayoutParams).leftMargin = dps
             }
-            view.layoutParams = updatedParams
         } else if (parent is LinearLayout) {
-            val layoutParams = view.layoutParams
-            val updatedParams = LinearLayout.LayoutParams(layoutParams.width, layoutParams.height)
             when(property.name){
-                "layout_marginTop" -> updatedParams.topMargin = getDps(property.value)
-                "layout_marginBottom" -> updatedParams.bottomMargin = getDps(property.value)
-                "layout_marginRight" -> updatedParams.rightMargin = getDps(property.value)
-                "layout_marginLeft" -> updatedParams.leftMargin = getDps(property.value)
+                "layout_marginTop" -> (view.layoutParams as LinearLayout.LayoutParams).topMargin = dps
+                "layout_marginBottom" -> (view.layoutParams as LinearLayout.LayoutParams).bottomMargin = dps
+                "layout_marginRight" -> (view.layoutParams as LinearLayout.LayoutParams).rightMargin = dps
+                "layout_marginLeft" -> (view.layoutParams as LinearLayout.LayoutParams).leftMargin = dps
             }
-            view.layoutParams = updatedParams
         } else {
             Log.d(this.javaClass.name, "Unsupported layout ${parent.javaClass.name} for gravity")
         }
     }
 
     /**
-     * Sets layout widths
+     * Returns initial layout params value for generated component
      *
-     * @param layout any layout
-     * @param property width property to be set
+     * @param parent parent view
+     * @return initial layout params
      */
-    protected fun  setLayoutWidths(layout: View, property: PageLayoutViewProperty) {
-        when (property.type) {
-            PageLayoutViewPropertyType.number -> layout.layoutParams.width = property.value.toInt()
-            PageLayoutViewPropertyType.string -> when (property.value) {
-                "match_parent" -> layout.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                "wrap_content" -> layout.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
-                "fill_parent" -> layout.layoutParams.width = ViewGroup.LayoutParams.FILL_PARENT
-                else -> {
-                    layout.layoutParams.width = getDps(property.value)
-                }
+    protected fun getInitialLayoutParams(parent: View?): ViewGroup.LayoutParams {
+        if (parent != null) {
+            if (parent is FrameLayout) {
+                return FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+            } else if (parent is LinearLayout) {
+                return LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
             }
+        }
+
+        return ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+    }
+
+    /**
+     * Updates component layout width values
+     *
+     * @param parent parent component
+     * @param view view component
+     * @param property property to be set
+     */
+    @Suppress("DEPRECATION")
+    protected fun setLayoutWidth(parent: View?, view: View, property: PageLayoutViewProperty) {
+        if (parent == null) {
+            return
+        }
+
+        val width = getDps(property.value)
+        if (width != null) {
+            view.layoutParams.width = width
+            return
+        }
+
+        if (parent is FrameLayout) {
+            when (property.value) {
+                "match_parent" -> view.layoutParams.width = FrameLayout.LayoutParams.MATCH_PARENT
+                "wrap_content" -> view.layoutParams.width = FrameLayout.LayoutParams.WRAP_CONTENT
+                "fill_parent" -> view.layoutParams.width = FrameLayout.LayoutParams.FILL_PARENT
+                else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for FrameLayout width")
+            }
+        } else if (parent is LinearLayout) {
+            when (property.value) {
+                "match_parent" -> view.layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT
+                "wrap_content" -> view.layoutParams.width = LinearLayout.LayoutParams.WRAP_CONTENT
+                "fill_parent" -> view.layoutParams.width = LinearLayout.LayoutParams.FILL_PARENT
+                else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for LinearLayout width")
+            }
+        } else if (parent is RelativeLayout) {
+            when (property.value) {
+                "match_parent" -> view.layoutParams.width = RelativeLayout.LayoutParams.MATCH_PARENT
+                "wrap_content" -> view.layoutParams.width = RelativeLayout.LayoutParams.WRAP_CONTENT
+                "fill_parent" -> view.layoutParams.width = RelativeLayout.LayoutParams.FILL_PARENT
+                else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for RelativeLayout width")
+            }
+        } else {
+            Log.d(this.javaClass.name, "Unsupported layout ${parent.javaClass.name} for layout width")
         }
     }
 
     /**
-     * Sets layout heights
+     * Updates component layout height values
      *
-     * @param layout any layout
-     * @param property height property to be set
+     * @param parent parent component
+     * @param view view component
+     * @param property property to be set
      */
-    protected fun setLayoutHeights(layout: View, property: PageLayoutViewProperty) {
-        when (property.type) {
-            PageLayoutViewPropertyType.number -> layout.layoutParams.height = property.value.toInt()
-            PageLayoutViewPropertyType.string -> when (property.value) {
-                "match_parent" -> layout.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-                "wrap_content" -> layout.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                else -> {
-                    layout.layoutParams.width = getDps(property.value)
-                }
-            }
+    @Suppress("DEPRECATION")
+    protected fun setLayoutHeight(parent: View?, view: View, property: PageLayoutViewProperty) {
+        if (parent == null) {
+            return
+        }
 
+        val height = getDps(property.value)
+        if (height!= null) {
+            view.layoutParams.height = height
+            return
+        }
+
+        if (parent is FrameLayout) {
+            when (property.value) {
+                "match_parent" -> view.layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT
+                "wrap_content" -> view.layoutParams.height = FrameLayout.LayoutParams.WRAP_CONTENT
+                "fill_parent" -> view.layoutParams.height = FrameLayout.LayoutParams.FILL_PARENT
+                else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for FrameLayout height")
+            }
+        } else if (parent is LinearLayout) {
+            when (property.value) {
+                "match_parent" -> view.layoutParams.height = LinearLayout.LayoutParams.MATCH_PARENT
+                "wrap_content" -> view.layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT
+                "fill_parent" -> view.layoutParams.height = LinearLayout.LayoutParams.FILL_PARENT
+                else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for LinearLayout height")
+            }
+        } else if (parent is RelativeLayout) {
+            when (property.value) {
+                "match_parent" -> view.layoutParams.height = RelativeLayout.LayoutParams.MATCH_PARENT
+                "wrap_content" -> view.layoutParams.height = RelativeLayout.LayoutParams.WRAP_CONTENT
+                "fill_parent" -> view.layoutParams.height = RelativeLayout.LayoutParams.FILL_PARENT
+                else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for RelativeLayout height")
+            }
+        } else {
+            Log.d(this.javaClass.name, "Unsupported layout ${parent.javaClass.name} for layout height")
         }
     }
 
@@ -244,8 +306,8 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param value value
      * @return gravity value
      */
-    protected fun parseGravity(value: String?): Int {
-        value ?: return Gravity.NO_GRAVITY
+    protected fun parseGravity(value: String?): Int? {
+        value ?: return null
 
         return value.split("|").stream()
             .map(this::parseGravityComponent)
@@ -258,7 +320,8 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param value gravity component
      * @return single gravity component value
      */
-    protected fun parseGravityComponent(value: String?): Int {
+    @SuppressLint("RtlHardcoded")
+    private fun parseGravityComponent(value: String?): Int {
         value ?: return Gravity.NO_GRAVITY
 
         when (value) {
@@ -266,6 +329,9 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             "right" -> return Gravity.RIGHT
             "bottom" -> return Gravity.BOTTOM
             "left" -> return Gravity.LEFT
+            "center" -> return Gravity.CENTER
+            "center_vertical" -> return Gravity.CENTER_VERTICAL
+            "center_horizontal" -> return Gravity.CENTER_HORIZONTAL
             else -> {
                 Log.d(this.javaClass.name, "Could not parse gravity component ${value}")
             }
@@ -274,46 +340,37 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         return Gravity.NO_GRAVITY
     }
 
-    protected fun resolveTextAlign(layout: View, property: String) {
-        var value: String = property.toLowerCase();
+    /**
+     * Resolves a text align value
+     *
+     * @param value value
+     * @return a text align or null if value could not be resolved
+     */
+    protected fun resolveTextAlignment(value: String?): Int? {
+        value ?: return null
+
         when (value) {
-            "inherit" -> layout.textAlignment = TEXT_ALIGNMENT_GRAVITY
-            "gravity" -> layout.textAlignment = TEXT_ALIGNMENT_GRAVITY
-            "text_start" -> layout.textAlignment = TEXT_ALIGNMENT_TEXT_START
-            "text_end" -> layout.textAlignment = TEXT_ALIGNMENT_VIEW_END
-            "center" -> layout.textAlignment = TEXT_ALIGNMENT_CENTER
-            "view_start" -> layout.textAlignment = TEXT_ALIGNMENT_VIEW_START
-            "view_end" -> layout.textAlignment = TEXT_ALIGNMENT_VIEW_END
-            else -> layout.textAlignment = TEXT_ALIGNMENT_GRAVITY
+            "inherit" -> return TEXT_ALIGNMENT_GRAVITY
+            "gravity" -> return TEXT_ALIGNMENT_GRAVITY
+            "text_start" -> return TEXT_ALIGNMENT_TEXT_START
+            "text_end" -> return TEXT_ALIGNMENT_VIEW_END
+            "center" -> return TEXT_ALIGNMENT_CENTER
+            "view_start" -> return TEXT_ALIGNMENT_VIEW_START
+            "view_end" -> return TEXT_ALIGNMENT_VIEW_END
+            else -> Log.d(this.javaClass.name, "Unknown text align $value")
         }
+
+        return null
     }
 
-    protected fun resolveTextSize(layout: View, property: String) {
-        if(layout is TextView){
-            val value = getSp(property)
-            layout.textSize = value!!.toFloat()
-        }
-    }
-
-
-    fun spToPx(sp: Float): Float {
-        return TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_SP,
-            sp,
-            displayMetrics
-        )
-    }
-    fun dpToSp(dp: Double): Double {
-        return (convertDpToPixel(
-            dp
-        ) / displayMetrics.scaledDensity)
-    }
-
-    fun convertDpToPixel(dp: Double): Double {
+    /**
+     * Converts dps into pixels
+     *
+     * @param dp dp
+     * @return pixels
+     */
+    private fun convertDpToPixel(dp: Double): Double {
         return dp * (displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
     }
 
-    fun convertPixelsToDp(px: Double): Double {
-        return px / (displayMetrics.densityDpi  / DisplayMetrics.DENSITY_DEFAULT)
-    }
-    }
+}

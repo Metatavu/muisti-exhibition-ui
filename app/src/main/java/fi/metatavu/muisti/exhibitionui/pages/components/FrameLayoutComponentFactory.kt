@@ -18,9 +18,13 @@ class FrameLayoutComponentFactory : AbstractComponentFactory<FrameLayout>() {
 
     override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): FrameLayout {
         val frameLayout = FrameLayout(context)
-        frameLayout.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        setId(frameLayout, id)
+
+        val parent = parents.lastOrNull()
+        frameLayout.layoutParams = getInitialLayoutParams(parent)
+
         properties.forEach {
-            this.setProperty(frameLayout, it)
+            this.setProperty(parent, frameLayout, it)
         }
         return frameLayout
     }
@@ -31,19 +35,15 @@ class FrameLayoutComponentFactory : AbstractComponentFactory<FrameLayout>() {
      * @param frameLayout frame layout
      * @param property property to be set
      */
-    private fun setProperty(frameLayout: FrameLayout, property: PageLayoutViewProperty) {
-        Log.d(javaClass.name, "Setting property ${property.name} to ${property.value}")
-
+    private fun setProperty(parent: View?, frameLayout: FrameLayout, property: PageLayoutViewProperty) {
         when(property.name) {
-            "layout_width" -> setLayoutWidths(frameLayout, property)
-            "layout_height" -> setLayoutHeights(frameLayout, property)
+            "layout_width" -> setLayoutWidth(parent, frameLayout, property)
+            "layout_height" -> setLayoutHeight(parent, frameLayout, property)
             "background" -> setBackgroundColor(frameLayout, property.value)
             "paddingLeft" -> frameLayout.setPadding(property.value.toInt(), frameLayout.paddingTop, frameLayout.paddingRight, frameLayout.paddingBottom)
             "paddingTop" -> frameLayout.setPadding(frameLayout.paddingLeft, property.value.toInt(), frameLayout.paddingRight, frameLayout.paddingBottom)
             "paddingRight" -> frameLayout.setPadding(frameLayout.paddingLeft, frameLayout.paddingTop, property.value.toInt(), frameLayout.paddingBottom)
             "paddingBottom" -> frameLayout.setPadding(frameLayout.paddingLeft, frameLayout.paddingTop, frameLayout.paddingRight, property.value.toInt())
-            "tag" -> frameLayout.tag = property.value
-
             else -> Log.d(javaClass.name, "Property ${property.name} not supported")
         }
     }

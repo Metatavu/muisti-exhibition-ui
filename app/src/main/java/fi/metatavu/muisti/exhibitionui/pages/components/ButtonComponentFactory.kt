@@ -20,11 +20,10 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
 
     override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): Button {
         val button = Button(context)
-        val parent = parents.last()
-
-        button.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-
         setId(button, id)
+
+        val parent = parents.lastOrNull()
+        button.layoutParams = getInitialLayoutParams(parent)
 
         properties.forEach {
             this.setProperty(parent, button, it )
@@ -40,20 +39,18 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
      * @param button button
      * @param property property
      */
-    private fun setProperty(parent: View, button: Button, property: PageLayoutViewProperty) {
-        Log.d(javaClass.name, "Setting property ${property.name} to ${property.value}")
-
+    private fun setProperty(parent: View?, button: Button, property: PageLayoutViewProperty) {
         try {
             when(property.name) {
-                "layout_width" -> setLayoutWidths(button, property)
-                "layout_height" -> setLayoutHeights(button, property)
-                "width" -> button.width = property.value.toInt()
-                "height" -> button.height = property.value.toInt()
+                "layout_width" -> setLayoutWidth(parent, button, property)
+                "layout_height" -> setLayoutHeight(parent, button, property)
+                "width" -> setWidth(button, property.value)
+                "height" -> setHeight(button, property.value)
                 "textColor" -> button.setTextColor(Color.parseColor(property.value))
                 "textSize" -> button.textSize = property.value.toFloat()
                 "text" -> button.text = property.value
                 "textStyle" -> setTextStyle(property, button)
-                "layout_gravity" -> setLayoutGravity(parent, button, property.value)
+                "layout_gravity" -> setLayoutGravity(button, property.value)
                 "background" -> button.setBackgroundColor(Color.parseColor(property.value))
                 "paddingLeft" -> button.setPadding(
                     property.value.toInt(),
@@ -102,16 +99,6 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
             "bold" -> button.typeface = Typeface.DEFAULT_BOLD
             "normal" -> button.typeface = Typeface.DEFAULT
         }
-    }
-
-    /**
-     * Sets button id
-     *
-     * @param button button
-     * @param value value
-     */
-    private fun setId(button: Button, value: String?) {
-        button.tag = value
     }
 
     /**

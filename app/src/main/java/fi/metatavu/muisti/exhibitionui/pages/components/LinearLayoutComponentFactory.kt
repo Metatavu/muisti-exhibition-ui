@@ -19,65 +19,59 @@ class LinearLayoutComponentFactory : AbstractComponentFactory<LinearLayout>() {
 
     override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): LinearLayout {
         val linearLayout = LinearLayout(context)
-        linearLayout.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        setId(linearLayout, id)
+
+        val parent = parents.last()
+        linearLayout.layoutParams = getInitialLayoutParams(parent)
 
         properties.forEach {
-            when(it.name) {
-                "layout_width" -> setLayoutWidths(linearLayout, it)
-                "layout_height" -> setLayoutHeights(linearLayout, it)
-                "background" -> setBackgroundColor(linearLayout, it.value)
-                "paddingLeft" -> linearLayout.setPadding(
-                    it.value.toInt(),
-                    linearLayout.paddingTop,
-                    linearLayout.paddingRight,
-                    linearLayout.paddingBottom
-                )
-
-                "paddingTop" -> linearLayout.setPadding(
-                    linearLayout.paddingLeft,
-                    it.value.toInt(),
-                    linearLayout.paddingRight,linearLayout.paddingBottom
-                )
-
-                "paddingRight" -> linearLayout.setPadding(
-                    linearLayout.paddingLeft,
-                    linearLayout.paddingTop,
-                    it.value.toInt(),
-                    linearLayout.paddingBottom
-                )
-
-                "paddingBottom" -> linearLayout.setPadding(
-                    linearLayout.paddingLeft,
-                    linearLayout.paddingTop, linearLayout.paddingRight,
-                    it.value.toInt()
-                )
-
-                "orientation" -> setOrientation(linearLayout, it)
-                "layout_gravity" -> setGravity(linearLayout, it)
-                "tag" -> linearLayout.tag = it.value
-                else -> Log.d(javaClass.name, "Property ${it.name} not supported")
-            }
+            setProperty(parent, linearLayout, it)
         }
 
         return linearLayout
     }
 
     /**
-     * Sets gravities
-     * 
+     * Sets a property
+     *
+     * @param parent parent
      * @param linearLayout linear layout
-     * @param pageLayoutViewProperty PageLayoutViewProperty to be set
+     * @param property property to be set
      */
-    private fun setGravity(linearLayout: LinearLayout, pageLayoutViewProperty: PageLayoutViewProperty) {
-        when (pageLayoutViewProperty.value) {
-            "center" -> linearLayout.gravity = Gravity.CENTER
-            "center_vertical" -> linearLayout.gravity = Gravity.CENTER_VERTICAL
-            "center_horizontal" -> linearLayout.gravity = Gravity.CENTER_HORIZONTAL
-            "bottom" -> linearLayout.gravity = Gravity.BOTTOM
-            "bottom|center_horizontal" -> {
-                linearLayout.setHorizontalGravity(Gravity.CENTER_HORIZONTAL)
-                linearLayout.setVerticalGravity(Gravity.BOTTOM)
-            }
+    private fun setProperty(parent: View, linearLayout: LinearLayout, property: PageLayoutViewProperty) {
+        when(property.name) {
+            "layout_width" -> setLayoutWidth(parent, linearLayout, property)
+            "layout_height" -> setLayoutHeight(parent, linearLayout, property)
+            "background" -> setBackgroundColor(linearLayout, property.value)
+            "paddingLeft" -> linearLayout.setPadding(
+                property.value.toInt(),
+                linearLayout.paddingTop,
+                linearLayout.paddingRight,
+                linearLayout.paddingBottom
+            )
+
+            "paddingTop" -> linearLayout.setPadding(
+                linearLayout.paddingLeft,
+                property.value.toInt(),
+                linearLayout.paddingRight,linearLayout.paddingBottom
+            )
+
+            "paddingRight" -> linearLayout.setPadding(
+                linearLayout.paddingLeft,
+                linearLayout.paddingTop,
+                property.value.toInt(),
+                linearLayout.paddingBottom
+            )
+
+            "paddingBottom" -> linearLayout.setPadding(
+                linearLayout.paddingLeft,
+                linearLayout.paddingTop, linearLayout.paddingRight,
+                property.value.toInt()
+            )
+
+            "orientation" -> setOrientation(linearLayout, property)
+            "layout_gravity" -> setLayoutGravity(linearLayout, property.value)
+            else -> Log.d(javaClass.name, "Property ${property.name} not supported")
         }
     }
 

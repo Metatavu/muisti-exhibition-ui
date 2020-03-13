@@ -19,10 +19,15 @@ class RelativeLayoutComponentFactory : AbstractComponentFactory<RelativeLayout>(
 
     override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): RelativeLayout {
         val frameLayout = RelativeLayout(context)
-        frameLayout.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        setId(frameLayout, id)
+
+        val parent = parents.lastOrNull()
+        frameLayout.layoutParams = getInitialLayoutParams(parent)
+
         properties.forEach {
-            this.setProperty(frameLayout, it)
+            this.setProperty(parent, frameLayout, it)
         }
+
         return frameLayout
     }
 
@@ -32,36 +37,22 @@ class RelativeLayoutComponentFactory : AbstractComponentFactory<RelativeLayout>(
      * @param frameLayout frame layout
      * @param property property
      */
-    private fun setProperty(frameLayout: RelativeLayout, property: PageLayoutViewProperty) {
-        Log.d(javaClass.name, "Setting property ${property.name} to ${property.value}")
+    private fun setProperty(parent: View?, frameLayout: RelativeLayout, property: PageLayoutViewProperty) {
         when(property.name) {
-            "layout_width" -> setLayoutWidths(frameLayout, property)
-            "layout_height" -> setLayoutHeights(frameLayout, property)
+            "layout_width" -> setLayoutWidth(parent, frameLayout, property)
+            "layout_height" -> setLayoutHeight(parent, frameLayout, property)
             "background" -> setBackgroundColor(frameLayout, property.value)
             "paddingLeft" -> frameLayout.setPadding(property.value.toInt(), frameLayout.paddingTop, frameLayout.paddingRight, frameLayout.paddingBottom)
             "paddingTop" -> frameLayout.setPadding(frameLayout.paddingLeft, property.value.toInt(), frameLayout.paddingRight, frameLayout.paddingBottom)
             "paddingRight" -> frameLayout.setPadding(frameLayout.paddingLeft, frameLayout.paddingTop, property.value.toInt(), frameLayout.paddingBottom)
             "paddingBottom" -> frameLayout.setPadding(frameLayout.paddingLeft, frameLayout.paddingTop, frameLayout.paddingRight, property.value.toInt())
-            "tag" -> frameLayout.tag = property.value
-            "layout_gravity" -> frameLayout.gravity = parseGravityComponent(property.value)
-            "layout_marginTop" -> setLayoutMarginLocal(frameLayout, property)
+            "layout_gravity" -> setLayoutGravity(frameLayout, property.value)
+            "layout_marginTop" -> setLayoutMargin(parent, frameLayout, property)
+            "layout_marginBottom" -> setLayoutMargin(parent, frameLayout, property)
+            "layout_marginRight" -> setLayoutMargin(parent, frameLayout, property)
+            "layout_marginLeft" -> setLayoutMargin(parent, frameLayout, property)
             else -> Log.d(javaClass.name, "Property ${property.name} not supported")
         }
-    }
-
-    private fun setLayoutMarginLocal(view: View, property: PageLayoutViewProperty) {
-        val layoutParams = view.layoutParams
-        val updatedParams = LinearLayout.LayoutParams(layoutParams.width, layoutParams.height)
-        when(property.name){
-            "layout_marginTop" -> updatedParams.topMargin = getDigitsFromProperty(property.value).toInt()
-            "layout_marginBottom" -> updatedParams.bottomMargin = getDigitsFromProperty(property.value).toInt()
-            "layout_marginRight" -> updatedParams.rightMargin = getDigitsFromProperty(property.value).toInt()
-            "layout_marginLeft" -> updatedParams.leftMargin = getDigitsFromProperty(property.value).toInt()
-        }
-    }
-
-    private fun getDigitsFromProperty(property: String): String {
-        return property.takeWhile { it.isDigit() }
     }
 
     /**
