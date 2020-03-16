@@ -50,7 +50,7 @@ class ConstructPagesService : JobIntentService() {
             val context = ExhibitionUIApplication.instance.applicationContext
             val view = PageViewFactory.buildPageView(context, page.resources, layout.data)
             if (view != null) {
-                PageViewContainer.setPageView(pageId, PageView(view = view, eventTriggers = page.eventTriggers))
+                PageViewContainer.setPageView(pageId, PageView(id = page.pageId, name = page.name, view = view, eventTriggers = page.eventTriggers))
                 Log.d(ConstructPagesService::javaClass.name, "Constructed page ${page.name} - ${pageId}.")
             } else {
                 Log.d(ConstructPagesService::javaClass.name,"Could not construct page ${pageId}.")

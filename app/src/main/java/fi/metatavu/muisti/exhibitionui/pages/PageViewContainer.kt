@@ -1,5 +1,7 @@
 package fi.metatavu.muisti.exhibitionui.pages
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import java.util.*
 
 /**
@@ -10,6 +12,7 @@ class PageViewContainer {
     companion object {
 
         private val pageViews= mutableMapOf<UUID, PageView>()
+        private val livePages = MutableLiveData<List<PageView>>()
 
         /**
          * Returns generated page view by id
@@ -29,6 +32,16 @@ class PageViewContainer {
          */
         fun setPageView(id: UUID, pageView: PageView) {
             pageViews[id] = pageView
+            livePages.postValue(pageViews.values.toList())
+        }
+
+        /**
+         * Returns a LiveData instance for pages view list
+         *
+         * @return a LiveData instance for pages view list
+         */
+        fun livePageViewList(): LiveData<List<PageView>>  {
+            return livePages
         }
     }
 
