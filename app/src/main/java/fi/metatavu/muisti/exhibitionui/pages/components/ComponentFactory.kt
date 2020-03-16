@@ -3,7 +3,8 @@ package fi.metatavu.muisti.exhibitionui.pages.components
 import android.content.Context
 import android.view.View
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
-import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import fi.metatavu.muisti.api.client.models.PageLayoutView
+import fi.metatavu.muisti.exhibitionui.pages.PageViewActivator
 
 /**
  * Interface descrining component factory
@@ -22,11 +23,10 @@ interface ComponentFactory <T : View> {
      *
      * @param context context
      * @param parents list of parent components
-     * @param id id
+     * @param pageLayoutView page layout view
      * @param resources list of resources
-     * @param properties array of view properties
+     * @param activators list of activators
      * @return build view
      */
-    fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties : Array<PageLayoutViewProperty>) : T
-
+    fun buildComponent(context: Context, parents: Array<View>, pageLayoutView: PageLayoutView, resources: Array<ExhibitionPageResource>, activators: MutableList<PageViewActivator>) : T
 }

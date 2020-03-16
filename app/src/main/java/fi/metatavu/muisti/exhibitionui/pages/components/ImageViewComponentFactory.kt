@@ -7,7 +7,9 @@ import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
+import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import fi.metatavu.muisti.exhibitionui.pages.PageViewActivator
 
 /**
  * Component factory for image components
@@ -16,14 +18,14 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
     override val name: String
         get() = "ImageView"
 
-    override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): ImageView {
+    override fun buildComponent(context: Context, parents: Array<View>, pageLayoutView: PageLayoutView, resources: Array<ExhibitionPageResource>, activators: MutableList<PageViewActivator>): ImageView {
         val imageView = ImageView(context)
-        setId(imageView, id)
+        setId(imageView, pageLayoutView)
 
         val parent = parents.lastOrNull()
         imageView.layoutParams = getInitialLayoutParams(parent)
 
-        properties.forEach {
+        pageLayoutView.properties.forEach {
             this.setProperty(parent, imageView, resources, it)
         }
 
@@ -91,7 +93,7 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
      * @param value value
      */
     private fun setSrc(imageView: ImageView, resources: Array<ExhibitionPageResource>, value: String?) {
-        val resource = getResource(resources, value)
+        val resource = getResourceData(resources, value)
         val url = getUrl(resource ?: value)
         url ?: return
         val bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream())

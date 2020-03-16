@@ -8,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
+import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import fi.metatavu.muisti.exhibitionui.pages.PageViewActivator
 
 /**
  * Component factory for buttons
@@ -18,14 +20,14 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
     override val name: String
         get() = "Button"
 
-    override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): Button {
+    override fun buildComponent(context: Context, parents: Array<View>, pageLayoutView: PageLayoutView, resources: Array<ExhibitionPageResource>, activators: MutableList<PageViewActivator>): Button {
         val button = Button(context)
-        setId(button, id)
+        setId(button, pageLayoutView)
 
         val parent = parents.lastOrNull()
         button.layoutParams = getInitialLayoutParams(parent)
 
-        properties.forEach {
+        pageLayoutView.properties.forEach {
             this.setProperty(parent, button, it )
         }
 

@@ -13,6 +13,7 @@ import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProvider
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProviderFactory
 import fi.metatavu.muisti.exhibitionui.pages.PageView
+import fi.metatavu.muisti.exhibitionui.pages.PageViewActivator
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import kotlinx.android.synthetic.main.activity_page.*
 import java.util.*
@@ -72,7 +73,9 @@ class PageActivity : AppCompatActivity() {
     private fun openView(pageView: PageView) {
         currentPageView = pageView
         this.root.addView(pageView.view)
-        applyEventTriggers(pageView.eventTriggers)
+        pageView.activators.forEach { it(this) }
+
+        applyEventTriggers(pageView.page.eventTriggers)
     }
 
     /**

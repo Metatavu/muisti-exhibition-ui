@@ -8,7 +8,9 @@ import android.view.Gravity
 import android.view.View
 import android.widget.TextView
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
+import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import fi.metatavu.muisti.exhibitionui.pages.PageViewActivator
 
 /**
  * Component factory for text view components
@@ -17,14 +19,14 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
     override val name: String
         get() = "TextView"
 
-    override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): TextView {
+    override fun buildComponent(context: Context, parents: Array<View>, pageLayoutView: PageLayoutView, resources: Array<ExhibitionPageResource>, activators: MutableList<PageViewActivator>): TextView {
         val textView = TextView(context)
-        setId(textView, id)
+        setId(textView, pageLayoutView)
 
         val parent = parents.lastOrNull()
         textView.layoutParams = getInitialLayoutParams(parent)
 
-        properties.forEach {
+        pageLayoutView.properties.forEach {
             this.setProperty(parent, textView, resources, it)
         }
 
@@ -181,6 +183,6 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
      * @param value value
      */
     private fun setText(textView: TextView, resources: Array<ExhibitionPageResource>, value: String) {
-        textView.text = getResource(resources, value)
+        textView.text = getResourceData(resources, value)
     }
 }

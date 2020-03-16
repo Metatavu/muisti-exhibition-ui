@@ -7,7 +7,9 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
+import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import fi.metatavu.muisti.exhibitionui.pages.PageViewActivator
 
 /**
  * Component factory for relative layout components
@@ -17,14 +19,14 @@ class RelativeLayoutComponentFactory : AbstractComponentFactory<RelativeLayout>(
     override val name: String
         get() = "RelativeLayout"
 
-    override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): RelativeLayout {
+    override fun buildComponent(context: Context, parents: Array<View>, pageLayoutView: PageLayoutView, resources: Array<ExhibitionPageResource>, activators: MutableList<PageViewActivator>): RelativeLayout {
         val frameLayout = RelativeLayout(context)
-        setId(frameLayout, id)
+        setId(frameLayout, pageLayoutView)
 
         val parent = parents.lastOrNull()
         frameLayout.layoutParams = getInitialLayoutParams(parent)
 
-        properties.forEach {
+        pageLayoutView.properties.forEach {
             this.setProperty(parent, frameLayout, it)
         }
 

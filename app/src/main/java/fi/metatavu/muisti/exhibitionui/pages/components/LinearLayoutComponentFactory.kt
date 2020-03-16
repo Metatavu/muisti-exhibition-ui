@@ -7,8 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
+import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.api.client.models.PageLayoutViewPropertyType
+import fi.metatavu.muisti.exhibitionui.pages.PageViewActivator
 
 /**
  * Linear layout component factory
@@ -17,14 +19,14 @@ class LinearLayoutComponentFactory : AbstractComponentFactory<LinearLayout>() {
     override val name: String
         get() = "LinearLayout"
 
-    override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): LinearLayout {
+    override fun buildComponent(context: Context, parents: Array<View>, pageLayoutView: PageLayoutView, resources: Array<ExhibitionPageResource>, activators: MutableList<PageViewActivator>): LinearLayout {
         val linearLayout = LinearLayout(context)
-        setId(linearLayout, id)
+        setId(linearLayout, pageLayoutView)
 
         val parent = parents.last()
         linearLayout.layoutParams = getInitialLayoutParams(parent)
 
-        properties.forEach {
+        pageLayoutView.properties.forEach {
             setProperty(parent, linearLayout, it)
         }
 

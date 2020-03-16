@@ -56,7 +56,7 @@ class PreviewActivity : AppCompatActivity() {
      */
     private val onPreviewPageButtonClick = View.OnClickListener {
         val pageView: PageView? = pageSpinner.selectedItem as PageView?
-        val pageId = pageView?.id
+        val pageId = pageView?.page?.pageId
         if (pageId != null) {
             goToPage(pageId)
         }
