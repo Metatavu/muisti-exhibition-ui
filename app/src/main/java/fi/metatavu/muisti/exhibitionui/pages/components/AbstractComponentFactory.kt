@@ -6,18 +6,23 @@ import android.graphics.Color
 import android.net.Uri
 import android.util.DisplayMetrics
 import android.util.Log
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.View.*
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
+import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
-import fi.metatavu.muisti.api.client.models.PageLayoutViewPropertyType
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
+import java.io.File
+import java.io.FileOutputStream
 import java.net.MalformedURLException
 import java.net.URL
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -31,6 +36,16 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
 
     private val context: Context = ExhibitionUIApplication.instance.applicationContext
     private val displayMetrics: DisplayMetrics = context.resources.displayMetrics
+
+    /**
+     * Sets view id
+     *
+     * @param view view
+     * @param pageLayoutView page layout view
+     */
+    protected fun setId(view: T, pageLayoutView: PageLayoutView) {
+        setId(view, pageLayoutView.id)
+    }
 
     /**
      * Sets view id
@@ -110,20 +125,77 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     }
 
     /**
-     * Returns resource value for given property
+     * Returns resource for given property
      *
      * @param value property value
      * @return resource value for given property
      */
-    protected fun getResource(resources: Array<ExhibitionPageResource>, value: String?): String? {
+    protected fun getResource(resources: Array<ExhibitionPageResource>, value: String?): ExhibitionPageResource? {
         value ?: return null
         if (!value.startsWith("@resources/")) {
             return null
         }
 
         val resourceName = value.substring(11)
-        val resource = resources.firstOrNull { resourceName == it.id }
-        return resource?.data
+        return resources.firstOrNull { resourceName == it.id }
+    }
+
+    /**
+     * Returns resource data for given property
+     *
+     * @param value property value
+     * @return resource value for given property
+     */
+    protected fun getResourceData(resources: Array<ExhibitionPageResource>, value: String?): String? {
+        return getResource(resources, value)?.data
+    }
+
+    /**
+     * Downloads a resource into offline storage and returns a file
+     *
+     * @param buildContext build context
+     * @param propertyName name of property containing a reference to resource
+     * @return offlined file or null if not found
+     */
+    protected fun getResourceOfflineFile(buildContext: ComponentBuildContext, propertyName: String): File? {
+        val srcValue = buildContext.pageLayoutView.properties.firstOrNull { it.name == propertyName }?.value
+        return getResourceOfflineFile(buildContext.page.resources, srcValue)
+    }
+
+    /**
+     * Downloads a resource into offline storage and returns a file
+     *
+     * @param resources resources
+     * @param value value
+     * @return offlined file
+     */
+    protected fun getResourceOfflineFile(resources: Array<ExhibitionPageResource>, value: String?): File? {
+        val resource = getResourceData(resources, value)
+        val url = getUrl(resource ?: value)
+        url ?: return null
+
+        val downloadsDir = ExhibitionUIApplication.instance.applicationContext.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
+
+        val urlExternal = url.toExternalForm()
+        val urlHash: String = md5(urlExternal)
+        val extension: String = urlExternal.substring(urlExternal.lastIndexOf("."))
+
+        val offlineFile = File(downloadsDir, "$urlHash$extension")
+        if (!offlineFile.exists()) {
+            Log.d(this.javaClass.name, "Downloading ${url.toExternalForm()} into local file ${offlineFile.absolutePath}")
+            offlineFile.createNewFile()
+
+            val outputStream  = FileOutputStream(offlineFile)
+            val inputStream = url.openConnection().getInputStream()
+
+            inputStream.use{
+                outputStream.use {
+                    inputStream.copyTo(outputStream)
+                }
+            }
+        }
+
+        return offlineFile
     }
 
     /**
@@ -395,4 +467,32 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         return dp * (displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
     }
 
+
+    /**
+     * Calculates a md5 hash from given string
+     *
+     * @param str string
+     * @return md5 hash
+     */
+    private fun md5(str: String): String {
+        val hexString = StringBuilder()
+
+        for (aMessageDigest in md5(str.toByteArray(StandardCharsets.UTF_8))) {
+            hexString.append(Integer.toHexString(0xFF and aMessageDigest.toInt()).padStart(2, '0'))
+        }
+
+        return hexString.toString()
+    }
+
+    /**
+     * Calculates a md5 hash from given bytes
+     *
+     * @param bytes bytes
+     * @return md5 hash bytes
+     */
+    private fun md5(bytes: ByteArray): ByteArray {
+        val digest = MessageDigest.getInstance("MD5")
+        digest.update(bytes)
+        return digest.digest()
+    }
 }

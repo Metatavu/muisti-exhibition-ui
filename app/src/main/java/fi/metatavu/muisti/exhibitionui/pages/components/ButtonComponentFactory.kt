@@ -1,13 +1,10 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
-import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import android.util.Log
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
-import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 
 /**
@@ -18,14 +15,14 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
     override val name: String
         get() = "Button"
 
-    override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): Button {
-        val button = Button(context)
-        setId(button, id)
+    override fun buildComponent(buildContext: ComponentBuildContext): Button {
+        val button = Button(buildContext.context)
+        setId(button, buildContext.pageLayoutView)
 
-        val parent = parents.lastOrNull()
+        val parent = buildContext.parents.lastOrNull()
         button.layoutParams = getInitialLayoutParams(parent)
 
-        properties.forEach {
+        buildContext.pageLayoutView.properties.forEach {
             this.setProperty(parent, button, it )
         }
 

@@ -1,6 +1,5 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
-import android.content.Context
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.util.Log
@@ -16,15 +15,15 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
     override val name: String
         get() = "ImageView"
 
-    override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): ImageView {
-        val imageView = ImageView(context)
-        setId(imageView, id)
+    override fun buildComponent(buildContext: ComponentBuildContext): ImageView {
+        val imageView = ImageView(buildContext.context)
+        setId(imageView, buildContext.pageLayoutView)
 
-        val parent = parents.lastOrNull()
+        val parent = buildContext.parents.lastOrNull()
         imageView.layoutParams = getInitialLayoutParams(parent)
 
-        properties.forEach {
-            this.setProperty(parent, imageView, resources, it)
+        buildContext.pageLayoutView.properties.forEach {
+            this.setProperty(parent, imageView, buildContext.page.resources, it)
         }
 
         return imageView
@@ -91,7 +90,7 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
      * @param value value
      */
     private fun setSrc(imageView: ImageView, resources: Array<ExhibitionPageResource>, value: String?) {
-        val resource = getResource(resources, value)
+        val resource = getResourceData(resources, value)
         val url = getUrl(resource ?: value)
         url ?: return
         val bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream())

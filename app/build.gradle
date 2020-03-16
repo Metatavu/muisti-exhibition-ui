@@ -14,6 +14,11 @@ android {
     compileSdkVersion 29
     buildToolsVersion "29.0.3"
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     file('.env').readLines().each() {
         if (!it.isEmpty() && !it.startsWith("#")) {
             def pos = it.indexOf("=")
@@ -34,6 +39,7 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -81,6 +87,10 @@ dependencies {
     implementation "com.squareup.moshi:moshi-kotlin:1.8.0"
     implementation "com.squareup.moshi:moshi-adapters:1.8.0"
 
+    // Exo player
+
+    implementation 'com.google.android.exoplayer:exoplayer:2.11.3'
+
     // Room components
 
     implementation "androidx.room:room-runtime:$rootProject.roomVersion"
@@ -90,7 +100,6 @@ dependencies {
     // Lifecycle components
 
     implementation "androidx.lifecycle:lifecycle-extensions:$rootProject.archLifecycleVersion"
-    kapt "androidx.lifecycle:lifecycle-compiler:$rootProject.archLifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$rootProject.archLifecycleVersion"
 
     // ViewModel Kotlin support

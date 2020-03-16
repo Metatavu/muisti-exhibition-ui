@@ -72,7 +72,8 @@ class PageActivity : AppCompatActivity() {
     private fun openView(pageView: PageView) {
         currentPageView = pageView
         this.root.addView(pageView.view)
-        applyEventTriggers(pageView.eventTriggers)
+        pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
+        applyEventTriggers(pageView.page.eventTriggers)
     }
 
     /**
@@ -84,6 +85,7 @@ class PageActivity : AppCompatActivity() {
     private fun closeView() {
         handler.removeCallbacksAndMessages(null)
         val currentView = currentPageView?.view
+        currentPageView?.lifecycleListeners?.forEach { it.onPageDeactivate(this) }
 
         if (currentView != null) {
             this.root.removeView(currentView)
