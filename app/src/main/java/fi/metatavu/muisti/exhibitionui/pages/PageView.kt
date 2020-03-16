@@ -2,6 +2,7 @@ package fi.metatavu.muisti.exhibitionui.pages
 
 import android.view.View
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventTrigger
+import java.util.*
 
 /**
  * Data class for storing generated page views
@@ -11,10 +12,20 @@ import fi.metatavu.muisti.api.client.models.ExhibitionPageEventTrigger
  */
 data class PageView (
 
+    val name: String,
+
+    val id: UUID,
+
     val view: View,
 
     val eventTriggers: Array<ExhibitionPageEventTrigger>
+
 ) {
+
+    override fun toString(): String {
+        return name
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
