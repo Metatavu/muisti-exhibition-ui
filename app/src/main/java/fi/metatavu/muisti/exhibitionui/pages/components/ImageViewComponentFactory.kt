@@ -1,15 +1,12 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
-import android.content.Context
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
-import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
-import fi.metatavu.muisti.exhibitionui.pages.PageViewActivator
 
 /**
  * Component factory for image components
@@ -18,15 +15,15 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
     override val name: String
         get() = "ImageView"
 
-    override fun buildComponent(context: Context, parents: Array<View>, pageLayoutView: PageLayoutView, resources: Array<ExhibitionPageResource>, activators: MutableList<PageViewActivator>): ImageView {
-        val imageView = ImageView(context)
-        setId(imageView, pageLayoutView)
+    override fun buildComponent(buildContext: ComponentBuildContext): ImageView {
+        val imageView = ImageView(buildContext.context)
+        setId(imageView, buildContext.pageLayoutView)
 
-        val parent = parents.lastOrNull()
+        val parent = buildContext.parents.lastOrNull()
         imageView.layoutParams = getInitialLayoutParams(parent)
 
-        pageLayoutView.properties.forEach {
-            this.setProperty(parent, imageView, resources, it)
+        buildContext.pageLayoutView.properties.forEach {
+            this.setProperty(parent, imageView, buildContext.page.resources, it)
         }
 
         return imageView

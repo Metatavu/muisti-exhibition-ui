@@ -13,7 +13,6 @@ import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProvider
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProviderFactory
 import fi.metatavu.muisti.exhibitionui.pages.PageView
-import fi.metatavu.muisti.exhibitionui.pages.PageViewActivator
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import kotlinx.android.synthetic.main.activity_page.*
 import java.util.*
@@ -73,8 +72,7 @@ class PageActivity : AppCompatActivity() {
     private fun openView(pageView: PageView) {
         currentPageView = pageView
         this.root.addView(pageView.view)
-        pageView.activators.forEach { it(this) }
-
+        pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
         applyEventTriggers(pageView.page.eventTriggers)
     }
 
@@ -87,6 +85,7 @@ class PageActivity : AppCompatActivity() {
     private fun closeView() {
         handler.removeCallbacksAndMessages(null)
         val currentView = currentPageView?.view
+        currentPageView?.lifecycleListeners?.forEach { it.onPageDeactivate(this) }
 
         if (currentView != null) {
             this.root.removeView(currentView)

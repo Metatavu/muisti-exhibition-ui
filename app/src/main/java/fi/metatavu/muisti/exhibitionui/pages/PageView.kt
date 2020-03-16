@@ -5,16 +5,34 @@ import fi.metatavu.muisti.exhibitionui.persistence.model.Page
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
 /**
- * Type of page view activator callback method.
+ * Interface that describes a page view life-cycle listener
+ *
  */
-typealias PageViewActivator = (pageActivity: PageActivity) -> Unit
+interface PageViewLifecycleListener {
+
+    /**
+     * Method invoked when page is being activated
+     *
+     * @param pageActivity page activity instance
+     */
+    fun onPageActivate (pageActivity: PageActivity)
+
+
+    /**
+     * Method invoked when page is being deactivated
+     *
+     * @param pageActivity page activity instance
+     */
+    fun onPageDeactivate (pageActivity: PageActivity)
+
+}
 
 /**
  * Data class for storing generated page views
  *
  * @property view view
  * @property page page
- * @property activators page view activators
+ * @property lifecycleListeners life-cycle listeners
  */
 data class PageView (
 
@@ -22,7 +40,7 @@ data class PageView (
 
     val page: Page,
 
-    val activators: MutableList<PageViewActivator>
+    val lifecycleListeners: List<PageViewLifecycleListener>
 ) {
 
     override fun toString(): String {

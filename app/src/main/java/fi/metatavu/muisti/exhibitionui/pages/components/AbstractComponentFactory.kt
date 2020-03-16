@@ -153,6 +153,18 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     /**
      * Downloads a resource into offline storage and returns a file
      *
+     * @param buildContext build context
+     * @param propertyName name of property containing a reference to resource
+     * @return offlined file or null if not found
+     */
+    protected fun getResourceOfflineFile(buildContext: ComponentBuildContext, propertyName: String): File? {
+        val srcValue = buildContext.pageLayoutView.properties.firstOrNull { it.name == propertyName }?.value
+        return getResourceOfflineFile(buildContext.page.resources, srcValue)
+    }
+
+    /**
+     * Downloads a resource into offline storage and returns a file
+     *
      * @param resources resources
      * @param value value
      * @return offlined file
