@@ -23,8 +23,6 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
-import java.util.regex.Matcher
-import java.util.regex.Pattern
 
 
 /**
@@ -68,46 +66,6 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
 
         try {
             return Color.parseColor(value)
-        } catch (e: IllegalArgumentException) {
-            return null
-        }
-    }
-
-    /**
-     * Returns dps property value
-     *
-     * @param value value
-     * @return dps property value
-     */
-    protected fun getDps(value: String?): Int? {
-        value ?: return 0
-
-        try {
-            val pattern: Pattern = Pattern.compile("dp$", Pattern.MULTILINE)
-            val matcher: Matcher = pattern.matcher(value)
-            val result: String = matcher.replaceAll("")
-
-            return convertDpToPixel(result.toDouble()).toInt()
-
-        } catch (e: IllegalArgumentException) {
-            return null
-        }
-    }
-
-    /**
-     * Returns sp property value
-     *
-     * @param value value
-     * @return dps property value
-     */
-    protected fun getSp(value: String?): Float? {
-        value ?: return null
-
-        try {
-            val pattern: Pattern = Pattern.compile("sp$", Pattern.MULTILINE)
-            val matcher: Matcher = pattern.matcher(value)
-            val result: String = matcher.replaceAll("")
-            return result.toFloat()
         } catch (e: IllegalArgumentException) {
             return null
         }
@@ -169,7 +127,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param value value
      * @return offlined file
      */
-    protected fun getResourceOfflineFile(resources: Array<ExhibitionPageResource>, value: String?): File? {
+    private fun getResourceOfflineFile(resources: Array<ExhibitionPageResource>, value: String?): File? {
         val resource = getResourceData(resources, value)
         val url = getUrl(resource ?: value)
         url ?: return null
@@ -240,24 +198,24 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param property property to be set
      */
     protected fun setLayoutMargin(parent: View?, view: View, property: PageLayoutViewProperty) {
-        val dps = getDps(property.value)
-        dps ?: return
+        val px = stringToPx(property.value)?.toInt()
+        px ?: return
 
         if (parent == null) {
             Log.d(this.javaClass.name, "Parent is null, could not set layout margin")
         } else if (parent is FrameLayout) {
             when (property.name) {
-                "layout_marginTop" -> (view.layoutParams as FrameLayout.LayoutParams).topMargin = dps
-                "layout_marginBottom" -> (view.layoutParams as FrameLayout.LayoutParams).bottomMargin = dps
-                "layout_marginRight" -> (view.layoutParams as FrameLayout.LayoutParams).rightMargin = dps
-                "layout_marginLeft" -> (view.layoutParams as FrameLayout.LayoutParams).leftMargin = dps
+                "layout_marginTop" -> (view.layoutParams as FrameLayout.LayoutParams).topMargin = px
+                "layout_marginBottom" -> (view.layoutParams as FrameLayout.LayoutParams).bottomMargin = px
+                "layout_marginRight" -> (view.layoutParams as FrameLayout.LayoutParams).rightMargin = px
+                "layout_marginLeft" -> (view.layoutParams as FrameLayout.LayoutParams).leftMargin = px
             }
         } else if (parent is LinearLayout) {
             when(property.name){
-                "layout_marginTop" -> (view.layoutParams as LinearLayout.LayoutParams).topMargin = dps
-                "layout_marginBottom" -> (view.layoutParams as LinearLayout.LayoutParams).bottomMargin = dps
-                "layout_marginRight" -> (view.layoutParams as LinearLayout.LayoutParams).rightMargin = dps
-                "layout_marginLeft" -> (view.layoutParams as LinearLayout.LayoutParams).leftMargin = dps
+                "layout_marginTop" -> (view.layoutParams as LinearLayout.LayoutParams).topMargin = px
+                "layout_marginBottom" -> (view.layoutParams as LinearLayout.LayoutParams).bottomMargin = px
+                "layout_marginRight" -> (view.layoutParams as LinearLayout.LayoutParams).rightMargin = px
+                "layout_marginLeft" -> (view.layoutParams as LinearLayout.LayoutParams).leftMargin = px
             }
         } else {
             Log.d(this.javaClass.name, "Unsupported layout ${parent.javaClass.name} for gravity")
@@ -317,9 +275,9 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             return
         }
 
-        val width = getDps(property.value)
+        val width = stringToPx(property.value)
         if (width != null) {
-            view.layoutParams.width = width
+            view.layoutParams.width = width.toInt()
             return
         }
 
@@ -362,9 +320,9 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             return
         }
 
-        val height = getDps(property.value)
+        val height = stringToPx(property.value)
         if (height!= null) {
-            view.layoutParams.height = height
+            view.layoutParams.height = height.toInt()
             return
         }
 
@@ -458,15 +416,82 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     }
 
     /**
-     * Converts dps into pixels
+     * Parses string to pixels
      *
-     * @param dp dp
-     * @return pixels
+     * @param value string
+     * @returns parsed number of pixels or null if string could not be parsed
      */
-    private fun convertDpToPixel(dp: Double): Double {
-        return dp * (displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
+    protected fun stringToPx(value: String?): Float? {
+        value ?: return null
+
+        val dp = dpToFloat(value)
+        if (dp != null) {
+            return convertDpToPixel(dp)
+        }
+
+        val sp = spToFloat(value)
+        if (sp != null) {
+            return convertSpToPixel(sp)
+        }
+
+        return null
     }
 
+    /**
+     * Parses DP string into number
+     *
+     * @param value string
+     * @returns parsed number or null if is not a DP string
+     */
+    private fun dpToFloat(value: String): Float? {
+        return regexToFloat("([0-9.]+)dp", value)
+    }
+
+    /**
+     * Parses SP string into number
+     *
+     * @param value string
+     * @returns parsed number or null if is not a SP string
+     */
+    private fun spToFloat(value: String): Float? {
+        return regexToFloat("([0-9.]+)sp", value)
+    }
+
+    /**
+     * Parses string to float using given regex pattern
+     *
+     * @param regex regex
+     * @param value string value
+     * @return float or null if string could not be parsed
+     */
+    private fun regexToFloat(regex: String, value: String): Float? {
+        val match = Regex(regex).find(value)
+        match ?: return null
+        val ( number ) = match.destructured
+        return number.toFloatOrNull()
+    }
+
+    /**
+     * Converts SPs to pixels.
+     *
+     * @param sp SPs
+     * @returns pixels
+     */
+    private fun convertSpToPixel(sp: Float?): Float? {
+        sp ?: return null
+        return (sp * displayMetrics.density)
+    }
+
+    /**
+     * Converts DPs to pixels
+     *
+     * @param dp DPs
+     * @returns pixels
+     */
+    private fun convertDpToPixel(dp: Float?): Float? {
+        dp ?: return null
+        return (dp * displayMetrics.density)
+    }
 
     /**
      * Calculates a md5 hash from given string
