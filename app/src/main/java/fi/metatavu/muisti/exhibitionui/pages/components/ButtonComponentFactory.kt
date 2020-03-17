@@ -23,66 +23,39 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
         button.layoutParams = getInitialLayoutParams(parent)
 
         buildContext.pageLayoutView.properties.forEach {
-            this.setProperty(parent, button, it )
+            this.setProperty(buildContext, parent, button, it )
         }
 
         return button
     }
 
-    /**
-     * Sets button property
-     *
-     * @param parent parent view
-     * @param button button
-     * @param property property
-     */
-    private fun setProperty(parent: View?, button: Button, property: PageLayoutViewProperty) {
+    override fun setProperty(buildContext: ComponentBuildContext, parent: View?, view: Button, property: PageLayoutViewProperty) {
         try {
             when(property.name) {
-                "layout_width" -> setLayoutWidth(parent, button, property)
-                "layout_height" -> setLayoutHeight(parent, button, property)
-                "width" -> setWidth(button, property.value)
-                "height" -> setHeight(button, property.value)
-                "textColor" -> button.setTextColor(Color.parseColor(property.value))
-                "textSize" -> button.textSize = property.value.toFloat()
-                "text" -> button.text = property.value
-                "textStyle" -> setTextStyle(property, button)
-                "layout_gravity" -> setLayoutGravity(button, property.value)
-                "background" -> button.setBackgroundColor(Color.parseColor(property.value))
-                "paddingLeft" -> button.setPadding(
-                    property.value.toInt(),
-                    button.paddingTop,
-                    button.paddingRight,
-                    button.paddingBottom
-                )
-                "paddingTop" -> button.setPadding(
-                    button.paddingLeft,
-                    property.value.toInt(),
-                    button.paddingRight,
-                    button.paddingBottom
-                )
-                "paddingRight" -> button.setPadding(
-                    button.paddingLeft,
-                    button.paddingTop,
-                    property.value.toInt(),
-                    button.paddingBottom
-                )
-                "paddingBottom" -> button.setPadding(
-                    button.paddingLeft,
-                    button.paddingTop,
-                    button.paddingRight,
-                    property.value.toInt()
-                )
+                "width" -> setWidth(view, property.value)
+                "height" -> setHeight(view, property.value)
+                "textColor" -> view.setTextColor(Color.parseColor(property.value))
+                "textSize" -> setTextSize(view, property)
+                "text" ->setText(buildContext, view, property)
+                "textStyle" -> setTextStyle(view, property)
 
-                "layout_marginTop" -> setLayoutMargin(parent, button, property)
-                "layout_marginBottom" -> setLayoutMargin(parent, button, property)
-                "layout_marginRight" -> setLayoutMargin(parent, button, property)
-                "layout_marginLeft" -> setLayoutMargin(parent, button, property)
-                else -> Log.d(ButtonComponentFactory::javaClass.name, "Property ${property.name} not supported")
+                else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
             Log.d(ButtonComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
         }
+    }
+
+    /**
+     * Sets text size from property
+     *
+     * @param button button
+     * @param property property
+     */
+    private fun setTextSize(button: Button, property: PageLayoutViewProperty) {
+        val px = stringToPx(property.value)
+        px ?: return
+        button.textSize = px
     }
 
     /**
@@ -91,7 +64,7 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
      * @param property
      * @param button
      */
-    private fun setTextStyle(property: PageLayoutViewProperty, button: Button) {
+    private fun setTextStyle(button: Button, property: PageLayoutViewProperty) {
         when (property.value) {
             "bold" -> button.typeface = Typeface.DEFAULT_BOLD
             "normal" -> button.typeface = Typeface.DEFAULT
@@ -120,5 +93,17 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
         val px = stringToPx(value)
         px ?: return
         button.layoutParams.height = px.toInt()
+    }
+
+    /**
+     * Sets button text from property
+     *
+     * @param buildContext build context
+     * @param button button view component
+     * @param property property
+     */
+    private fun setText(buildContext: ComponentBuildContext, button: Button, property: PageLayoutViewProperty) {
+        val text = getResourceData(buildContext, property.value)
+        button.text = text ?: property.value
     }
 }

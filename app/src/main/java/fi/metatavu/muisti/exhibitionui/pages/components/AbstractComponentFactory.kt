@@ -10,6 +10,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.View.*
 import android.view.ViewGroup
+import android.view.ViewGroup.MarginLayoutParams
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
@@ -17,6 +18,7 @@ import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
+import uk.co.deanwild.flowtextview.FlowTextView
 import java.io.File
 import java.io.FileOutputStream
 import java.net.MalformedURLException
@@ -53,6 +55,40 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      */
     protected fun setId(view: T, value: String?) {
         view.tag = value
+    }
+
+    /**
+     * Sets a view component property
+     *
+     * @param buildContext build context
+     * @param parent parent view
+     * @param view view
+     * @param property property to be set
+     */
+    protected open fun setProperty(buildContext: ComponentBuildContext, parent: View?, view: T, property: PageLayoutViewProperty) {
+        when (property.name) {
+            "padding" -> setPadding(view, property)
+            "paddingLeft" -> setPadding(view, property)
+            "paddingTop" -> setPadding(view, property)
+            "paddingRight" -> setPadding(view, property)
+            "paddingBottom" -> setPadding(view, property)
+            "layout_width" -> setLayoutWidth(parent, view, property)
+            "layout_height" -> setLayoutHeight(parent, view, property)
+            "layout_alignParentRight" -> setLayoutAlignParent(view, property)
+            "layout_alignParentTop" -> setLayoutAlignParent(view, property)
+            "layout_alignParentBottom" -> setLayoutAlignParent(view, property)
+            "layout_alignParentEnd" -> setLayoutAlignParent(view, property)
+            "layout_alignParentLeft" -> setLayoutAlignParent(view, property)
+            "layout_alignParentStart" -> setLayoutAlignParent(view, property)
+            "layout_marginTop" -> setLayoutMargin(view, property)
+            "layout_marginBottom" -> setLayoutMargin(view, property)
+            "layout_marginRight" -> setLayoutMargin(view, property)
+            "layout_marginLeft" -> setLayoutMargin(view, property)
+            "layout_toRightOf" -> setLayoutOf(view, property)
+            "layout_gravity" -> setLayoutGravity(view, property.value)
+            "background" -> setBackground(view, property.value)
+            else -> Log.d(ImageViewComponentFactory::javaClass.name, "Property ${property.name} not supported on ${view.javaClass.name} view")
+        }
     }
 
     /**
@@ -101,6 +137,17 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     /**
      * Returns resource data for given property
      *
+     * @param buildContext build context
+     * @param value property value
+     * @return resource value for given property
+     */
+    protected fun getResourceData(buildContext: ComponentBuildContext, value: String?): String? {
+        return getResourceData(buildContext.page.resources, value)
+    }
+
+    /**
+     * Returns resource data for given property
+     *
      * @param value property value
      * @return resource value for given property
      */
@@ -118,6 +165,38 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     protected fun getResourceOfflineFile(buildContext: ComponentBuildContext, propertyName: String): File? {
         val srcValue = buildContext.pageLayoutView.properties.firstOrNull { it.name == propertyName }?.value
         return getResourceOfflineFile(buildContext.page.resources, srcValue)
+    }
+
+    /**
+     * Sets background
+     *
+     * @param view view
+     * @param value value
+     */
+    private fun setBackground(view: T, value: String) {
+        val color = getColor(value)
+        color ?: return
+        view.setBackgroundColor(color)
+    }
+
+    /**
+     * Sets view padding
+     *
+     * @param view view
+     * @param property property
+     */
+    private fun setPadding(view: T, property: PageLayoutViewProperty) {
+        val px = stringToPx(property.value)?.toInt()
+        px ?: return
+
+        when (property.name) {
+            "padding" -> view.setPadding(px, px, px, px)
+            "paddingLeft" -> view.setPadding(px, view.paddingTop, view.paddingRight, view.paddingBottom)
+            "paddingTop" -> view.setPadding(view.paddingLeft, px, view.paddingRight, view.paddingBottom)
+            "paddingRight" -> view.setPadding(view.paddingLeft, view.paddingTop, px,  view.paddingBottom)
+            "paddingBottom" -> view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, px)
+            else -> Log.d(ImageViewComponentFactory::javaClass.name, "Property ${property.name} not supported")
+        }
     }
 
     /**
@@ -193,35 +272,27 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     /**
      * Updates component layout margin values
      *
-     * @param parent parent component
      * @param view view component
      * @param property property to be set
      */
-    protected fun setLayoutMargin(parent: View?, view: View, property: PageLayoutViewProperty) {
+    protected fun setLayoutMargin(view: View, property: PageLayoutViewProperty) {
         val px = stringToPx(property.value)?.toInt()
         px ?: return
 
-        if (parent == null) {
-            Log.d(this.javaClass.name, "Parent is null, could not set layout margin")
-        } else if (parent is FrameLayout) {
+        val layoutParams = view.layoutParams
+
+        if (layoutParams is MarginLayoutParams) {
             when (property.name) {
-                "layout_marginTop" -> (view.layoutParams as FrameLayout.LayoutParams).topMargin = px
-                "layout_marginBottom" -> (view.layoutParams as FrameLayout.LayoutParams).bottomMargin = px
-                "layout_marginRight" -> (view.layoutParams as FrameLayout.LayoutParams).rightMargin = px
-                "layout_marginLeft" -> (view.layoutParams as FrameLayout.LayoutParams).leftMargin = px
-            }
-        } else if (parent is LinearLayout) {
-            when(property.name){
-                "layout_marginTop" -> (view.layoutParams as LinearLayout.LayoutParams).topMargin = px
-                "layout_marginBottom" -> (view.layoutParams as LinearLayout.LayoutParams).bottomMargin = px
-                "layout_marginRight" -> (view.layoutParams as LinearLayout.LayoutParams).rightMargin = px
-                "layout_marginLeft" -> (view.layoutParams as LinearLayout.LayoutParams).leftMargin = px
+                "layout_marginTop" -> layoutParams.topMargin = px
+                "layout_marginBottom" -> layoutParams.bottomMargin = px
+                "layout_marginRight" -> layoutParams.rightMargin = px
+                "layout_marginLeft" -> layoutParams.leftMargin = px
+                else -> Log.d(this.javaClass.name, "Unsupported layout margin ${property.name} for relative layout params")
             }
         } else {
-            Log.d(this.javaClass.name, "Unsupported layout ${parent.javaClass.name} for gravity")
+            Log.d(this.javaClass.name, "Unsupported layout params ${layoutParams.javaClass.name} for ${property.name}")
         }
     }
-
 
     /**
      * Updates component layout left|right|start|end of values
@@ -252,7 +323,9 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      */
     protected fun getInitialLayoutParams(parent: View?): ViewGroup.LayoutParams {
         if (parent != null) {
-            if (parent is FrameLayout) {
+            if (parent is FlowTextView) {
+                return RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT)
+            } else if (parent is FrameLayout) {
                 return FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             } else if (parent is LinearLayout) {
                 return LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
@@ -304,6 +377,35 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             }
         } else {
             Log.d(this.javaClass.name, "Unsupported layout ${parent.javaClass.name} for layout width")
+        }
+    }
+
+    /**
+     * Updates component layout align parent values
+     *
+     * @param view view component
+     * @param property property to be set
+     */
+    @Suppress("DEPRECATION")
+    protected fun setLayoutAlignParent(view: View, property: PageLayoutViewProperty) {
+        val layoutParams = view.layoutParams
+
+        if (property.value != "true") {
+            return
+        }
+
+        if (layoutParams is RelativeLayout.LayoutParams) {
+            when (property.name) {
+                "layout_alignParentRight" -> layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT)
+                "layout_alignParentTop" -> layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP)
+                "layout_alignParentBottom" -> layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+                "layout_alignParentEnd" -> layoutParams.addRule(RelativeLayout.ALIGN_PARENT_END)
+                "layout_alignParentLeft" -> layoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT)
+                "layout_alignParentStart" -> layoutParams.addRule(RelativeLayout.ALIGN_PARENT_START)
+                else ->  Log.d(this.javaClass.name, "Unsupported layout align ${property.name}")
+            }
+        } else {
+            Log.d(this.javaClass.name, "Unsupported layout params ${layoutParams.javaClass.name} for ${property.name}")
         }
     }
 

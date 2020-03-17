@@ -1,11 +1,9 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
-import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 
 /**
@@ -23,60 +21,20 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
         imageView.layoutParams = getInitialLayoutParams(parent)
 
         buildContext.pageLayoutView.properties.forEach {
-            this.setProperty(parent, imageView, buildContext.page.resources, it)
+            this.setProperty(buildContext, parent, imageView, it)
         }
 
         return imageView
     }
 
-    /**
-     * Sets view image property
-     * @param parent parent component
-     * @param imageView image view component
-     * @param resources resources
-     * @param property property
-     */
-    private fun setProperty(parent: View?, imageView: ImageView, resources: Array<ExhibitionPageResource>, property: PageLayoutViewProperty) {
+    override fun setProperty(buildContext: ComponentBuildContext, parent: View?, view: ImageView, property: PageLayoutViewProperty) {
         try {
             when (property.name) {
-                "layout_width" -> setLayoutWidth(parent, imageView, property)
-                "layout_height" -> setLayoutHeight(parent, imageView, property)
-                "width" -> imageView.layoutParams.width = property.value.toInt()
-                "height" -> imageView.layoutParams.height = property.value.toInt()
-                "background" -> imageView.setBackgroundColor(Color.parseColor(property.value))
-                "paddingLeft" -> imageView.setPadding(
-                    property.value.toInt(),
-                    imageView.paddingTop,
-                    imageView.paddingRight,
-                    imageView.paddingBottom
-                )
-                "paddingTop" -> imageView.setPadding(
-                    imageView.paddingLeft,
-                    property.value.toInt(),
-                    imageView.paddingRight,
-                    imageView.paddingBottom
-                )
-                "paddingRight" -> imageView.setPadding(
-                    imageView.paddingLeft,
-                    imageView.paddingTop,
-                    property.value.toInt(),
-                    imageView.paddingBottom
-                )
-                "paddingBottom" -> imageView.setPadding(
-                    imageView.paddingLeft,
-                    imageView.paddingTop,
-                    imageView.paddingRight,
-                    property.value.toInt()
-                )
-                "src" -> setSrc(imageView, resources, property.value)
-                "layout_gravity" -> setLayoutGravity(imageView, property.value)
-                "layout_marginTop" -> setLayoutMargin(parent, imageView, property)
-                "layout_marginBottom" -> setLayoutMargin(parent, imageView, property)
-                "layout_marginRight" -> setLayoutMargin(parent, imageView, property)
-                "layout_marginLeft" -> setLayoutMargin(parent, imageView, property)
-
-                else -> Log.d(ImageViewComponentFactory::javaClass.name, "Property ${property.name} not supported")
+                "src" -> setSrc(buildContext, view, property.value)
+                else -> super.setProperty(buildContext, parent, view, property)
             }
+
+
         } catch (e: Exception) {
             Log.d(ImageViewComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
         }
@@ -85,12 +43,12 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
     /**
      * Sets a image src
      *
+     * @param buildContext build context
      * @param imageView image view component
-     * @param resources resources
      * @param value value
      */
-    private fun setSrc(imageView: ImageView, resources: Array<ExhibitionPageResource>, value: String?) {
-        val resource = getResourceData(resources, value)
+    private fun setSrc(buildContext: ComponentBuildContext, imageView: ImageView, value: String?) {
+        val resource = getResourceData(buildContext, value)
         val url = getUrl(resource ?: value)
         url ?: return
         val bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream())

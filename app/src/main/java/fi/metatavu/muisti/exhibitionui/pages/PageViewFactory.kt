@@ -18,6 +18,7 @@ class PageViewFactory {
 
         init {
             componentFactories.add(TextViewComponentFactory())
+            componentFactories.add(FlowTextViewComponentFactory())
             componentFactories.add(ButtonComponentFactory())
             componentFactories.add(ImageViewComponentFactory())
             componentFactories.add(MediaViewComponentFactory())

@@ -2,12 +2,12 @@ package fi.metatavu.muisti.exhibitionui.pages.components
 
 import android.graphics.Color
 import android.graphics.Typeface
+import android.text.Html
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.TextView
-import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 
 /**
@@ -25,44 +25,24 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
         textView.layoutParams = getInitialLayoutParams(parent)
 
         buildContext.pageLayoutView.properties.forEach {
-            this.setProperty(parent, textView, buildContext.page.resources, it)
+            this.setProperty(buildContext, parent, textView, it)
         }
 
         return textView
     }
 
-    /**
-     * Sets view text property
-     *
-     * @param textView text component
-     * @param resources resources
-     * @param property property
-     */
-    private fun setProperty(parent: View?, textView: TextView, resources: Array<ExhibitionPageResource>, property: PageLayoutViewProperty) {
+    override fun setProperty(buildContext: ComponentBuildContext, parent: View?, view: TextView, property: PageLayoutViewProperty) {
         try {
             when(property.name) {
-                "layout_width" -> setLayoutWidth(parent, textView, property)
-                "layout_height" -> setLayoutHeight(parent, textView, property)
-                "width" -> setWidth(textView, property.value)
-                "height" -> setHeight(textView, property.value)
-                "textColor" -> setTextColor(textView, property.value)
-                "text" -> setText(textView, resources, property.value)
-                "textStyle" -> setTextStyle(textView, property.value)
-                "textAlignment" -> setTextAlignment(textView, property.value)
-                "textSize" -> setTextSize(textView, property.value)
-                "gravity" -> setGravity(textView, property.value)
-                "background" -> textView.setBackgroundColor(Color.parseColor(property.value))
-                "paddingLeft" -> textView.setPadding(property.value.toInt(), textView.paddingTop, textView.paddingRight, textView.paddingBottom)
-                "paddingTop" -> textView.setPadding(textView.paddingLeft, property.value.toInt(), textView.paddingRight, textView.paddingBottom)
-                "paddingRight" -> textView.setPadding(textView.paddingLeft, textView.paddingTop, property.value.toInt(), textView.paddingBottom)
-                "paddingBottom" -> textView.setPadding(textView.paddingLeft, textView.paddingTop, textView.paddingRight, property.value.toInt())
-                "layout_gravity" -> setLayoutGravities(property, textView)
-                "layout_marginTop" -> setLayoutMargin(parent, textView, property)
-                "layout_marginBottom" -> setLayoutMargin(parent, textView, property)
-                "layout_marginRight" -> setLayoutMargin(parent, textView, property)
-                "layout_marginLeft" -> setLayoutMargin(parent, textView, property)
-                "layout_toRightOf" -> setLayoutOf(textView, property)
-                else -> Log.d(this.javaClass.name, "Property ${property.name} not supported")
+                "width" -> setWidth(view, property.value)
+                "height" -> setHeight(view, property.value)
+                "textColor" -> setTextColor(view, property.value)
+                "text" -> setText(buildContext, view, property.value)
+                "textStyle" -> setTextStyle(view, property.value)
+                "textAlignment" -> setTextAlignment(view, property.value)
+                "textSize" -> setTextSize(view, property.value)
+                "gravity" -> setGravity(view, property.value)
+                else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
             Log.d(TextViewComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
@@ -159,28 +139,13 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
     }
 
     /**
-     * Sets gravities
-     *
-     * @param property to be set
-     * @param textView text view component
-     */
-    private fun setLayoutGravities(property: PageLayoutViewProperty, textView: TextView) {
-        when (property.value) {
-            "center" -> textView.gravity = Gravity.CENTER
-            "center_vertical" -> textView.gravity = Gravity.CENTER_VERTICAL
-            "center_horizontal" -> textView.gravity = Gravity.CENTER_HORIZONTAL
-            "bottom" -> textView.gravity = Gravity.BOTTOM
-        }
-    }
-
-    /**
      * Sets text view text
      *
+     * @param buildContext build context
      * @param textView text view component
-     * @param resources resources
      * @param value value
      */
-    private fun setText(textView: TextView, resources: Array<ExhibitionPageResource>, value: String) {
-        textView.text = getResourceData(resources, value)
+    private fun setText(buildContext: ComponentBuildContext, textView: TextView, value: String) {
+        textView.text = Html.fromHtml(getResourceData(buildContext, value), Html.FROM_HTML_MODE_LEGACY)
     }
 }
