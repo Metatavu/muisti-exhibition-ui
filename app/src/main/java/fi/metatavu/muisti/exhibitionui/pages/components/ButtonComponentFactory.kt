@@ -105,9 +105,9 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
      * @param value value
      */
     private fun setWidth(button: Button, value: String?) {
-        val dps = getDps(value)
-        dps ?: return
-        button.layoutParams.width = dps
+        val px = stringToPx(value)
+        px ?: return
+        button.layoutParams.width = px.toInt()
     }
 
     /**
@@ -117,8 +117,8 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
      * @param value value
      */
     private fun setHeight(button: Button, value: String) {
-        val dps = getDps(value)
-        dps ?: return
-        button.layoutParams.height = dps
+        val px = stringToPx(value)
+        px ?: return
+        button.layoutParams.height = px.toInt()
     }
 }

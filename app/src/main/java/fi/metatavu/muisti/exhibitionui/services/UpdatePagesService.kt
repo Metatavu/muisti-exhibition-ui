@@ -10,6 +10,7 @@ import fi.metatavu.muisti.exhibitionui.persistence.repository.PageRepository
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.lang.Exception
 
 /**
  * Service for getting pages from the API
@@ -27,12 +28,17 @@ class UpdatePagesService : JobIntentService() {
     }
 
     override fun onHandleWork(intent: Intent) {
-        GlobalScope.launch {
-            val exhibitionId = DeviceSettings.getExhibitionId()
-            if (exhibitionId != null) {
-                val pages = MuistiApiFactory.getExhibitionPagesApi().listExhibitionPages(exhibitionId)
-                addPages(pages)
+        try {
+            GlobalScope.launch {
+                val exhibitionId = DeviceSettings.getExhibitionId()
+                if (exhibitionId != null) {
+                    val pages =
+                        MuistiApiFactory.getExhibitionPagesApi().listExhibitionPages(exhibitionId)
+                    addPages(pages)
+                }
             }
+        } catch (e: Exception) {
+            Log.d(javaClass.name, "Pages update failed", e)
         }
     }
 

@@ -3,6 +3,7 @@ package fi.metatavu.muisti.exhibitionui.pages.components
 import android.graphics.Color
 import android.graphics.Typeface
 import android.util.Log
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.TextView
@@ -90,9 +91,9 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
      * @param value value
      */
     private fun setTextSize(textView: TextView, value: String) {
-        val sp = getSp(value)
-        sp ?: return
-        textView.textSize = sp
+        val px = stringToPx(value)
+        px ?: return
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, px)
     }
 
     /**
@@ -140,11 +141,9 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
      * @param value value
      */
     private fun setWidth(textView: TextView, value: String) {
-        val dps = getDps(value)
-
-        if (dps != null) {
-            textView.width = dps
-        }
+        val px = stringToPx(value)
+        px ?: return
+        textView.width = px.toInt()
     }
 
     /**
@@ -154,11 +153,9 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
      * @param value value
      */
     private fun setHeight(textView: TextView, value: String) {
-        val dps = getDps(value)
-
-        if (dps != null) {
-            textView.height = dps
-        }
+        val px = stringToPx(value)
+        px ?: return
+        textView.height = px.toInt()
     }
 
     /**
