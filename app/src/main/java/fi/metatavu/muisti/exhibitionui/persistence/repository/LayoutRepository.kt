@@ -64,6 +64,12 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
         }
     }
 
+    /**
+     * Resolves Android screen orientation by API orientation value
+     *
+     * @param screenOrientation API orientation value
+     * @return Android screen orientation
+     */
     private fun getOrientation(screenOrientation: ScreenOrientation?): Int {
         if (screenOrientation == ScreenOrientation.landscape) {
             return ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
