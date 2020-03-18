@@ -21,54 +21,17 @@ class LinearLayoutComponentFactory : AbstractComponentFactory<LinearLayout>() {
         linearLayout.layoutParams = getInitialLayoutParams(parent)
 
         buildContext.pageLayoutView.properties.forEach {
-            setProperty(parent, linearLayout, it)
+            setProperty(buildContext, parent, linearLayout, it)
         }
 
         return linearLayout
     }
 
-    /**
-     * Sets a property
-     *
-     * @param parent parent
-     * @param linearLayout linear layout
-     * @param property property to be set
-     */
-    private fun setProperty(parent: View, linearLayout: LinearLayout, property: PageLayoutViewProperty) {
+    override fun setProperty(buildContext: ComponentBuildContext, parent: View?, view: LinearLayout, property: PageLayoutViewProperty) {
         try {
             when(property.name) {
-                "layout_width" -> setLayoutWidth(parent, linearLayout, property)
-                "layout_height" -> setLayoutHeight(parent, linearLayout, property)
-                "background" -> setBackgroundColor(linearLayout, property.value)
-                "paddingLeft" -> linearLayout.setPadding(
-                    property.value.toInt(),
-                    linearLayout.paddingTop,
-                    linearLayout.paddingRight,
-                    linearLayout.paddingBottom
-                )
-
-                "paddingTop" -> linearLayout.setPadding(
-                    linearLayout.paddingLeft,
-                    property.value.toInt(),
-                    linearLayout.paddingRight,linearLayout.paddingBottom
-                )
-
-                "paddingRight" -> linearLayout.setPadding(
-                    linearLayout.paddingLeft,
-                    linearLayout.paddingTop,
-                    property.value.toInt(),
-                    linearLayout.paddingBottom
-                )
-
-                "paddingBottom" -> linearLayout.setPadding(
-                    linearLayout.paddingLeft,
-                    linearLayout.paddingTop, linearLayout.paddingRight,
-                    property.value.toInt()
-                )
-
-                "orientation" -> setOrientation(linearLayout, property)
-                "layout_gravity" -> setLayoutGravity(linearLayout, property.value)
-                else -> Log.d(javaClass.name, "Property ${property.name} not supported")
+                "orientation" -> setOrientation(view, property)
+                else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
             Log.d(LinearLayoutComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
@@ -89,20 +52,6 @@ class LinearLayoutComponentFactory : AbstractComponentFactory<LinearLayout>() {
                 "vertical" -> linearLayout.orientation = LinearLayout.VERTICAL
             }
             else -> linearLayout.orientation = LinearLayout.HORIZONTAL
-        }
-    }
-
-    /**
-     * Sets background color
-     *
-     * @param linearLayout linear layout
-     * @param value value
-     */
-    private fun setBackgroundColor(linearLayout: LinearLayout, value: String) {
-        val color = getColor(value)
-
-        if (color != null) {
-            linearLayout.setBackgroundColor(color)
         }
     }
 }
