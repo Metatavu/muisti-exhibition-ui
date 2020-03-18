@@ -21,45 +21,19 @@ class FrameLayoutComponentFactory : AbstractComponentFactory<FrameLayout>() {
         frameLayout.layoutParams = getInitialLayoutParams(parent)
 
         buildContext.pageLayoutView.properties.forEach {
-            this.setProperty(parent, frameLayout, it)
+            this.setProperty(buildContext, parent, frameLayout, it)
         }
 
         return frameLayout
     }
 
-    /**
-     * Sets a property
-     *
-     * @param frameLayout frame layout
-     * @param property property to be set
-     */
-    private fun setProperty(parent: View?, frameLayout: FrameLayout, property: PageLayoutViewProperty) {
+    override fun setProperty(buildContext: ComponentBuildContext, parent: View?, view: FrameLayout, property: PageLayoutViewProperty) {
         try {
             when(property.name) {
-                "layout_width" -> setLayoutWidth(parent, frameLayout, property)
-                "layout_height" -> setLayoutHeight(parent, frameLayout, property)
-                "background" -> setBackgroundColor(frameLayout, property.value)
-                "paddingLeft" -> frameLayout.setPadding(property.value.toInt(), frameLayout.paddingTop, frameLayout.paddingRight, frameLayout.paddingBottom)
-                "paddingTop" -> frameLayout.setPadding(frameLayout.paddingLeft, property.value.toInt(), frameLayout.paddingRight, frameLayout.paddingBottom)
-                "paddingRight" -> frameLayout.setPadding(frameLayout.paddingLeft, frameLayout.paddingTop, property.value.toInt(), frameLayout.paddingBottom)
-                "paddingBottom" -> frameLayout.setPadding(frameLayout.paddingLeft, frameLayout.paddingTop, frameLayout.paddingRight, property.value.toInt())
-                else -> Log.d(javaClass.name, "Property ${property.name} not supported")
+                else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
             Log.d(FrameLayoutComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
-        }
-    }
-
-    /**
-     * Sets background color
-     *
-     * @param frameLayout frame layout
-     * @param value value
-     */
-    private fun setBackgroundColor(frameLayout: FrameLayout, value: String) {
-        val color = getColor(value)
-        if (color != null) {
-            frameLayout.setBackgroundColor(color)
         }
     }
 

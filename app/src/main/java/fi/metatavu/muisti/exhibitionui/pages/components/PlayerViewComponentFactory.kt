@@ -32,7 +32,7 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerView>() {
         playerView.layoutParams = getInitialLayoutParams(parent)
 
         buildContext.pageLayoutView.properties.forEach {
-            this.setProperty(parent, playerView, it)
+            this.setProperty(buildContext, parent, playerView, it)
         }
 
         val offlineFile = getResourceOfflineFile(buildContext, "src")
@@ -43,52 +43,11 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerView>() {
         return playerView
     }
 
-    /**
-     * Sets view player property
-     *
-     * @param parent parent component
-     * @param playerView player view component
-     * @param property property
-     */
-    private fun setProperty(parent: View?, playerView: PlayerView, property: PageLayoutViewProperty) {
+    override fun setProperty(buildContext: ComponentBuildContext, parent: View?, view: PlayerView, property: PageLayoutViewProperty) {
         try {
             when (property.name) {
-                "layout_width" -> setLayoutWidth(parent, playerView, property)
-                "layout_height" -> setLayoutHeight(parent, playerView, property)
-                "width" -> playerView.layoutParams.width = property.value.toInt()
-                "height" -> playerView.layoutParams.height = property.value.toInt()
-                "background" -> playerView.setBackgroundColor(Color.parseColor(property.value))
-                "paddingLeft" -> playerView.setPadding(
-                    property.value.toInt(),
-                    playerView.paddingTop,
-                    playerView.paddingRight,
-                    playerView.paddingBottom
-                )
-                "paddingTop" -> playerView.setPadding(
-                    playerView.paddingLeft,
-                    property.value.toInt(),
-                    playerView.paddingRight,
-                    playerView.paddingBottom
-                )
-                "paddingRight" -> playerView.setPadding(
-                    playerView.paddingLeft,
-                    playerView.paddingTop,
-                    property.value.toInt(),
-                    playerView.paddingBottom
-                )
-                "paddingBottom" -> playerView.setPadding(
-                    playerView.paddingLeft,
-                    playerView.paddingTop,
-                    playerView.paddingRight,
-                    property.value.toInt()
-                )
-                "layout_gravity" -> setLayoutGravity(playerView, property.value)
-                "layout_marginTop" -> setLayoutMargin(parent, playerView, property)
-                "layout_marginBottom" -> setLayoutMargin(parent, playerView, property)
-                "layout_marginRight" -> setLayoutMargin(parent, playerView, property)
-                "layout_marginLeft" -> setLayoutMargin(parent, playerView, property)
                 "src" -> { }
-                else -> Log.d(PlayerViewComponentFactory::javaClass.name, "Property ${property.name} not supported")
+                else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
             Log.d(PlayerViewComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
