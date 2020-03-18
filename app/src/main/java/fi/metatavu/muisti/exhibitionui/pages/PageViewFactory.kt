@@ -3,8 +3,8 @@ package fi.metatavu.muisti.exhibitionui.pages
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
-import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.exhibitionui.pages.components.*
+import fi.metatavu.muisti.exhibitionui.persistence.model.Layout
 import fi.metatavu.muisti.exhibitionui.persistence.model.Page
 
 /**
@@ -29,17 +29,17 @@ class PageViewFactory {
         /**
          * Builds a page view
          *
-         * @param context context
+         **@param context context
          * @param page page
-         * @param pageLayoutView page view layout
+         * @param layout page layout
          * @return build page view
          */
-        fun buildPageView(context: Context, page: Page, pageLayoutView: PageLayoutView) : PageView? {
+        fun buildPageView(context: Context, page: Page, layout: Layout) : PageView? {
             val lifecycleListeners = mutableListOf<PageViewLifecycleListener>()
-            val buildContext = ComponentBuildContext(context = context, parents = arrayOf(), page = page, pageLayoutView = pageLayoutView, lifecycleListeners = lifecycleListeners)
+            val buildContext = ComponentBuildContext(context = context, parents = arrayOf(), page = page, pageLayoutView = layout.data, lifecycleListeners = lifecycleListeners)
             val view = buildViewGroup(buildContext)
             view ?: return null
-            return PageView(page = page, view = view, lifecycleListeners = lifecycleListeners)
+            return PageView(page = page, view = view, lifecycleListeners = lifecycleListeners, orientation = layout.orientation)
         }
 
         /**
