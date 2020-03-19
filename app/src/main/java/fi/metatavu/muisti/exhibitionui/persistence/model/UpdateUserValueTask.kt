@@ -2,6 +2,9 @@ package fi.metatavu.muisti.exhibitionui.persistence.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import fi.metatavu.muisti.exhibitionui.persistence.types.UUIDConverter
+import java.util.*
 
 /**
  * Database entity for update user value task
@@ -9,19 +12,20 @@ import androidx.room.PrimaryKey
  * @property sessionId session id
  * @property time task create time
  * @property priority task priority
- * @property key user value key
+ * @property name user value name
  * @property value user value value
  */
 @Entity
 data class UpdateUserValueTask (
 
-    override var sessionId: String,
+    @TypeConverters(UUIDConverter::class)
+    override var sessionId: UUID,
 
     override var time: Long,
 
     override var priority: Long,
 
-    var key: String,
+    var name: String,
 
     var value: String
 ): Task {
