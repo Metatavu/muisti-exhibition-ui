@@ -74,6 +74,7 @@ class PageActivity : AppCompatActivity() {
         this.root.addView(pageView.view)
         pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
         applyEventTriggers(pageView.page.eventTriggers)
+        requestedOrientation = pageView.orientation
     }
 
     /**
