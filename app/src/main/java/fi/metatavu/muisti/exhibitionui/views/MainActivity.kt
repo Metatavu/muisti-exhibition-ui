@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import kotlinx.coroutines.GlobalScope
@@ -29,23 +28,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        checkSettings()
         visitorLogin()
     }
 
     /**
-     * Checks that all required settings are set and if not redirects user to settings view
-     */
-    private fun checkSettings() = lifecycleScope.launch {
-        val exhibitionId = DeviceSettings.getExhibitionId()
-
-        if (exhibitionId == null) {
-            startSettingsActivity()
-        }
-    }
-
-    /**
-     * Logs the visitor in to the system and redirect user forward activity then done
+     * Logs the visitor in to the system if visitor and redirects user forward
+     *
+     * if user cannot be logged in because of configuration errors, user is redirected into
+     * the settings activity
      */
     private fun visitorLogin() = GlobalScope.launch {
         val exhibitionId = DeviceSettings.getExhibitionId()
@@ -53,6 +43,8 @@ class MainActivity : AppCompatActivity() {
             val tagId = getDeviceId()
             mViewModel?.visitorLogin(exhibitionId, tagId)
             startPreviewActivity()
+        } else {
+            startSettingsActivity()
         }
     }
 

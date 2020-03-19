@@ -17,6 +17,7 @@ import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import kotlinx.android.synthetic.main.activity_page.*
 import java.util.*
 
+
 /**
  * Activity for displaying pages from API
  */
@@ -30,7 +31,7 @@ class PageActivity : AppCompatActivity() {
         supportActionBar?.hide()
 
         setContentView(R.layout.activity_page)
-
+        setImmersiveMode()
         val pageId: String? = intent.getStringExtra("pageId")
 
         val pageView = PageViewContainer.getPageView(UUID.fromString(pageId))
@@ -197,6 +198,18 @@ class PageActivity : AppCompatActivity() {
     private fun setCurrentActivity(activity: PageActivity?) {
         val application: ExhibitionUIApplication = this.applicationContext as ExhibitionUIApplication
         application.setCurrentActivity(activity)
+    }
+
+    /**
+     * Changes activity to use immersive mode
+     */
+    private fun setImmersiveMode() {
+        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_IMMERSIVE)
     }
 
 }
