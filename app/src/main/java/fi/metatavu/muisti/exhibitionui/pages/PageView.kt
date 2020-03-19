@@ -30,11 +30,14 @@ interface PageViewLifecycleListener {
 /**
  * Data class for storing generated page views
  *
+ * @property orientation page orientation
  * @property view view
  * @property page page
  * @property lifecycleListeners life-cycle listeners
  */
 data class PageView (
+
+    val orientation: Int,
 
     val view: View,
 

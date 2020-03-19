@@ -47,7 +47,7 @@ class ConstructPagesService : JobIntentService() {
         if (layout != null) {
             Log.d(ConstructPagesService::javaClass.name, "Constructing page ${pageId}...")
             val context = ExhibitionUIApplication.instance.applicationContext
-            val pageView = PageViewFactory.buildPageView(context, page, layout.data)
+            val pageView = PageViewFactory.buildPageView(context, page, layout)
             if (pageView != null) {
                 PageViewContainer.setPageView(pageId, pageView)
                 Log.d(ConstructPagesService::javaClass.name, "Constructed page ${page.name} - ${pageId}.")

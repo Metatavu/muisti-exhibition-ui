@@ -32,6 +32,9 @@ data class Layout (
     val data: PageLayoutView,
 
     @NonNull
+    val orientation: Int,
+
+    @NonNull
     val modifiedAt: String
 
 )
