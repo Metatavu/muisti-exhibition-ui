@@ -23,9 +23,9 @@ class SetUserValuePageActionProvider(properties: Array<ExhibitionPageEventProper
     private val updateUserValueTaskRepository: UpdateUserValueTaskRepository = UpdateUserValueTaskRepository(ExhibitionUIDatabase.getDatabase().updateUserValueTaskDao())
 
     override fun performAction(pageActivity: PageActivity) {
-        val key = getPropertyString("key")
-        if (key == null) {
-            Log.d( javaClass.name,"Key is required for set user value action")
+        val name = getPropertyString("name")
+        if (name == null) {
+            Log.d( javaClass.name,"Name required for set user value action")
             return
         }
 
@@ -48,7 +48,7 @@ class SetUserValuePageActionProvider(properties: Array<ExhibitionPageEventProper
             sessionId = sessionId,
             time = time,
             priority = priority,
-            key = key,
+            name = name,
             value = value
         ))
     }

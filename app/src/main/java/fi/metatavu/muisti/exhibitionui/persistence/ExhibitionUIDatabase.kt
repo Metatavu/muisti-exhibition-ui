@@ -18,7 +18,7 @@ import fi.metatavu.muisti.exhibitionui.persistence.types.UUIDConverter
 /**
  * The Room database
  */
-@Database(entities = [ UpdateUserValueTask::class, DeviceSetting::class, Layout::class, Page::class], version = 5)
+@Database(entities = [ UpdateUserValueTask::class, DeviceSetting::class, Layout::class, Page::class], version = 6)
 @TypeConverters(PageLayoutViewConverter::class, ExhibitionPageViewConverter::class, UUIDConverter::class)
 abstract class ExhibitionUIDatabase : RoomDatabase() {
 
@@ -99,6 +99,13 @@ abstract class ExhibitionUIDatabase : RoomDatabase() {
                 }
             }
 
+            val MIGRATION_5_6 = object : Migration(5, 6) {
+                override fun migrate(database: SupportSQLiteDatabase) {
+                    database.execSQL("DROP TABLE `UpdateUserValueTask`")
+                    database.execSQL("CREATE TABLE `UpdateUserValueTask` (`id` INTEGER NOT NULL,`sessionId` TEXT NOT NULL, `time` INTEGER NOT NULL, `priority` INTEGER NOT NULL,`name` TEXT NOT NULL,`value` TEXT NOT NULL, PRIMARY KEY(`id`))")
+                }
+            }
+
             synchronized(this) {
                 val builder =  Room.databaseBuilder(ExhibitionUIApplication.instance.applicationContext, ExhibitionUIDatabase::class.java, "ExhibitionUI.db")
 
@@ -107,7 +114,7 @@ abstract class ExhibitionUIDatabase : RoomDatabase() {
                 }
 
                 val instance = builder
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .build()
 
                 INSTANCE = instance

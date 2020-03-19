@@ -34,7 +34,7 @@ class UpdateUserValueService : JobIntentService() {
                 val updateUserValueTask = updateUserValueTasks.get(0)
                 val visitorSession = findVisitorSession(updateUserValueTask)
                 if (visitorSession != null) {
-                    updateVisitorSessionVariable(visitorSession, updateUserValueTask.key, updateUserValueTask.value)
+                    updateVisitorSessionVariable(visitorSession, updateUserValueTask.name, updateUserValueTask.value)
                     updateUserValueTaskRepository.delete(updateUserValueTask)
                 }
             }

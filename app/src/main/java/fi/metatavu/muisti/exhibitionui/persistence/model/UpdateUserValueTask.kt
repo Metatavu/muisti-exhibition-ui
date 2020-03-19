@@ -12,7 +12,7 @@ import java.util.*
  * @property sessionId session id
  * @property time task create time
  * @property priority task priority
- * @property key user value key
+ * @property name user value name
  * @property value user value value
  */
 @Entity
@@ -25,7 +25,7 @@ data class UpdateUserValueTask (
 
     override var priority: Long,
 
-    var key: String,
+    var name: String,
 
     var value: String
 ): Task {
