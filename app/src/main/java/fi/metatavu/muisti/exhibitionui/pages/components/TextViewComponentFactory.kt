@@ -1,16 +1,14 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
-import android.content.Context
-import android.widget.TextView
 import android.graphics.Color
 import android.graphics.Typeface
+import android.text.Html
 import android.util.Log
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
-import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
+import android.widget.TextView
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
-import fi.metatavu.muisti.api.client.models.PageLayoutViewPropertyType
 
 /**
  * Component factory for text view components
@@ -19,75 +17,135 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
     override val name: String
         get() = "TextView"
 
-    override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): TextView {
-        val textView = TextView(context)
-        textView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+    override fun buildComponent(buildContext: ComponentBuildContext): TextView {
+        val textView = TextView(buildContext.context)
+        setId(textView, buildContext.pageLayoutView)
 
-        properties.forEach {
-            this.setProperty(textView, resources, it)
+        val parent = buildContext.parents.lastOrNull()
+        textView.layoutParams = getInitialLayoutParams(parent)
+
+        buildContext.pageLayoutView.properties.forEach {
+            this.setProperty(buildContext, parent, textView, it)
         }
 
         return textView
     }
 
-    /**
-     * Sets view text property
-     *
-     * @param textView text component
-     * @param resources resources
-     * @param property property
-     */
-    private fun setProperty(textView: TextView, resources: Array<ExhibitionPageResource>, property: PageLayoutViewProperty) {
-        when(property.name) {
-            "layout_width" -> when(property.type){
-                PageLayoutViewPropertyType.number ->  textView.layoutParams.width = property.value.toInt()
-                PageLayoutViewPropertyType.string ->  when(property.value){
-                    "match_parent" -> textView.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                    "wrap_content" -> textView.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
-                }
+    override fun setProperty(buildContext: ComponentBuildContext, parent: View?, view: TextView, property: PageLayoutViewProperty) {
+        try {
+            when(property.name) {
+                "width" -> setWidth(view, property.value)
+                "height" -> setHeight(view, property.value)
+                "textColor" -> setTextColor(view, property.value)
+                "text" -> setText(buildContext, view, property.value)
+                "textStyle" -> setTextStyle(view, property.value)
+                "textAlignment" -> setTextAlignment(view, property.value)
+                "textSize" -> setTextSize(view, property.value)
+                "gravity" -> setGravity(view, property.value)
+                else -> super.setProperty(buildContext, parent, view, property)
             }
-            "layout_height" -> when(property.type){
-                PageLayoutViewPropertyType.number ->  textView.layoutParams.height = property.value.toInt()
-                PageLayoutViewPropertyType.string ->  when(property.value){
-                    "match_parent" -> textView.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-                    "wrap_content" -> textView.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                }
-            }
-            "width" -> textView.width = property.value.toInt()
-            "height" -> textView.height = property.value.toInt()
-            "textColor" -> textView.setTextColor(Color.parseColor(property.value))
-            // "textSize" -> textView.textSize = property.value.toFloat()
-            "text" -> setText(textView, resources, property.value)
-            "textStyle" -> when(property.value){
-                "bold" -> textView.typeface = Typeface.DEFAULT_BOLD
-                "normal" -> textView.typeface = Typeface.DEFAULT
-
-            }
-            "background" -> textView.setBackgroundColor(Color.parseColor(property.value))
-            "paddingLeft" -> textView.setPadding(property.value.toInt(), textView.paddingTop, textView.paddingRight, textView.paddingBottom)
-            "paddingTop" -> textView.setPadding(textView.paddingLeft, property.value.toInt(), textView.paddingRight, textView.paddingBottom)
-            "paddingRight" -> textView.setPadding(textView.paddingLeft, textView.paddingTop, property.value.toInt(), textView.paddingBottom)
-            "paddingBottom" -> textView.setPadding(textView.paddingLeft, textView.paddingTop, textView.paddingRight, property.value.toInt())
-            "tag" -> textView.tag = property.value
-            "layout_gravity" -> when(property.value){
-                "center" -> textView.gravity = Gravity.CENTER
-                "center_vertical" -> textView.gravity = Gravity.CENTER_VERTICAL
-                "center_horizontal" -> textView.gravity = Gravity.CENTER_HORIZONTAL
-                "bottom" -> textView.gravity = Gravity.BOTTOM
-            }
-            else -> Log.d(javaClass.name, "Property ${property.name} not supported")
+        } catch (e: Exception) {
+            Log.d(TextViewComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
         }
+    }
+
+    /**
+     * Set text alignment
+     *
+     * @param textView text view
+     * @param value value
+     */
+    private fun setTextAlignment(textView: TextView, value: String) {
+        val alignment = resolveTextAlignment(value)
+        alignment ?: return
+        textView.textAlignment = alignment
+        if (alignment == View.TEXT_ALIGNMENT_CENTER) {
+            textView.gravity = Gravity.CENTER
+        }
+    }
+
+    /**
+     * Sets text size
+     *
+     * @param textView text view
+     * @param value value
+     */
+    private fun setTextSize(textView: TextView, value: String) {
+        val px = stringToPx(value)
+        px ?: return
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, px)
+    }
+
+    /**
+     * Sets gravity property
+     *
+     * @param textView text view component
+     * @param value value
+     */
+    private fun setGravity(textView: TextView, value: String) {
+        val gravity = parseGravity(value)
+        gravity ?: return
+        textView.gravity = gravity
+    }
+
+    /**
+     * Sets text color property
+     *
+     * @param textView text view component
+     * @param value value
+     */
+    private fun setTextColor(textView: TextView, value: String) {
+        val color = getColor(value)
+        color ?: return
+        textView.setTextColor(color)
+    }
+
+    /**
+     * Sets text style property
+     *
+     * @param textView text view component
+     * @param value value
+     */
+    private fun setTextStyle(textView: TextView, value: String) {
+        when (value) {
+            "bold" -> textView.typeface = Typeface.DEFAULT_BOLD
+            "normal" -> textView.typeface = Typeface.DEFAULT
+            else -> Log.d(this.javaClass.name,"Unknown text style $value")
+        }
+    }
+
+    /**
+     * Sets width property
+     *
+     * @param textView text view component
+     * @param value value
+     */
+    private fun setWidth(textView: TextView, value: String) {
+        val px = stringToPx(value)
+        px ?: return
+        textView.width = px.toInt()
+    }
+
+    /**
+     * Sets height property
+     *
+     * @param textView text view component
+     * @param value value
+     */
+    private fun setHeight(textView: TextView, value: String) {
+        val px = stringToPx(value)
+        px ?: return
+        textView.height = px.toInt()
     }
 
     /**
      * Sets text view text
      *
+     * @param buildContext build context
      * @param textView text view component
-     * @param resources resources
      * @param value value
      */
-    private fun setText(textView: TextView, resources: Array<ExhibitionPageResource>, value: String) {
-        textView.text = getResource(resources, value)
+    private fun setText(buildContext: ComponentBuildContext, textView: TextView, value: String) {
+        textView.text = Html.fromHtml(getResourceData(buildContext, value), Html.FROM_HTML_MODE_LEGACY)
     }
-
 }

@@ -10,6 +10,7 @@ import fi.metatavu.muisti.exhibitionui.persistence.repository.LayoutRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.*
+import java.lang.Exception
 
 /**
  * Service for getting layouts from the API
@@ -27,10 +28,14 @@ class UpdateLayoutsService : JobIntentService() {
     }
 
     override fun onHandleWork(intent: Intent) {
-        GlobalScope.launch {
-            val layouts = MuistiApiFactory.getPageLayoutsApi().listPageLayouts()
-            addLayouts(layouts)
-            Log.d(UpdatePagesService::javaClass.name, "Updated ${layouts.size} layouts.")
+        try {
+            GlobalScope.launch {
+                val layouts = MuistiApiFactory.getPageLayoutsApi().listPageLayouts()
+                addLayouts(layouts)
+                Log.d(UpdatePagesService::javaClass.name, "Updated ${layouts.size} layouts.")
+            }
+        } catch (e: Exception) {
+            Log.d(javaClass.name, "Failed to update layouts", e)
         }
     }
 

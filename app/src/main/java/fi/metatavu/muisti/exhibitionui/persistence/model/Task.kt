@@ -1,5 +1,7 @@
 package fi.metatavu.muisti.exhibitionui.persistence.model
 
+import java.util.*
+
 /**
  * Interface that describe all common parts of a database persisted task
  */
@@ -13,7 +15,7 @@ interface Task {
     /**
      * Session id
      */
-    var sessionId: String
+    var sessionId: UUID
 
     /**
      * Task create time

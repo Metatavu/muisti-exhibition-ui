@@ -19,22 +19,21 @@ class VisitorSessionContainer {
         private var visitorSessionId: UUID? = null
 
         /**
-         * Returns current visitor session
+         * Returns current visitor session id
          *
-         * @return current visitor session
+         * @return current visitor session id
          */
-        suspend fun getVisitorSessionId(): UUID? {
-            return GlobalScope.async {
-                if (visitorSessionId == null) {
-                    val users: Array<VisitorSessionUser> = arrayOf(VisitorSessionUser(UUID.randomUUID(), "faketag"))
-                    val exhibitionId = DeviceSettings.getExhibitionId()!!
-                    val visitorSession = VisitorSession(VisitorSessionState.aCTIVE ,users, null, exhibitionId)
-                    val result = MuistiApiFactory.getVisitorSessionsApi().createVisitorSession(exhibitionId, visitorSession)
-                    visitorSessionId = result.id!!
-                }
+        fun getVisitorSessionId(): UUID? {
+            return visitorSessionId
+        }
 
-                visitorSessionId
-            }.await()
+        /**
+         * Sets current visitor session id
+         *
+         * @param visitorSessionId visitor session id
+         */
+        fun setVisitorSessionId(visitorSessionId: UUID?) {
+            this.visitorSessionId = visitorSessionId
         }
     }
 

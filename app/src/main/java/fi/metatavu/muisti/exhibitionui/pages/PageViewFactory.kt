@@ -3,9 +3,9 @@ package fi.metatavu.muisti.exhibitionui.pages
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
-import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
-import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.exhibitionui.pages.components.*
+import fi.metatavu.muisti.exhibitionui.persistence.model.Layout
+import fi.metatavu.muisti.exhibitionui.persistence.model.Page
 
 /**
  * Page view factory
@@ -18,8 +18,10 @@ class PageViewFactory {
 
         init {
             componentFactories.add(TextViewComponentFactory())
+            componentFactories.add(FlowTextViewComponentFactory())
             componentFactories.add(ButtonComponentFactory())
             componentFactories.add(ImageViewComponentFactory())
+            componentFactories.add(MediaViewComponentFactory())
             componentFactories.add(LinearLayoutComponentFactory())
             componentFactories.add(FrameLayoutComponentFactory())
             componentFactories.add(RelativeLayoutComponentFactory())
@@ -29,61 +31,40 @@ class PageViewFactory {
         /**
          * Builds a page view
          *
-         * @param context context
-         * @param resources list of resources
-         * @param pageView pageView
-         * @return
+         **@param context context
+         * @param page page
+         * @param layout page layout
+         * @return build page view
          */
-        fun buildPageView(context: Context, resources: Array<ExhibitionPageResource>, pageView: PageLayoutView) : View? {
-            return buildViewGroup(context, arrayOf(), resources, pageView)
+        fun buildPageView(context: Context, page: Page, layout: Layout) : PageView? {
+            val lifecycleListeners = mutableListOf<PageViewLifecycleListener>()
+            val buildContext = ComponentBuildContext(context = context, parents = arrayOf(), page = page, pageLayoutView = layout.data, lifecycleListeners = lifecycleListeners)
+            val view = buildViewGroup(buildContext)
+            view ?: return null
+            return PageView(page = page, view = view, lifecycleListeners = lifecycleListeners, orientation = layout.orientation)
         }
 
         /**
          * Builds a view group
          *
-         * @param context context
-         * @param parents view parents
-         * @param resources list of resources
-         * @param pageView page view
+         * @param buildContext component build context
          * @return build view group or null if failed
          */
-        private fun buildViewGroup(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, pageView: PageLayoutView) : View? {
-            val factory = componentFactories.find { it.name == pageView.widget }
-            val root = factory?.buildComponent(context, arrayOf(), pageView.id, resources, pageView.properties)
+        private fun buildViewGroup(buildContext: ComponentBuildContext) : View? {
+            val factory = componentFactories.find { it.name == buildContext.pageLayoutView.widget }
+            val root = factory?.buildComponent(buildContext)
             root?: return null
-            val childParents = parents.plus(root)
 
             if (root is ViewGroup) {
-                pageView.children.forEach {
-                    if (it.children.isNotEmpty()) {
-                        val view = buildViewGroup(context, childParents, resources, it)
-                        if (view != null) {
-                            root.addView(view)
-                        }
-                    } else {
-                        val childView = buildView(context, childParents, resources, it)
-                        if (childView != null) {
-                            root.addView(childView)
-                        }
+                buildContext.pageLayoutView.children.forEach {
+                    val child = buildViewGroup(ComponentBuildContext(context = buildContext.context, parents = buildContext.parents.plus(root), page = buildContext.page, pageLayoutView = it, lifecycleListeners = buildContext.lifecycleListeners))
+                    if (child != null) {
+                        root.addView(child)
                     }
                 }
             }
 
             return root
-        }
-
-        /**
-         * Builds a view
-         *
-         * @param context context
-         * @param parents view parents
-         * @param resources resources
-         * @param pageView page view
-         * @return build view or null if failed
-         */
-        private fun buildView(context: Context, parents: Array<View>, resources: Array<ExhibitionPageResource>, pageView: PageLayoutView) : View? {
-            val componentFactory = componentFactories.firstOrNull { it.name == pageView.widget }
-            return componentFactory?.buildComponent(context, parents, pageView.id, resources, pageView.properties)
         }
 
     }

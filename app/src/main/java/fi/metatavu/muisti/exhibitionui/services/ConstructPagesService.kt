@@ -4,7 +4,6 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.JobIntentService
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
-import fi.metatavu.muisti.exhibitionui.pages.PageView
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import fi.metatavu.muisti.exhibitionui.pages.PageViewFactory
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
@@ -48,9 +47,9 @@ class ConstructPagesService : JobIntentService() {
         if (layout != null) {
             Log.d(ConstructPagesService::javaClass.name, "Constructing page ${pageId}...")
             val context = ExhibitionUIApplication.instance.applicationContext
-            val view = PageViewFactory.buildPageView(context, page.resources, layout.data)
-            if (view != null) {
-                PageViewContainer.setPageView(pageId, PageView(view = view, eventTriggers = page.eventTriggers))
+            val pageView = PageViewFactory.buildPageView(context, page, layout)
+            if (pageView != null) {
+                PageViewContainer.setPageView(pageId, pageView)
                 Log.d(ConstructPagesService::javaClass.name, "Constructed page ${page.name} - ${pageId}.")
             } else {
                 Log.d(ConstructPagesService::javaClass.name,"Could not construct page ${pageId}.")

@@ -1,24 +1,27 @@
 <resources>
+
+    <!-- App -->
+
     <string name="app_name">MuistiExhibitionUI</string>
 
-    <string name="title_activity_main">MainActivity</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
-    <string name="title_activity_page">DUMMY\nCONTENT</string>
+    <!-- Main -->
 
-    <string name="title_activity_test">TestActivity</string>
-    <string name="title_activity_settings">Settings</string>
-
-    <!-- Preference Titles -->
-
-    <string name="device_settings">Device settings</string>
+    <string name="title_activity_main">Main</string>
+    <string name="preview_button">Preview</string>
+    <string name="settings_button">Settings</string>
 
     <!-- Device settings -->
 
+    <string name="device_settings">Device settings</string>
     <string name="exhibition_perference_loading">Loading…</string>
     <string name="exhibition_perference_not_set">Not set</string>
     <string name="exhibition_perference_title">Exhibition</string>
     <string name="exhibition_device_perference_title">Exhibition Device</string>
     <string name="testText">It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using Content here, content here, making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for lorem ipsum will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).</string>
+
+    <!-- Preview -->
+
+    <string name="title_activity_preview">Page preview</string>
+    <string name="preview_page_button">Preview page</string>
 
 </resources>

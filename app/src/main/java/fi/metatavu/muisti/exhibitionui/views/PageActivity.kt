@@ -5,6 +5,7 @@ import android.os.Handler
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEvent
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventTrigger
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
@@ -27,6 +28,7 @@ import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 
 
 
+
 /**
  * Activity for displaying pages from API
  */
@@ -37,9 +39,10 @@ class PageActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.hide()
 
         setContentView(R.layout.activity_page)
-
+        setImmersiveMode()
         val pageId: String? = intent.getStringExtra("pageId")
 
         val pageView = PageViewContainer.getPageView(UUID.fromString(pageId))
@@ -47,6 +50,9 @@ class PageActivity : AppCompatActivity() {
             // TODO: Handle error
             return
         }
+
+        pageView.view.layoutParams.height = ConstraintLayout.LayoutParams.MATCH_PARENT
+        pageView.view.layoutParams.width = ConstraintLayout.LayoutParams.MATCH_PARENT
 
         this.openView(pageView)
         val flowTextView = findViewWithTag("flowtext") as FlowTextView
@@ -91,7 +97,9 @@ class PageActivity : AppCompatActivity() {
     private fun openView(pageView: PageView) {
         currentPageView = pageView
         this.root.addView(pageView.view)
-        applyEventTriggers(pageView.eventTriggers)
+        pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
+        applyEventTriggers(pageView.page.eventTriggers)
+        requestedOrientation = pageView.orientation
     }
 
     /**
@@ -103,6 +111,7 @@ class PageActivity : AppCompatActivity() {
     private fun closeView() {
         handler.removeCallbacksAndMessages(null)
         val currentView = currentPageView?.view
+        currentPageView?.lifecycleListeners?.forEach { it.onPageDeactivate(this) }
 
         if (currentView != null) {
             this.root.removeView(currentView)
@@ -213,6 +222,18 @@ class PageActivity : AppCompatActivity() {
     private fun setCurrentActivity(activity: PageActivity?) {
         val application: ExhibitionUIApplication = this.applicationContext as ExhibitionUIApplication
         application.setCurrentActivity(activity)
+    }
+
+    /**
+     * Changes activity to use immersive mode
+     */
+    private fun setImmersiveMode() {
+        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_IMMERSIVE)
     }
 
 }

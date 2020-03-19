@@ -1,87 +1,132 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
 import android.content.Context
+import android.text.Html
 import android.util.Log
+import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
-import android.widget.RelativeLayout
-import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
-import fi.metatavu.muisti.api.client.models.PageLayoutViewPropertyType
 import uk.co.deanwild.flowtextview.FlowTextView
 
 /**
- * Component factory for relative layout components
+ * Component factory for flow text view components
  */
-class FlowTextViewComponentFactory : AbstractComponentFactory<FlowTextView>() {
-
+class FlowTextViewComponentFactory : AbstractComponentFactory<MuistiFlowTextView>() {
     override val name: String
         get() = "FlowTextView"
 
-    override fun buildComponent(context: Context, parents: Array<View>, id: String, resources: Array<ExhibitionPageResource>, properties: Array<PageLayoutViewProperty>): FlowTextView {
-        val frameLayout = FlowTextView(context)
-        frameLayout.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        properties.forEach {
-            this.setProperty(frameLayout, resources,it)
+    override fun buildComponent(buildContext: ComponentBuildContext): MuistiFlowTextView {
+        val flowTextView = MuistiFlowTextView(buildContext.context)
+        setId(flowTextView, buildContext.pageLayoutView)
+        flowTextView.setSpacingMultiplier(1f)
+
+        val parent = buildContext.parents.lastOrNull()
+        flowTextView.layoutParams = getInitialLayoutParams(parent)
+
+        buildContext.pageLayoutView.properties.forEach {
+            this.setProperty(buildContext, parent, flowTextView, it)
         }
-        return frameLayout
+
+        return flowTextView
     }
 
-    /**
-     * Sets a property
-     *
-     * @param flowTextView flow Text View
-     * @param property property
-     */
-    private fun setProperty(flowTextView: FlowTextView,  resources: Array<ExhibitionPageResource>, property: PageLayoutViewProperty) {
-        Log.d(javaClass.name, "Setting property ${property.name} to ${property.value}")
-
-        when(property.name) {
-            "layout_width" -> when(property.type){
-                PageLayoutViewPropertyType.number ->  flowTextView.layoutParams.width = property.value.toInt()
-                PageLayoutViewPropertyType.string ->  when(property.value){
-                    "match_parent" -> flowTextView.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                    "wrap_content" -> flowTextView.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
-                }
+    override fun setProperty(buildContext: ComponentBuildContext, parent: View?, view: MuistiFlowTextView, property: PageLayoutViewProperty) {
+        try {
+            when(property.name) {
+                "textColor" -> setTextColor(view, property.value)
+                "text" -> setText(buildContext, view, property.value)
+                "textAlignment" -> setTextAlignment(view, property.value)
+                "textSize" -> setTextSize(view, property.value)
+                "gravity" -> setGravity(view, property.value)
+                else -> super.setProperty(buildContext, parent, view, property)
             }
-            "layout_height" -> when(property.type){
-                PageLayoutViewPropertyType.number ->  flowTextView.layoutParams.height = property.value.toInt()
-                PageLayoutViewPropertyType.string ->  when(property.value){
-                    "match_parent" -> flowTextView.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-                    "wrap_content" -> flowTextView.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                }
-            }
-            "background" -> setBackgroundColor(flowTextView, property.value)
-            "paddingLeft" -> flowTextView.setPadding(property.value.toInt(), flowTextView.paddingTop, flowTextView.paddingRight, flowTextView.paddingBottom)
-            "paddingTop" -> flowTextView.setPadding(flowTextView.paddingLeft, property.value.toInt(), flowTextView.paddingRight, flowTextView.paddingBottom)
-            "paddingRight" -> flowTextView.setPadding(flowTextView.paddingLeft, flowTextView.paddingTop, property.value.toInt(), flowTextView.paddingBottom)
-            "paddingBottom" -> flowTextView.setPadding(flowTextView.paddingLeft, flowTextView.paddingTop, flowTextView.paddingRight, property.value.toInt())
-            "text" -> setText(flowTextView, resources, property.value)
-            "tag" -> flowTextView.tag = property.value
-            "id" -> flowTextView.tag = property.value
-            else -> Log.d(javaClass.name, "Property ${property.name} not supported")
+        } catch (e: Exception) {
+            Log.d(FlowTextViewComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
         }
     }
 
     /**
-     * Sets background color
+     * Set text alignment
      *
-     * @param frameLayout frame layout
+     * @param flowTextView text view
      * @param value value
      */
-    private fun setBackgroundColor(frameLayout: RelativeLayout, value: String) {
-        val color = getColor(value)
-        if (color != null) {
-            frameLayout.setBackgroundColor(color)
+    private fun setTextAlignment(flowTextView: FlowTextView, value: String) {
+        val alignment = resolveTextAlignment(value)
+        alignment ?: return
+        flowTextView.textAlignment = alignment
+        if (alignment == View.TEXT_ALIGNMENT_CENTER) {
+            flowTextView.gravity = Gravity.CENTER
         }
     }
 
-    private fun setText( flowTextView: FlowTextView, resources: Array<ExhibitionPageResource>, value: String?){
-        val text = getResource(resources, value)
-        if(text == null){
-            flowTextView.text = value
-        } else {
-            flowTextView.text = text
-        }
+    /**
+     * Sets text size
+     *
+     * @param flowTextView text view
+     * @param value value
+     */
+    private fun setTextSize(flowTextView: FlowTextView, value: String) {
+        val px = stringToPx(value)
+        px ?: return
+        flowTextView.setTextSize(px)
     }
+
+    /**
+     * Sets gravity property
+     *
+     * @param flowTextView text view component
+     * @param value value
+     */
+    private fun setGravity(flowTextView: FlowTextView, value: String) {
+        val gravity = parseGravity(value)
+        gravity ?: return
+        flowTextView.gravity = gravity
+    }
+
+    /**
+     * Sets text color property
+     *
+     * @param flowTextView text view component
+     * @param value value
+     */
+    private fun setTextColor(flowTextView: FlowTextView, value: String) {
+        val color = getColor(value)
+        color ?: return
+        flowTextView.setTextColor(color)
+    }
+
+    /**
+     * Sets text view text
+     *
+     * @param buildContext build context
+     * @param flowTextView text view component
+     * @param value value
+     */
+    private fun setText(buildContext: ComponentBuildContext, flowTextView: FlowTextView, value: String) {
+        val html = Html.fromHtml(getResourceData(buildContext, value), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL)
+        flowTextView.text = html
+    }
+}
+
+/**
+ * FlowTextView component that extends original class and adds support for defining spacing multiplier
+ *
+ * @constructor constructor
+ *
+ * @param context context
+ */
+class MuistiFlowTextView(context: Context): FlowTextView(context) {
+
+    /**
+     * Sets spacing multiplier
+     *
+     * @param multipler spacing multiplier
+     */
+    fun setSpacingMultiplier(multipler: Float){
+        val field = javaClass.superclass?.getDeclaredField("mSpacingMult")!!
+        field.isAccessible = true
+        field.set(this, multipler)
+    }
+
 }
