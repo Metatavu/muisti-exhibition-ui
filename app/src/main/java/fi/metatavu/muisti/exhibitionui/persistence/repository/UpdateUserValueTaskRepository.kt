@@ -3,6 +3,8 @@ package fi.metatavu.muisti.exhibitionui.persistence.repository
 import androidx.lifecycle.LiveData
 import fi.metatavu.muisti.exhibitionui.persistence.dao.UpdateUserValueTaskDao
 import fi.metatavu.muisti.exhibitionui.persistence.model.UpdateUserValueTask
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
  * Repository class for UpdateUserValueTasks
@@ -46,8 +48,10 @@ class UpdateUserValueTaskRepository(private val updateUserValueTaskDao: UpdateUs
      *
      * @param updateUserValueTask task
      */
-    suspend fun insert(updateUserValueTask: UpdateUserValueTask) {
-        updateUserValueTaskDao.insert(updateUserValueTask)
+    fun insert(updateUserValueTask: UpdateUserValueTask) {
+        GlobalScope.launch {
+            updateUserValueTaskDao.insert(updateUserValueTask)
+        }
     }
 
     /**

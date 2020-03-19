@@ -10,7 +10,6 @@ import fi.metatavu.muisti.exhibitionui.persistence.repository.UpdateUserValueTas
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.*
 import fi.metatavu.muisti.exhibitionui.persistence.model.UpdateUserValueTask as UpdateUserValueTask1
 
 /**
@@ -34,7 +33,6 @@ class UpdateUserValueService : JobIntentService() {
             if (!updateUserValueTasks.isEmpty()) {
                 val updateUserValueTask = updateUserValueTasks.get(0)
                 val visitorSession = findVisitorSession(updateUserValueTask)
-
                 if (visitorSession != null) {
                     updateVisitorSessionVariable(visitorSession, updateUserValueTask.key, updateUserValueTask.value)
                     updateUserValueTaskRepository.delete(updateUserValueTask)
@@ -71,7 +69,7 @@ class UpdateUserValueService : JobIntentService() {
     private suspend fun findVisitorSession(updateUserValueTask: UpdateUserValueTask1): VisitorSession? {
         val exhibitionId = DeviceSettings.getExhibitionId()
         val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
-        val visitorSessionId = UUID.fromString(updateUserValueTask.sessionId)
+        val visitorSessionId = updateUserValueTask.sessionId
 
         if (exhibitionId == null) {
             return null
