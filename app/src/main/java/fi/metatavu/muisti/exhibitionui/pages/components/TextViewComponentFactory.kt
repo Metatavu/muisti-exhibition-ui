@@ -42,6 +42,7 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
                 "textAlignment" -> setTextAlignment(view, property.value)
                 "textSize" -> setTextSize(view, property.value)
                 "gravity" -> setGravity(view, property.value)
+                "typeface" -> setTypeface(buildContext, view)
                 else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
@@ -147,5 +148,17 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
      */
     private fun setText(buildContext: ComponentBuildContext, textView: TextView, value: String) {
         textView.text = Html.fromHtml(getResourceData(buildContext, value), Html.FROM_HTML_MODE_LEGACY)
+    }
+
+    /**
+     * Sets text view typeface
+     *
+     * @param buildContext build context
+     * @param view view
+     */
+    private fun setTypeface(buildContext: ComponentBuildContext, view: TextView) {
+        val offlineFile = getResourceOfflineFile(buildContext, "typeface")
+        offlineFile ?: return
+        view.typeface = Typeface.createFromFile(offlineFile)
     }
 }

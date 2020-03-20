@@ -1,6 +1,7 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
 import android.content.Context
+import android.graphics.Typeface
 import android.text.Html
 import android.util.Log
 import android.view.Gravity
@@ -38,6 +39,7 @@ class FlowTextViewComponentFactory : AbstractComponentFactory<MuistiFlowTextView
                 "textAlignment" -> setTextAlignment(view, property.value)
                 "textSize" -> setTextSize(view, property.value)
                 "gravity" -> setGravity(view, property.value)
+                "typeface" -> setTypeface(buildContext, view)
                 else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
@@ -106,6 +108,18 @@ class FlowTextViewComponentFactory : AbstractComponentFactory<MuistiFlowTextView
     private fun setText(buildContext: ComponentBuildContext, flowTextView: FlowTextView, value: String) {
         val html = Html.fromHtml(getResourceData(buildContext, value), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL)
         flowTextView.text = html
+    }
+
+    /**
+     * Sets flow text view typeface
+     *
+     * @param buildContext build context
+     * @param flowTextView flow text view
+     */
+    private fun setTypeface(buildContext: ComponentBuildContext, flowTextView: FlowTextView) {
+        val offlineFile = getResourceOfflineFile(buildContext, "typeface")
+        offlineFile ?: return
+        flowTextView.setTypeface(Typeface.createFromFile(offlineFile))
     }
 }
 
