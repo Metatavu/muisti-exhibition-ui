@@ -7,6 +7,9 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 class MuistiMqttClient(serverURL : String) {
     private val mqttClient = MqttClient(serverURL, MqttClient.generateClientId(), null)
 
+    /**
+     * Connect the client
+     */
     fun connect() {
         val options = MqttConnectOptions()
         options.userName = BuildConfig.MQTT_USER
@@ -16,6 +19,11 @@ class MuistiMqttClient(serverURL : String) {
         mqttClient.subscribe("${BuildConfig.MQTT_BASE_TOPIC}/#")
     }
 
+    /**
+     * Set callback to use when receiving messages.
+     *
+     * @param callBack MuistiMqttCallBack to trigger when recieving messages.
+     */
     fun setCallBack(callBack : MuistiMqttCallBack){
         mqttClient.setCallback(callBack)
     }

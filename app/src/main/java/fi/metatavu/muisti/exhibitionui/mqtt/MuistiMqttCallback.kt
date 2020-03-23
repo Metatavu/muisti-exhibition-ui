@@ -27,11 +27,21 @@ class MqttTopicListener <T>(var topic: String, type: Class<T>, var listener: (T)
 
     private val jsonAdapter: JsonAdapter<T> = moshi.adapter<T>(type)
 
+    /**
+     * Recieves the Mqtt message, converts it into the selected object type and passes it on to the listener.
+     *
+     * @param message to convert
+     */
     fun handleMessage(message: String){
         val messageObject = mqttMessageFromString(message)
         listener(messageObject)
     }
 
+    /**
+     * Converts a message string into specified type using moshi
+     *
+     * @param message message to convert
+     */
     private fun mqttMessageFromString(message: String) : T {
         val json = jsonAdapter.fromJson(message)
 

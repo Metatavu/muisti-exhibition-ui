@@ -60,6 +60,9 @@ object UpdateLayouts : MqttActionInterface {
         layoutRepository = LayoutRepository(layoutDao)
     }
 
+    /**
+     ' Retrieves all layouts from the API and saves them into the local database
+     */
     fun updateAllLayouts(){
         GlobalScope.launch {
             val layouts = MuistiApiFactory.getPageLayoutsApi().listPageLayouts()
@@ -68,24 +71,27 @@ object UpdateLayouts : MqttActionInterface {
         }
     }
 
+
+    /**
+     * Retrieves a specified layout from the API and saves it into the local database
+     *
+     * @param id Id of the layout to update from the API
+     */
     fun updateLayout(id: UUID){
         GlobalScope.launch {
             val layout = MuistiApiFactory.getPageLayoutsApi().findPageLayout(id)
             addLayouts(arrayOf(layout))
-            Log.d(javaClass.name, "Updated ${layout.name} layout.")
         }
     }
 
+    /**
+     * Deletes a specified layout from the local database
+     *
+     * @param id Id of the layout to delete
+     */
     fun deleteLayout(id: UUID){
         GlobalScope.launch {
             layoutRepository.removeLayout(id)
-        }
-    }
-
-    private fun getUpdatedLayout(layoutId: UUID) {
-        GlobalScope.launch {
-            val layout = MuistiApiFactory.getPageLayoutsApi().findPageLayout(layoutId)
-            addLayouts(arrayOf(layout))
         }
     }
 
