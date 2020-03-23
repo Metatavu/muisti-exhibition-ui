@@ -5,8 +5,10 @@ import android.app.Application
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.JobIntentService
-import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientProvider
+import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.exhibitionui.services.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -16,18 +18,18 @@ import java.util.concurrent.TimeUnit
 class ExhibitionUIApplication : Application() {
 
     private var currentActivity: Activity? = null
+    private var muistiMqttService = MuistiMqttService()
 
     /**
      * Constructor
      */
     init {
         instance = this
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateKeycloakTokenServiceTask() }, 1, 10, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateKeycloakTokenServiceTask() }, 1, 5, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateLayoutsServiceTask() }, 1, 15, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 1, 1, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 1, 4, TimeUnit.SECONDS)
+        //Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 1, 4, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueConstructPagesServiceTask() }, 1, 15, TimeUnit.SECONDS)
-        MqttService.connect()
     }
 
     /**

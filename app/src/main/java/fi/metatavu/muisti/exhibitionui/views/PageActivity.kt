@@ -55,19 +55,6 @@ class PageActivity : AppCompatActivity() {
         pageView.view.layoutParams.width = ConstraintLayout.LayoutParams.MATCH_PARENT
 
         this.openView(pageView)
-        val flowTextView = findViewWithTag("flowtext") as FlowTextView
-        val text = getString(R.string.testText)
-        flowTextView.setPageHeight(500)
-        flowTextView.text = text
-        flowTextView.invalidate()
-    }
-
-    private fun reLayoutChildren(view: View) {
-        view.measure(
-            View.MeasureSpec.makeMeasureSpec(view.measuredWidth, View.MeasureSpec.EXACTLY),
-            View.MeasureSpec.makeMeasureSpec(view.measuredHeight, View.MeasureSpec.EXACTLY)
-        )
-        view.layout(view.left, view.top, view.right, view.bottom)
     }
 
     override fun onResume() {

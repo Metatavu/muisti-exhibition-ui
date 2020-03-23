@@ -51,6 +51,11 @@ android {
             buildConfigField("String", "KEYCLOAK_USERNAME", "\"${System.getProperty('KEYCLOAK_USERNAME')}\"")
             buildConfigField("String", "KEYCLOAK_PASSWORD", "\"${System.getProperty('KEYCLOAK_PASSWORD')}\"")
             buildConfigField("Boolean", "DESTRUCTIVE_MIGRATIONS", System.getProperty('DESTRUCTIVE_MIGRATIONS'))
+            buildConfigField("String", "MQTT_BASE_URL", "\"${System.getProperty('MQTT_BASE_URL')}\"")
+            buildConfigField("String", "MQTT_USER", "\"${System.getProperty('MQTT_USER')}\"")
+            buildConfigField("String", "MQTT_PASSWORD", "\"${System.getProperty('MQTT_PASSWORD')}\"")
+            buildConfigField("String", "MQTT_BASE_TOPIC", "\"${System.getProperty('MQTT_BASE_TOPIC')}\"")
+
         }
 
         debug {
@@ -61,6 +66,10 @@ android {
             buildConfigField("String", "KEYCLOAK_USERNAME", "\"${System.getProperty('KEYCLOAK_USERNAME')}\"")
             buildConfigField("String", "KEYCLOAK_PASSWORD", "\"${System.getProperty('KEYCLOAK_PASSWORD')}\"")
             buildConfigField("Boolean", "DESTRUCTIVE_MIGRATIONS", System.getProperty('DESTRUCTIVE_MIGRATIONS'))
+            buildConfigField("String", "MQTT_BASE_URL", "\"${System.getProperty('MQTT_BASE_URL')}\"")
+            buildConfigField("String", "MQTT_USER", "\"${System.getProperty('MQTT_USER')}\"")
+            buildConfigField("String", "MQTT_PASSWORD", "\"${System.getProperty('MQTT_PASSWORD')}\"")
+            buildConfigField("String", "MQTT_BASE_TOPIC", "\"${System.getProperty('MQTT_BASE_TOPIC')}\"")
         }
     }
     lintOptions {
