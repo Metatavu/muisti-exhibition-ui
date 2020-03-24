@@ -26,6 +26,16 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
     }
 
     /**
+     * Removes a Layout
+     *
+     * @param layoutId id of the layout to delete
+     */
+    suspend fun removeLayout(layoutId: UUID) {
+        val entity = getLayout(layoutId)?: return
+        layoutDao.delete(entity)
+    }
+
+    /**
      * Sets an array of layouts into the database
      *
      * @param layouts an array of layouts to insert into the database if layout with same id exists it will be updated

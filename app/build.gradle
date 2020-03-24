@@ -51,6 +51,11 @@ android {
             buildConfigField("String", "KEYCLOAK_USERNAME", "\"${System.getProperty('KEYCLOAK_USERNAME')}\"")
             buildConfigField("String", "KEYCLOAK_PASSWORD", "\"${System.getProperty('KEYCLOAK_PASSWORD')}\"")
             buildConfigField("Boolean", "DESTRUCTIVE_MIGRATIONS", System.getProperty('DESTRUCTIVE_MIGRATIONS'))
+            buildConfigField("String", "MQTT_BASE_URL", "\"${System.getProperty('MQTT_BASE_URL')}\"")
+            buildConfigField("String", "MQTT_USER", "\"${System.getProperty('MQTT_USER')}\"")
+            buildConfigField("String", "MQTT_PASSWORD", "\"${System.getProperty('MQTT_PASSWORD')}\"")
+            buildConfigField("String", "MQTT_BASE_TOPIC", "\"${System.getProperty('MQTT_BASE_TOPIC')}\"")
+
         }
 
         debug {
@@ -61,6 +66,10 @@ android {
             buildConfigField("String", "KEYCLOAK_USERNAME", "\"${System.getProperty('KEYCLOAK_USERNAME')}\"")
             buildConfigField("String", "KEYCLOAK_PASSWORD", "\"${System.getProperty('KEYCLOAK_PASSWORD')}\"")
             buildConfigField("Boolean", "DESTRUCTIVE_MIGRATIONS", System.getProperty('DESTRUCTIVE_MIGRATIONS'))
+            buildConfigField("String", "MQTT_BASE_URL", "\"${System.getProperty('MQTT_BASE_URL')}\"")
+            buildConfigField("String", "MQTT_USER", "\"${System.getProperty('MQTT_USER')}\"")
+            buildConfigField("String", "MQTT_PASSWORD", "\"${System.getProperty('MQTT_PASSWORD')}\"")
+            buildConfigField("String", "MQTT_BASE_TOPIC", "\"${System.getProperty('MQTT_BASE_TOPIC')}\"")
         }
     }
     lintOptions {
@@ -69,6 +78,9 @@ android {
 }
 
 repositories {
+    maven {
+        url "https://repo.eclipse.org/content/repositories/paho-snapshots/"
+    }
     maven { url "https://jitpack.io" }
 }
 
@@ -104,6 +116,7 @@ dependencies {
     // Lifecycle components
 
     implementation "androidx.lifecycle:lifecycle-extensions:$rootProject.archLifecycleVersion"
+    kapt "androidx.lifecycle:lifecycle-compiler:$rootProject.archLifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$rootProject.archLifecycleVersion"
 
     // ViewModel Kotlin support
@@ -119,6 +132,14 @@ dependencies {
     implementation 'com.auth0.android:jwtdecode:1.4.0'
 
     // Text flow view
+
+    implementation 'com.github.deano2390:FlowTextView:2.0.5'
+
+    // MQTT
+
+    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.0.2'
+
+    // FlowTextView
 
     implementation 'com.github.deano2390:FlowTextView:2.0.5'
 }

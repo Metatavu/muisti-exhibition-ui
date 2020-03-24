@@ -51,6 +51,30 @@ class PageRepository(private val pageDao: PageDao) {
     }
 
     /**
+     * Deletes a Page from the database
+     *
+     * @param page Page to be removed from the database
+     */
+    suspend fun deletePage(page: Page) {
+        val entity = pageDao.findByPageId(page.pageId)
+        if (entity != null) {
+            pageDao.delete(page)
+        }
+    }
+
+    /**
+     * Deletes a Page from the database
+     *
+     * @param pageId Page to be removed from the database
+     */
+    suspend fun deletePage(pageId: UUID) {
+        val entity = pageDao.findByPageId(pageId)
+        if (entity != null) {
+            pageDao.delete(entity)
+        }
+    }
+
+    /**
      * Sets an array of pages into the database
      *
      * @param pages an array of pages to insert into the database if page with same id exists it will be updated

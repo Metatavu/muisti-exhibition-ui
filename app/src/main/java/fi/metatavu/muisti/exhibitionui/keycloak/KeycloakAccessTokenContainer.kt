@@ -1,6 +1,5 @@
 package fi.metatavu.muisti.exhibitionui.keycloak
 
-import android.util.Log
 import com.auth0.android.jwt.JWT
 import java.time.OffsetDateTime
 
