@@ -28,8 +28,7 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
     /**
      * Removes a Layout
      *
-     * @param layoutId id of the layout delete
-     * @return a layout or null if not found
+     * @param layoutId id of the layout to delete
      */
     suspend fun removeLayout(layoutId: UUID) {
         val entity = getLayout(layoutId)?: return
