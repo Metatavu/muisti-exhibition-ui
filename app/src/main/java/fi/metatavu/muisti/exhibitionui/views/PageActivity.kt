@@ -15,18 +15,8 @@ import fi.metatavu.muisti.exhibitionui.actions.PageActionProviderFactory
 import fi.metatavu.muisti.exhibitionui.pages.PageView
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import kotlinx.android.synthetic.main.activity_page.*
-import uk.co.deanwild.flowtextview.FlowTextView
 import java.util.*
-import android.view.ViewGroup
-import androidx.core.app.ComponentActivity.ExtraData
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-
-
-
-
+import android.view.KeyEvent
 
 
 /**
@@ -36,6 +26,7 @@ class PageActivity : AppCompatActivity() {
 
     private var currentPageView: PageView? = null
     private val handler: Handler = Handler()
+    private val keyCodeListeners = mutableListOf<KeyCodeListener>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +62,28 @@ class PageActivity : AppCompatActivity() {
     override fun onDestroy() {
         this.closeView()
         super.onDestroy()
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        triggerKeyDownListener(keyCode)
+        super.onKeyDown(keyCode, event)
+        return true
+    }
+
+    /**
+     * Checks keyCode listeners list and triggers the listeners with matching keyCode
+     *
+     * @param keyCode keyCode of the button pressed
+     */
+    private fun triggerKeyDownListener(keyCode: Int){
+        keyCodeListeners.forEach {
+            if(it.keyCode == keyCode && !it.triggered){
+                it.triggered = true
+                it.listener()
+            }
+        }
+
+        keyCodeListeners.removeIf { it.triggered }
     }
 
     /**
@@ -133,6 +146,12 @@ class PageActivity : AppCompatActivity() {
         if (clickViewId != null) {
             bindClickEventListener(clickViewId, events)
         }
+
+        val externalKeyCode = eventTrigger.externalKeyCode
+
+        if(externalKeyCode != null){
+            bindKeyCodeEventListener(externalKeyCode, events)
+        }
     }
 
     /**
@@ -163,6 +182,17 @@ class PageActivity : AppCompatActivity() {
                 triggerEvents(events)
             }
         }
+    }
+
+    /**
+     * Binds event trigger to a keycode
+     *
+     * @param keyCode keyCode to trigger events with
+     * @param events events to be triggered by keyCode
+     */
+    private fun bindKeyCodeEventListener(keyCode: Int, events: Array<ExhibitionPageEvent>) {
+        val listener = { triggerEvents(events) }
+        keyCodeListeners.add(KeyCodeListener(keyCode, listener))
     }
 
     /**
@@ -224,3 +254,8 @@ class PageActivity : AppCompatActivity() {
     }
 
 }
+
+/**
+ * Keycode Listener class for triggering page events with key presses
+ */
+class KeyCodeListener(var keyCode: Int, var listener: () -> Unit, var triggered: Boolean = false)
