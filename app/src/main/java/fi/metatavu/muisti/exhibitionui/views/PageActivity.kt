@@ -71,9 +71,9 @@ class PageActivity : AppCompatActivity() {
     }
 
     /**
-     * Checks keyCode listeners list and triggers the listeners with matching keyCode
+     * Checks keycode listeners list and triggers the listeners with matching keyCode
      *
-     * @param keyCode keyCode of the button pressed
+     * @param keyCode keycode of the button pressed
      */
     private fun triggerKeyDownListener(keyCode: Int){
         keyCodeListeners.forEach {
@@ -187,8 +187,8 @@ class PageActivity : AppCompatActivity() {
     /**
      * Binds event trigger to a keycode
      *
-     * @param keyCode keyCode to trigger events with
-     * @param events events to be triggered by keyCode
+     * @param keyCode keycode to trigger events with
+     * @param events events to be triggered by keycode
      */
     private fun bindKeyCodeEventListener(keyCode: Int, events: Array<ExhibitionPageEvent>) {
         val listener = { triggerEvents(events) }
@@ -257,5 +257,10 @@ class PageActivity : AppCompatActivity() {
 
 /**
  * Keycode Listener class for triggering page events with key presses
+ *
+ * @param keyCode Keycode that triggers the listener
+ * @param listener listener to trigger with keycode
  */
-class KeyCodeListener(var keyCode: Int, var listener: () -> Unit, var triggered: Boolean = false)
+class KeyCodeListener(var keyCode: Int, var listener: () -> Unit){
+    var triggered = false
+}
