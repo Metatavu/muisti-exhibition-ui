@@ -9,7 +9,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEvent
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventTrigger
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
-import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProvider
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProviderFactory
 import fi.metatavu.muisti.exhibitionui.pages.PageView
@@ -17,6 +16,7 @@ import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import kotlinx.android.synthetic.main.activity_page.*
 import java.util.*
 import android.view.KeyEvent
+import fi.metatavu.muisti.exhibitionui.R
 
 
 /**
@@ -26,7 +26,8 @@ class PageActivity : AppCompatActivity() {
 
     private var currentPageView: PageView? = null
     private val handler: Handler = Handler()
-    private val keyCodeListeners = mutableListOf<KeyCodeListener>()
+    private val keyDownListeners = mutableListOf<KeyCodeListener>()
+    private val keyUpListeners = mutableListOf<KeyCodeListener>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,8 +66,14 @@ class PageActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        triggerKeyDownListener(keyCode)
+        triggerKeyListeners(keyCode, keyDown = true)
         super.onKeyDown(keyCode, event)
+        return true
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
+        triggerKeyListeners(keyCode, keyDown = false)
+        super.onKeyUp(keyCode, event)
         return true
     }
 
@@ -74,16 +81,22 @@ class PageActivity : AppCompatActivity() {
      * Checks keycode listeners list and triggers the listeners with matching keyCode
      *
      * @param keyCode keycode of the button pressed
+     * @param keyDown whether to trigger key down or key up listeners
      */
-    private fun triggerKeyDownListener(keyCode: Int){
-        keyCodeListeners.forEach {
-            if(it.keyCode == keyCode && !it.triggered){
-                it.triggered = true
-                it.listener()
+    private fun triggerKeyListeners(keyCode: Int, keyDown: Boolean){
+        if(keyDown){
+            keyDownListeners.forEach {
+                if(it.keyCode == keyCode){
+                    it.listener()
+                }
+            }
+        } else {
+            keyUpListeners.forEach {
+                if(it.keyCode == keyCode){
+                    it.listener()
+                }
             }
         }
-
-        keyCodeListeners.removeIf { it.triggered }
     }
 
     /**
@@ -147,10 +160,17 @@ class PageActivity : AppCompatActivity() {
             bindClickEventListener(clickViewId, events)
         }
 
-        val externalKeyCode = eventTrigger.externalKeyCode
+        val keyCodeUp = eventTrigger.keyUp
+        val keyCodeDown = eventTrigger.keyDown
 
-        if(externalKeyCode != null){
-            bindKeyCodeEventListener(externalKeyCode, events)
+        if(keyCodeDown != null) {
+            bindKeyCodeEventListener(keyCodeDown, events, true)
+        }
+        if(keyCodeUp != null) {
+            bindKeyCodeEventListener(keyCodeUp, events, false)
+        }
+        if(keyCodeUp == null && keyCodeDown == null) {
+            Log.d(javaClass.name, "No keyCodes found")
         }
     }
 
@@ -187,12 +207,18 @@ class PageActivity : AppCompatActivity() {
     /**
      * Binds event trigger to a keycode
      *
-     * @param keyCode keycode to trigger events with
+     * @param keyCodeString keycode to trigger events with
      * @param events events to be triggered by keycode
+     * @param keyDown whether to bind to key down or key up
      */
-    private fun bindKeyCodeEventListener(keyCode: Int, events: Array<ExhibitionPageEvent>) {
+    private fun bindKeyCodeEventListener(keyCodeString: String, events: Array<ExhibitionPageEvent>, keyDown: Boolean) {
         val listener = { triggerEvents(events) }
-        keyCodeListeners.add(KeyCodeListener(keyCode, listener))
+        val keyCode = KeyEvent.keyCodeFromString("KEYCODE_${keyCodeString.toUpperCase()}")
+        if(keyDown){
+            keyDownListeners.add(KeyCodeListener(keyCode, listener))
+        } else {
+            keyUpListeners.add(KeyCodeListener(keyCode, listener))
+        }
     }
 
     /**
@@ -256,11 +282,9 @@ class PageActivity : AppCompatActivity() {
 }
 
 /**
- * Keycode Listener class for triggering page events with key presses
+ * Keycode Listener class for triggering events with key presses
  *
  * @param keyCode Keycode that triggers the listener
  * @param listener listener to trigger with keycode
  */
-class KeyCodeListener(var keyCode: Int, var listener: () -> Unit){
-    var triggered = false
-}
+class KeyCodeListener(var keyCode: Int, var listener: () -> Unit)

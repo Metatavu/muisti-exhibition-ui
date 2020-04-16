@@ -68,7 +68,7 @@ object UpdatePages : MqttActionInterface {
             val exhibitionId = DeviceSettings.getExhibitionId()
             if (exhibitionId != null) {
                 val pages =
-                    MuistiApiFactory.getExhibitionPagesApi().listExhibitionPages(exhibitionId)
+                    MuistiApiFactory.getExhibitionPagesApi().listExhibitionPages(exhibitionId, null, null)
                 addPages(pages)
             }
         }
