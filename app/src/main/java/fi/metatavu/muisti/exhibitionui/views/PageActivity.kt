@@ -169,9 +169,6 @@ class PageActivity : AppCompatActivity() {
         if(keyCodeUp != null) {
             bindKeyCodeEventListener(keyCodeUp, events, false)
         }
-        if(keyCodeUp == null && keyCodeDown == null) {
-            Log.d(javaClass.name, "No keyCodes found")
-        }
     }
 
     /**
