@@ -22,6 +22,7 @@ class PageActionProviderFactory {
             when (action) {
                 ExhibitionPageEventActionType.navigate -> return NavigatePageActionProvider(properties)
                 ExhibitionPageEventActionType.setuservalue -> return SetUserValuePageActionProvider(properties)
+                ExhibitionPageEventActionType.triggerdevicegroupevent -> return TriggerDeviceGroupEventPageActionProvider(properties)
                 else -> Log.d(PageActionProviderFactory::javaClass.name, "Could not find page action provider for $action")
             }
 

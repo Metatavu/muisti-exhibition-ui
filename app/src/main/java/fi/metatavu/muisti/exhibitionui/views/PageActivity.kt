@@ -15,19 +15,11 @@ import fi.metatavu.muisti.exhibitionui.actions.PageActionProviderFactory
 import fi.metatavu.muisti.exhibitionui.pages.PageView
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import kotlinx.android.synthetic.main.activity_page.*
-import uk.co.deanwild.flowtextview.FlowTextView
 import java.util.*
-import android.view.ViewGroup
-import androidx.core.app.ComponentActivity.ExtraData
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-
-
-
-
-
+import fi.metatavu.muisti.api.client.models.MqttTriggerDeviceGroupEvent
+import fi.metatavu.muisti.exhibitionui.BuildConfig
+import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
+import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 
 /**
  * Activity for displaying pages from API
@@ -36,6 +28,18 @@ class PageActivity : AppCompatActivity() {
 
     private var currentPageView: PageView? = null
     private val handler: Handler = Handler()
+    private val deviceGroupEvents = mutableMapOf<String, Array<ExhibitionPageEvent>>()
+
+    // TODO: Listen only device group messages
+    private val mqttTriggerDeviceGroupEventListener = MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/deviceGroupId", MqttTriggerDeviceGroupEvent::class.java) {
+        val key = it.event
+        if (key != null) {
+            val events = deviceGroupEvents.get(key)
+            if (events != null) {
+                triggerEvents(events)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,6 +91,7 @@ class PageActivity : AppCompatActivity() {
         pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
         applyEventTriggers(pageView.page.eventTriggers)
         requestedOrientation = pageView.orientation
+        MqttClientController.addListener(mqttTriggerDeviceGroupEventListener)
     }
 
     /**
@@ -96,6 +101,7 @@ class PageActivity : AppCompatActivity() {
      * releases page view from this page activity instance
      */
     private fun closeView() {
+        MqttClientController.removeListener(mqttTriggerDeviceGroupEventListener)
         handler.removeCallbacksAndMessages(null)
         val currentView = currentPageView?.view
         currentPageView?.lifecycleListeners?.forEach { it.onPageDeactivate(this) }
@@ -111,6 +117,7 @@ class PageActivity : AppCompatActivity() {
      * @param eventTriggers event triggers to be applied
      */
     private fun applyEventTriggers(eventTriggers: Array<ExhibitionPageEventTrigger>) {
+        deviceGroupEvents.clear()
         eventTriggers.map(this::applyEventTrigger)
     }
 
@@ -132,6 +139,13 @@ class PageActivity : AppCompatActivity() {
 
         if (clickViewId != null) {
             bindClickEventListener(clickViewId, events)
+        }
+
+        val deviceGroupEvent = eventTrigger.deviceGroupEvent
+
+        if (deviceGroupEvent != null) {
+            val deviceGroupEventList = deviceGroupEvents.get(deviceGroupEvent) ?: arrayOf<ExhibitionPageEvent>()
+            deviceGroupEvents.put(deviceGroupEvent, deviceGroupEventList.plus(events))
         }
     }
 

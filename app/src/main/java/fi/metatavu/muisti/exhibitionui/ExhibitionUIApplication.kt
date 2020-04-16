@@ -18,7 +18,6 @@ import java.util.concurrent.TimeUnit
 class ExhibitionUIApplication : Application() {
 
     private var currentActivity: Activity? = null
-    private var muistiMqttService = MuistiMqttService()
 
     /**
      * Constructor
@@ -30,6 +29,12 @@ class ExhibitionUIApplication : Application() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 1, 1, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 1, 4, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueConstructPagesServiceTask() }, 1, 15, TimeUnit.SECONDS)
+
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        MuistiMqttService()
     }
 
     /**
