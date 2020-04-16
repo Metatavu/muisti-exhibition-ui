@@ -65,7 +65,7 @@ object UpdateLayouts : MqttActionInterface {
      */
     fun updateAllLayouts(){
         GlobalScope.launch {
-            val layouts = MuistiApiFactory.getPageLayoutsApi().listPageLayouts(null, null)
+            val layouts = MuistiApiFactory.getPageLayoutsApi().listPageLayouts(deviceModelId = null, screenOrientation = null)
             addLayouts(layouts)
             Log.d(javaClass.name, "Updated ${layouts.size} layouts.")
         }
