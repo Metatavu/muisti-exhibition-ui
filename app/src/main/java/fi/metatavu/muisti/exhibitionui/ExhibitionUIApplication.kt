@@ -3,12 +3,8 @@ package fi.metatavu.muisti.exhibitionui
 import android.app.Activity
 import android.app.Application
 import android.content.Intent
-import android.util.Log
 import androidx.core.app.JobIntentService
-import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.exhibitionui.services.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
