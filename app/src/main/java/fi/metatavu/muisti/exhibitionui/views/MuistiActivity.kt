@@ -5,6 +5,9 @@ import androidx.appcompat.app.AppCompatActivity
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import java.util.*
 
+/**
+ * Muisti activity abstract class
+ */
 abstract class MuistiActivity : AppCompatActivity(){
     /**
      * Sets current activity into application
