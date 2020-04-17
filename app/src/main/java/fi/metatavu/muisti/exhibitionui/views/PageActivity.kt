@@ -319,7 +319,7 @@ class PageActivity : MuistiActivity() {
         } else {
             clickCounterHandler.postDelayed({
                 settingsClickCOunter = 0
-            },"settings",1000)
+            }, "settings", 1000)
         }
     }
 
