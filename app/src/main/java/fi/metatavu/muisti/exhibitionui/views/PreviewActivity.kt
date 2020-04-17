@@ -17,7 +17,7 @@ import java.util.*
 /**
  * Preview activity class
  */
-class PreviewActivity : AppCompatActivity() {
+class PreviewActivity : MuistiActivity() {
 
     private var mViewModel: PreviewViewModel? = null
 
@@ -36,19 +36,6 @@ class PreviewActivity : AppCompatActivity() {
                 pageSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, pageViews)
             }
         })
-    }
-
-    /**
-     * Opens a page view
-     *
-     * @param pageId page id
-     */
-    private fun goToPage(pageId: UUID) {
-        val intent = Intent(this, PageActivity::class.java).apply{
-            putExtra("pageId", pageId.toString())
-        }
-
-        startActivity(intent)
     }
 
     /**

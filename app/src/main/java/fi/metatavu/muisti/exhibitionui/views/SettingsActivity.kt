@@ -178,7 +178,6 @@ class SettingsActivity : AppCompatActivity() {
             exhibitionDevicePreference.summary = getString(R.string.exhibition_perference_loading)
             mViewModel?.setExhibitionDeviceId(null)
             mViewModel?.setExhibitionId(newValue)
-
             updateListPreferenceSummary(exhibitionPreference, newValue)
             updateListPreferenceSummary(exhibitionDevicePreference, null)
             reloadExhibitionDevicesPreference(UUID.fromString(newValue))

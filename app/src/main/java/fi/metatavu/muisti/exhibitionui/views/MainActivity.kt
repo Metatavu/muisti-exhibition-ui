@@ -4,9 +4,9 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import fi.metatavu.muisti.exhibitionui.R
+import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -15,7 +15,7 @@ import java.lang.Exception
 /**
  * Main activity class
  */
-class MainActivity : AppCompatActivity() {
+class MainActivity : MuistiActivity() {
 
     private var mViewModel: MainViewModel? = null
 
@@ -39,15 +39,20 @@ class MainActivity : AppCompatActivity() {
      */
     private fun visitorLogin() = GlobalScope.launch {
         val exhibitionId = DeviceSettings.getExhibitionId()
-        if (exhibitionId != null) {
+        val deviceId = DeviceSettings.getExhibitionDeviceId()
+        if (exhibitionId != null && deviceId != null) {
             val tagId = getDeviceId()
             mViewModel?.visitorLogin(exhibitionId, tagId)
-            startPreviewActivity()
+            val frontPage = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId).indexPageId
+            if(frontPage != null){
+                goToPage(frontPage)
+            } else {
+                startPreviewActivity()
+            }
         } else {
             startSettingsActivity()
         }
     }
-
     /**
      * Returns a device id
      *
@@ -60,15 +65,6 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             return "unknown"
         }
-    }
-
-
-    /**
-     * Starts a settings activity
-     */
-    private fun startSettingsActivity() {
-        val intent = Intent(this, SettingsActivity::class.java)
-        this.startActivity(intent)
     }
 
     /**
