@@ -44,7 +44,7 @@ class MainActivity : MuistiActivity() {
             val tagId = getDeviceId()
             mViewModel?.visitorLogin(exhibitionId, tagId)
             val frontPage = mViewModel?.getFrontPage(exhibitionId, deviceId)
-            if(frontPage != null){
+            if (frontPage != null) {
                 goToPage(frontPage)
             } else {
                 startPreviewActivity()
