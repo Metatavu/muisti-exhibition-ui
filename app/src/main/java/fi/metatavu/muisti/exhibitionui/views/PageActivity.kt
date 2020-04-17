@@ -314,7 +314,7 @@ class PageActivity : MuistiActivity() {
     private fun settingsButtonClick() {
         clickCounterHandler.removeCallbacksAndMessages("settings")
         settingsClickCOunter += 1
-        if (settingsClickCounter > 4) {
+        if (settingsClickCOunter > 4) {
             startSettingsActivity()
         } else {
             clickCounterHandler.postDelayed({

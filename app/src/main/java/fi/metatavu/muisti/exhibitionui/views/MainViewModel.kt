@@ -54,7 +54,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     suspend fun getFrontPage(exhibitionId: UUID, deviceId: UUID) : UUID?{
         return try {
             MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId).indexPageId
-        } catch (e: Exception){
+        } catch (e: Exception) {
             Log.e(javaClass.name, "Failed to get front page or device: $deviceId")
             null
         }
