@@ -332,7 +332,7 @@ class PageActivity : MuistiActivity() {
     private fun indexButtonClick() {
         clickCounterHandler.removeCallbacksAndMessages("index")
         settingsClickCOunter += 1
-        if(settingsClickCOunter > 4){
+        if (settingsClickCOunter > 4) {
             startMainActivity()
         } else {
             clickCounterHandler.postDelayed( {
