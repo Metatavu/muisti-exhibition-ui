@@ -43,7 +43,7 @@ class MainActivity : MuistiActivity() {
         if (exhibitionId != null && deviceId != null) {
             val tagId = getDeviceId()
             mViewModel?.visitorLogin(exhibitionId, tagId)
-            val frontPage = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId).indexPageId
+            val frontPage = mViewModel?.getFrontPage(exhibitionId, deviceId)
             if(frontPage != null){
                 goToPage(frontPage)
             } else {

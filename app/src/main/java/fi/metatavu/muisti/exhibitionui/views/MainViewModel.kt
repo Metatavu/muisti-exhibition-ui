@@ -42,4 +42,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         VisitorSessionContainer.setVisitorSessionId(visitorSession.id)
     }
 
+    suspend fun getFrontPage(exhibitionId: UUID, deviceId: UUID) : UUID?{
+        return MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId).indexPageId
+    }
 }
