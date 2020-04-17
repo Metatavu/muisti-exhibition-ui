@@ -36,7 +36,7 @@ class PageActivity : MuistiActivity() {
     private val keyUpListeners = mutableListOf<KeyCodeListener>()
 
     private var settingsClickCOunter = 0
-    private val settingsClickHandler = Handler()
+    private val clickCounterHandler = Handler()
 
     // TODO: Listen only device group messages
     private val mqttTriggerDeviceGroupEventListener = MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/deviceGroupId", MqttTriggerDeviceGroupEvent::class.java) {
@@ -63,9 +63,12 @@ class PageActivity : MuistiActivity() {
             return
         }
 
-        val button = findViewById<Button>(R.id.settings_button)
-        button.setOnClickListener{
+        settings_button.setOnClickListener{
             settingsButtonClick()
+        }
+
+        index_page_button.setOnClickListener{
+            indexButtonClick()
         }
 
         pageView.view.layoutParams.height = ConstraintLayout.LayoutParams.MATCH_PARENT
@@ -150,7 +153,7 @@ class PageActivity : MuistiActivity() {
     private fun closeView() {
         MqttClientController.removeListener(mqttTriggerDeviceGroupEventListener)
         handler.removeCallbacksAndMessages(null)
-        settingsClickHandler.removeCallbacksAndMessages(null)
+        clickCounterHandler.removeCallbacksAndMessages(null)
         val currentView = currentPageView?.view
         currentPageView?.lifecycleListeners?.forEach { it.onPageDeactivate(this) }
 
@@ -309,14 +312,32 @@ class PageActivity : MuistiActivity() {
      * Counter resets to zero after 1 sec
      */
     private fun settingsButtonClick() {
-        settingsClickHandler.removeCallbacksAndMessages(null)
+        clickCounterHandler.removeCallbacksAndMessages("settings")
         settingsClickCOunter += 1
         if(settingsClickCOunter > 4){
             startSettingsActivity()
         } else {
-            settingsClickHandler.postDelayed({
+            clickCounterHandler.postDelayed({
                 settingsClickCOunter = 0
-            }, 1000)
+            },"settings",1000)
+        }
+    }
+
+    /**
+     * Handler for settings button click
+     *
+     * Increases settings click count and navigates to settings if it has been clicked 5 times.
+     * Counter resets to zero after 1 sec
+     */
+    private fun indexButtonClick() {
+        clickCounterHandler.removeCallbacksAndMessages("index")
+        settingsClickCOunter += 1
+        if(settingsClickCOunter > 4){
+            startMainActivity()
+        } else {
+            clickCounterHandler.postDelayed( {
+                settingsClickCOunter = 0
+            }, "index", 1000)
         }
     }
 }

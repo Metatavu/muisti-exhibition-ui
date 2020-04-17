@@ -36,4 +36,9 @@ abstract class MuistiActivity : AppCompatActivity(){
         val intent = Intent(this, SettingsActivity::class.java)
         this.startActivity(intent)
     }
+
+    protected fun startMainActivity(){
+        val intent = Intent(this, MainActivity::class.java)
+        this.startActivity(intent)
+    }
 }
