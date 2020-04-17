@@ -1,8 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
-import android.graphics.Color
 import android.graphics.Typeface
-import android.text.Html
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
@@ -146,8 +144,8 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
      * @param textView text view component
      * @param value value
      */
-    private fun setText(buildContext: ComponentBuildContext, textView: TextView, value: String) {
-        textView.text = Html.fromHtml(getResourceData(buildContext, value), Html.FROM_HTML_MODE_LEGACY)
+    private fun setText(buildContext: ComponentBuildContext, textView: TextView, value: String?) {
+        textView.text = parseHtmlResource(buildContext, value) ?: ""
     }
 
     /**

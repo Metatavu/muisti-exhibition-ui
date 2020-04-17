@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.net.Uri
+import android.text.Html
+import android.text.Spanned
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
@@ -165,6 +167,38 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     protected fun getResourceOfflineFile(buildContext: ComponentBuildContext, propertyName: String): File? {
         val srcValue = buildContext.pageLayoutView.properties.firstOrNull { it.name == propertyName }?.value
         return getResourceOfflineFile(buildContext.page.resources, srcValue)
+    }
+
+    /**
+     * Parses given resource as HTML
+     *
+     * @param buildContext build context
+     * @param value property value
+     * @return parsed HTML
+     */
+    protected fun parseHtmlResource(buildContext: ComponentBuildContext, value: String?): Spanned? {
+        return parseHtml(getResourceData(buildContext, value))
+    }
+
+    /**
+     * Parses given text as HTML
+     *
+     * @param html html text
+     * @return parsed HTML
+     */
+    protected fun parseHtml(html: String?): Spanned? {
+        html ?: return null
+        if (html.isEmpty()) {
+            return null
+        }
+
+        try {
+            return Html.fromHtml(html, Html.FROM_HTML_MODE_LEGACY)
+        } catch (e: java.lang.Exception) {
+            Log.w(javaClass.name, "HTML $html parsing failed", e)
+        }
+
+        return null
     }
 
     /**
