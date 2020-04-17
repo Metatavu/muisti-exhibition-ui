@@ -1,12 +1,14 @@
 package fi.metatavu.muisti.exhibitionui.views
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import fi.metatavu.muisti.api.client.models.VisitorSession
 import fi.metatavu.muisti.api.client.models.VisitorSessionState
 import fi.metatavu.muisti.api.client.models.VisitorSessionUser
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
+import java.lang.Exception
 import java.util.*
 
 /**
@@ -42,4 +44,19 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         VisitorSessionContainer.setVisitorSessionId(visitorSession.id)
     }
 
+    /**
+     * Get front page for a device
+     * @param exhibitionId Exhibition the device belongs to
+     * @param deviceId Id of the device
+     *
+     * @return Id of the page that has been set as the front page for the device
+     */
+    suspend fun getFrontPage(exhibitionId: UUID, deviceId: UUID) : UUID?{
+        return try {
+            MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId).indexPageId
+        } catch (e: Exception) {
+            Log.e(javaClass.name, "Failed to get front page or device: $deviceId")
+            null
+        }
+    }
 }
