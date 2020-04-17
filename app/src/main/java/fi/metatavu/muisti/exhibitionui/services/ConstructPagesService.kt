@@ -12,6 +12,7 @@ import fi.metatavu.muisti.exhibitionui.persistence.repository.LayoutRepository
 import fi.metatavu.muisti.exhibitionui.persistence.repository.PageRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.lang.Exception
 
 /**
  * Service for constructing page view
@@ -24,7 +25,7 @@ class ConstructPagesService : JobIntentService() {
     override fun onHandleWork(intent: Intent) {
         GlobalScope.launch {
             val pages = pageRepository.listAll()
-            if (pages!= null) {
+            if (pages != null) {
                 Log.d(ConstructPagesService::javaClass.name, "Constructing ${pages.size} pages...")
 
                 for (page in pages) {
@@ -40,22 +41,26 @@ class ConstructPagesService : JobIntentService() {
      * @param page page
      */
     private suspend fun constructPage(page: Page) {
-        val pageId = page.pageId
-        val layoutId = page.layoutId
-        val layout = layoutRepository.getLayout(layoutId)
+        try {
+            val pageId = page.pageId
+            val layoutId = page.layoutId
+            val layout = layoutRepository.getLayout(layoutId)
 
-        if (layout != null) {
-            Log.d(ConstructPagesService::javaClass.name, "Constructing page ${pageId}...")
-            val context = ExhibitionUIApplication.instance.applicationContext
-            val pageView = PageViewFactory.buildPageView(context, page, layout)
-            if (pageView != null) {
-                PageViewContainer.setPageView(pageId, pageView)
-                Log.d(ConstructPagesService::javaClass.name, "Constructed page ${page.name} - ${pageId}.")
+            if (layout != null) {
+                Log.d(ConstructPagesService::javaClass.name, "Constructing page ${pageId}...")
+                val context = ExhibitionUIApplication.instance.applicationContext
+                val pageView = PageViewFactory.buildPageView(context, page, layout)
+                if (pageView != null) {
+                    PageViewContainer.setPageView(pageId, pageView)
+                    Log.d(ConstructPagesService::javaClass.name, "Constructed page ${page.name} - ${pageId}.")
+                } else {
+                    Log.d(ConstructPagesService::javaClass.name, "Could not construct page ${pageId}.")
+                }
             } else {
-                Log.d(ConstructPagesService::javaClass.name,"Could not construct page ${pageId}.")
+                Log.d(ConstructPagesService::javaClass.name, "Could not construct page ${pageId} because layout ${layoutId} does not exist.")
             }
-        } else {
-            Log.d(ConstructPagesService::javaClass.name,"Could not construct page ${pageId} because layout ${layoutId} does not exist.")
+        } catch (e: Exception) {
+            Log.e(javaClass.name, "Failed to construct page", e)
         }
     }
 }

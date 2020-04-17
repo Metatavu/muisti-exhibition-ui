@@ -65,9 +65,13 @@ object UpdateLayouts : MqttActionInterface {
      */
     fun updateAllLayouts(){
         GlobalScope.launch {
-            val layouts = MuistiApiFactory.getPageLayoutsApi().listPageLayouts(deviceModelId = null, screenOrientation = null)
-            addLayouts(layouts)
-            Log.d(javaClass.name, "Updated ${layouts.size} layouts.")
+            try {
+                val layouts = MuistiApiFactory.getPageLayoutsApi().listPageLayouts(deviceModelId = null, screenOrientation = null)
+                addLayouts(layouts)
+                Log.d(javaClass.name, "Updated ${layouts.size} layouts.")
+            } catch (e: Exception) {
+                Log.e(javaClass.name, "Failed to update all layouts", e)
+            }
         }
     }
 
@@ -77,10 +81,14 @@ object UpdateLayouts : MqttActionInterface {
      *
      * @param id Id of the layout to update from the API
      */
-    fun updateLayout(id: UUID){
+    private fun updateLayout(id: UUID){
         GlobalScope.launch {
-            val layout = MuistiApiFactory.getPageLayoutsApi().findPageLayout(id)
-            addLayouts(arrayOf(layout))
+            try {
+                val layout = MuistiApiFactory.getPageLayoutsApi().findPageLayout(id)
+                addLayouts(arrayOf(layout))
+            } catch (e: Exception) {
+                Log.e(javaClass.name, "Layout update failed", e)
+            }
         }
     }
 
@@ -89,9 +97,13 @@ object UpdateLayouts : MqttActionInterface {
      *
      * @param id Id of the layout to delete
      */
-    fun deleteLayout(id: UUID){
+    private fun deleteLayout(id: UUID){
         GlobalScope.launch {
-            layoutRepository.removeLayout(id)
+            try {
+                layoutRepository.removeLayout(id)
+            } catch (e: Exception) {
+                Log.e(javaClass.name, "Layout deleting failed", e)
+            }
         }
     }
 

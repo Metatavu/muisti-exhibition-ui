@@ -65,15 +65,19 @@ object UpdatePages : MqttActionInterface {
      */
     fun updateAllPages() {
         GlobalScope.launch {
-            val exhibitionId = DeviceSettings.getExhibitionId()
-            if (exhibitionId != null) {
-                val pages =
-                    MuistiApiFactory.getExhibitionPagesApi().listExhibitionPages(
+            try {
+                val exhibitionId = DeviceSettings.getExhibitionId()
+                if (exhibitionId != null) {
+                    val pages = MuistiApiFactory.getExhibitionPagesApi().listExhibitionPages(
                         exhibitionId = exhibitionId,
                         exhibitionContentVersionId = null,
                         exhibitionDeviceId = null
                     )
-                addPages(pages)
+
+                    addPages(pages)
+                }
+            } catch (e: Exception) {
+                Log.e(javaClass.name, "Updating all pages failed", e)
             }
         }
     }
@@ -85,11 +89,14 @@ object UpdatePages : MqttActionInterface {
      */
     private fun updateSinglePage(pageId: UUID) {
         GlobalScope.launch {
-            val exhibitionId = DeviceSettings.getExhibitionId()
-            if (exhibitionId != null) {
-                val pages =
-                    MuistiApiFactory.getExhibitionPagesApi().findExhibitionPage(exhibitionId, pageId)
-                addPages(arrayOf(pages))
+            try {
+                val exhibitionId = DeviceSettings.getExhibitionId()
+                if (exhibitionId != null) {
+                    val pages = MuistiApiFactory.getExhibitionPagesApi().findExhibitionPage(exhibitionId, pageId)
+                    addPages(arrayOf(pages))
+                }
+            } catch (e: Exception) {
+                Log.e(javaClass.name, "Single page update failed", e)
             }
         }
     }
@@ -101,7 +108,11 @@ object UpdatePages : MqttActionInterface {
      */
     private fun removePage(pageId: UUID) {
         GlobalScope.launch {
-            removePages(pageId)
+            try {
+                removePages(pageId)
+            } catch (e: Exception) {
+                Log.e(javaClass.name, "Failed to remove single page", e)
+            }
         }
     }
 
