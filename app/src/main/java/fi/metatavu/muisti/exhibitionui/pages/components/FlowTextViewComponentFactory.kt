@@ -106,8 +106,7 @@ class FlowTextViewComponentFactory : AbstractComponentFactory<MuistiFlowTextView
      * @param value value
      */
     private fun setText(buildContext: ComponentBuildContext, flowTextView: FlowTextView, value: String) {
-        val html = Html.fromHtml(getResourceData(buildContext, value), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL)
-        flowTextView.text = html
+        flowTextView.text = parseHtmlResource(buildContext, value) ?: ""
     }
 
     /**
