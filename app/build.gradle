@@ -142,4 +142,6 @@ dependencies {
     // FlowTextView
 
     implementation 'com.github.deano2390:FlowTextView:2.0.5'
+
+    testImplementation 'io.appium:java-client:3.3.0'
 }
