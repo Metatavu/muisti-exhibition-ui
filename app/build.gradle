@@ -172,8 +172,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     testImplementation "fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrs_functional_test_builder_version"
     testImplementation 'io.appium:java-client:3.3.0'
-
+    testImplementation project(':api-test-builder')
 }
 
-testImplementation project(':api-test-builder')
 
