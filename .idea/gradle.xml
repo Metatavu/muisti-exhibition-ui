@@ -10,9 +10,10 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/api-client" />
-            <option value="$PROJECT_DIR$/app" />
+            <option value="$USER_HOME$/AndroidStudioProjects/MuistiExhibitionUI" />
+            <option value="$USER_HOME$/AndroidStudioProjects/MuistiExhibitionUI/api-client" />
+            <option value="$USER_HOME$/AndroidStudioProjects/MuistiExhibitionUI/api-test-builder" />
+            <option value="$USER_HOME$/AndroidStudioProjects/MuistiExhibitionUI/app" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
