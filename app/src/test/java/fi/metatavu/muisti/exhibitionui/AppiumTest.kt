@@ -38,7 +38,7 @@ class AppiumTest {
         Thread.sleep(5000)
         driver.findElementsByXPath("//*").filter { it.getAttribute("class") == "android.widget.CheckedTextView" }[1].click()
         driver.pressKeyCode(AndroidKeyCode.BACK)
-        Thread.sleep(10000)
+        Thread.sleep(20000)
         Assert.assertEquals("PREVIEW PAGE", driver.findElementsByXPath("//*").filter { it.getAttribute("class") == "android.widget.Button" }[0].text)
         driver.quit()
     }
