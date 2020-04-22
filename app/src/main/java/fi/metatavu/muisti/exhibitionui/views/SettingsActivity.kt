@@ -129,7 +129,8 @@ class SettingsActivity : AppCompatActivity() {
             exhibitionDevicesPreference.value = exhibitionId?.toString()
             exhibitionDevicesPreference.summary = exhibitionDevice?.name
             updateListPreferenceSummary(exhibitionDevicesPreference, exhibitionDeviceId?.toString())
-        }
+
+       }
 
         /**
          * Lists all available exhibitions from API
