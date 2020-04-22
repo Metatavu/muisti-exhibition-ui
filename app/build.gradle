@@ -19,14 +19,16 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    file('.env').readLines().each() {
-        if (!it.isEmpty() && !it.startsWith("#")) {
-            def pos = it.indexOf("=")
-            def key = it.substring(0, pos)
-            def value = it.substring(pos + 1)
+    if (file('.env').exists()) {
+        file('.env').readLines().each() {
+            if (!it.isEmpty() && !it.startsWith("#")) {
+                def pos = it.indexOf("=")
+                def key = it.substring(0, pos)
+                def value = it.substring(pos + 1)
 
-            if (System.getProperty(key) == null) {
-                System.setProperty(key, value)
+                if (System.getProperty(key) == null) {
+                    System.setProperty(key, value)
+                }
             }
         }
     }
@@ -50,7 +52,7 @@ android {
             buildConfigField("String", "KEYCLOAK_CLIENT_ID", "\"${System.getProperty('KEYCLOAK_CLIENT_ID')}\"")
             buildConfigField("String", "KEYCLOAK_USERNAME", "\"${System.getProperty('KEYCLOAK_USERNAME')}\"")
             buildConfigField("String", "KEYCLOAK_PASSWORD", "\"${System.getProperty('KEYCLOAK_PASSWORD')}\"")
-            buildConfigField("Boolean", "DESTRUCTIVE_MIGRATIONS", System.getProperty('DESTRUCTIVE_MIGRATIONS'))
+            buildConfigField("Boolean", "DESTRUCTIVE_MIGRATIONS", System.getProperty('DESTRUCTIVE_MIGRATIONS') ?: "false")
             buildConfigField("String", "MQTT_BASE_URL", "\"${System.getProperty('MQTT_BASE_URL')}\"")
             buildConfigField("String", "MQTT_USER", "\"${System.getProperty('MQTT_USER')}\"")
             buildConfigField("String", "MQTT_PASSWORD", "\"${System.getProperty('MQTT_PASSWORD')}\"")
@@ -65,7 +67,7 @@ android {
             buildConfigField("String", "KEYCLOAK_CLIENT_ID", "\"${System.getProperty('KEYCLOAK_CLIENT_ID')}\"")
             buildConfigField("String", "KEYCLOAK_USERNAME", "\"${System.getProperty('KEYCLOAK_USERNAME')}\"")
             buildConfigField("String", "KEYCLOAK_PASSWORD", "\"${System.getProperty('KEYCLOAK_PASSWORD')}\"")
-            buildConfigField("Boolean", "DESTRUCTIVE_MIGRATIONS", System.getProperty('DESTRUCTIVE_MIGRATIONS'))
+            buildConfigField("Boolean", "DESTRUCTIVE_MIGRATIONS", System.getProperty('DESTRUCTIVE_MIGRATIONS') ?: "false")
             buildConfigField("String", "MQTT_BASE_URL", "\"${System.getProperty('MQTT_BASE_URL')}\"")
             buildConfigField("String", "MQTT_USER", "\"${System.getProperty('MQTT_USER')}\"")
             buildConfigField("String", "MQTT_PASSWORD", "\"${System.getProperty('MQTT_PASSWORD')}\"")
