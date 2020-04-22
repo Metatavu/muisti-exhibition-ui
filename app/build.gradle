@@ -12,9 +12,20 @@ kapt {
     correctErrorTypes true
 }
 
-
 dockerCompose {
     captureContainersOutput = true
+}
+def readFile(fileName) {
+    file(fileName).readLines().each() {
+        if (!it.isEmpty() && !it.startsWith("#")) {
+            def pos = it.indexOf("=")
+            def key = it.substring(0, pos)
+            def value = it.substring(pos + 1)
+            if (System.getProperty(key) == null) {
+                System.setProperty(key, value)
+            }
+        }
+    }
 }
 
 android {
@@ -26,20 +37,6 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    if (file('.env').exists()) {
-        file('.env').readLines().each() {
-            if (!it.isEmpty() && !it.startsWith("#")) {
-                def pos = it.indexOf("=")
-                def key = it.substring(0, pos)
-                def value = it.substring(pos + 1)
-
-                if (System.getProperty(key) == null) {
-                    System.setProperty(key, value)
-                }
-            }
-        }
-    }
-
     defaultConfig {
         applicationId "fi.metatavu.muisti.exhibitionui"
         minSdkVersion 29
@@ -47,6 +44,16 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    if (System.getenv('ENV') != null) {
+        println("Found ENV")
+        if (System.getenv('ENV') == 'test' && file('.env_tests').exists()) {
+            readFile('.env_tests')
+        }
+    } else if (file('.env').exists()) {
+        println("Didn't find ENV")
+        readFile('.env')
     }
 
     buildTypes {
@@ -64,7 +71,6 @@ android {
             buildConfigField("String", "MQTT_USER", "\"${System.getProperty('MQTT_USER')}\"")
             buildConfigField("String", "MQTT_PASSWORD", "\"${System.getProperty('MQTT_PASSWORD')}\"")
             buildConfigField("String", "MQTT_BASE_TOPIC", "\"${System.getProperty('MQTT_BASE_TOPIC')}\"")
-
         }
 
         debug {
@@ -92,9 +98,7 @@ android {
             testLogging {
                 showStandardStreams = true
             }
-
         }
-
     }
 }
 
