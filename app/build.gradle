@@ -6,8 +6,15 @@ apply plugin: 'kotlin-android-extensions'
 
 apply plugin: 'kotlin-kapt'
 
+apply plugin: 'docker-compose'
+
 kapt {
     correctErrorTypes true
+}
+
+
+dockerCompose {
+    captureContainersOutput = true
 }
 
 android {
@@ -74,6 +81,18 @@ android {
     }
     lintOptions {
         disable('AllowBackup', 'GoogleAppIndexingWarning', 'MissingApplicationIcon')
+    }
+
+    testOptions {
+        unitTests.all {
+            dependsOn tasks.composeUp
+            finalizedBy tasks.composeDown
+            testLogging {
+                showStandardStreams = true
+            }
+
+        }
+
     }
 }
 
