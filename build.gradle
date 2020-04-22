@@ -6,6 +6,8 @@ buildscript {
     ext.archLifecycleVersion = "2.2.0"
     ext.roomVersion = "2.2.4"
     ext.daggerVersion = "2.26"
+    ext.jaxrs_functional_test_builder_version = "1.0.4"
+    ext.awaitility_version = "4.0.2"
 
     repositories {
         google()
