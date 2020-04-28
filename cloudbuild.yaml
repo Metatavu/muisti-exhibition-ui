@@ -1,4 +1,6 @@
 steps:
+- name: ubuntu
+  args: ["ls", '-lha']
 - name: gcr.io/cloud-builders/git
   args: ['submodule', 'update', '--init', '--recursive']
 - name: thyrlian/android-sdk
