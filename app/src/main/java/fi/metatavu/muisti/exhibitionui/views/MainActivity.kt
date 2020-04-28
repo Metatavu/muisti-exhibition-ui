@@ -70,7 +70,7 @@ class MainActivity : MuistiActivity() {
      *
      * @param pageId page id to navigate to once it is ready
      */
-    private fun waitForPage(pageId: UUID){
+    private fun waitForPage(pageId: UUID) {
         handler.postDelayed({
             if (PageViewContainer.contains(pageId)) {
                 goToPage(pageId)
