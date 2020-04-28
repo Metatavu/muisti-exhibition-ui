@@ -1,7 +1,7 @@
 steps:
 - name: ubuntu
   args: ["ls", '-lha']
-- name: gcr.io/cloud-builders/git
-  args: ['submodule', 'update', '--init', '--recursive']
+- name: alpine/git
+  args: ['git', 'submodule', 'update', '--init', '--recursive']
 - name: thyrlian/android-sdk
   args: ["./gradlew", "clean", "test"]
