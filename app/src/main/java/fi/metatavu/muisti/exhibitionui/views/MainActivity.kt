@@ -72,7 +72,7 @@ class MainActivity : MuistiActivity() {
      */
     private fun waitForPage(pageId: UUID){
         handler.postDelayed({
-            if(PageViewContainer.contains(pageId)){
+            if (PageViewContainer.contains(pageId)) {
                 goToPage(pageId)
             } else {
                 waitForPage(pageId)
