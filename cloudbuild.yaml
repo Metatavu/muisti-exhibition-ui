@@ -1,0 +1,3 @@
+steps:
+- name: gradle:jdk11
+  args: ["./gradlew", "clean", "test"]
