@@ -30,6 +30,7 @@ class PreviewActivity : MuistiActivity() {
         setSupportActionBar(toolbar)
 
         previewPageButton.setOnClickListener(onPreviewPageButtonClick)
+        settingsPageButton.setOnClickListener(onSettingsPageButtonClick)
 
         mViewModel?.livePageViewList()?.observe(this, Observer {
             pageViews -> run {
@@ -47,5 +48,12 @@ class PreviewActivity : MuistiActivity() {
         if (pageId != null) {
             goToPage(pageId)
         }
+    }
+
+    /**
+     * Event handler for settings page button click
+     */
+    private val onSettingsPageButtonClick = View.OnClickListener {
+        startSettingsActivity()
     }
 }

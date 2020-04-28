@@ -1,11 +1,10 @@
 package fi.metatavu.muisti.exhibitionui.views
 
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
+import android.view.View
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.whenStarted
 import androidx.preference.ListPreference
 import androidx.preference.Preference
@@ -14,7 +13,6 @@ import fi.metatavu.muisti.api.client.models.Exhibition
 import fi.metatavu.muisti.api.client.models.ExhibitionDevice
 import kotlinx.coroutines.launch
 import fi.metatavu.muisti.exhibitionui.R
-import fi.metatavu.muisti.exhibitionui.persistence.model.DeviceSettingName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.*
@@ -22,7 +20,7 @@ import java.util.*
 /**
  * Settings activity
  */
-class SettingsActivity : AppCompatActivity() {
+class SettingsActivity : MuistiActivity() {
 
     private var mViewModel: SettingsViewModel? = null
 
@@ -35,7 +33,15 @@ class SettingsActivity : AppCompatActivity() {
             .beginTransaction()
             .replace(R.id.settings, SettingsFragment())
             .commit()
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+
+    fun exitSettings(view: View?) {
+        val intent = Intent(this, MainActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        startActivity(intent)
+    }
+
+    override fun onBackPressed() {
+        exitSettings(null)
     }
 
     /**
@@ -47,7 +53,7 @@ class SettingsActivity : AppCompatActivity() {
 
         init {
             lifecycleScope.launch {
-                whenStarted() {
+                whenStarted {
                     val exhibitions = listExhibitions()
                     val exhibitionId = getExhibitionId()
                     val exhibition = exhibitions.find { it.id!!.equals(exhibitionId) }
@@ -194,6 +200,5 @@ class SettingsActivity : AppCompatActivity() {
             updateListPreferenceSummary(exhibitionDevicePreference, newValue)
             mViewModel?.setExhibitionDeviceId(newValue)
         }
-
     }
 }
