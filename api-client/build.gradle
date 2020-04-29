@@ -5,7 +5,7 @@ buildscript {
 }
 
 plugins {
-    id "org.openapi.generator" version "4.3.1"
+    id "org.openapi.generator" version "4.3.0"
 }
 
 apply plugin: 'kotlin'
