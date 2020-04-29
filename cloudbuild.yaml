@@ -28,4 +28,4 @@ steps:
     - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
     - 'ANDROID_HOME=/usr/lib/android-sdk'
 
-timeout: 6000s
+timeout: 6001s
