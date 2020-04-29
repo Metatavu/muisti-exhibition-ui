@@ -4,6 +4,7 @@ steps:
   args:
     - '-c'
     - |
+      touch ~/.ssh/known_hosts
       ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
       git init
       git remote add origin git@github.com:/Metatavu/muisti-exhibition-ui.git
