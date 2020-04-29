@@ -16,6 +16,7 @@ steps:
 - name: amazon/aws-cli
   args: ["configure", "set", "aws_secret_access_key", "$_AWS_SECRET_ACCESS_KEY"]
 - name: ubuntu
+  entrypoint: 'bash'
   args:
     - '-c'
     - |
