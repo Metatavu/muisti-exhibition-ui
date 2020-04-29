@@ -12,7 +12,7 @@ steps:
       ls -lha
 
 - name: amazon/aws-cli
-  args: ["configure", "--help"]
+  args: ["configure"]
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   args: ["./gradlew", "clean", "build"]
   env:
