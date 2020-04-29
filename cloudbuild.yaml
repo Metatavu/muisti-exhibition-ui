@@ -15,13 +15,19 @@ steps:
   args: ["configure", "set", "aws_access_key_id", "$_AWS_ACCESS_KEY_ID"]
 - name: amazon/aws-cli
   args: ["configure", "set", "aws_secret_access_key", "$_AWS_SECRET_ACCESS_KEY"]
+- name: ubuntu
+  args:
+    - '-c'
+    - |
+      apt install golang-go -y
+      apt install docker -y
+      go get -u github.com/omerh/aws-docker-login
+      $(aws-docker-login $_AWS_DEFAULT_REGION)
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   entrypoint: 'bash'
   args:
     - '-c'
     - |
-       go get -u github.com/omerh/aws-docker-login
-       $(aws-docker-login $_AWS_DEFAULT_REGION)
        ./gradlew clean build
   env:
     - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
