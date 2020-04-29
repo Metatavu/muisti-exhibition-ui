@@ -22,8 +22,7 @@ steps:
     - |
        go get -u github.com/omerh/aws-docker-login
        $(aws-docker-login $_AWS_DEFAULT_REGION)
-      ./gradlew clean build
-
+       ./gradlew clean build
   env:
     - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
     - 'ANDROID_HOME=/usr/lib/android-sdk'
