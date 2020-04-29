@@ -15,3 +15,5 @@ steps:
   env:
     - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
     - 'ANDROID_HOME=/usr/lib/android-sdk'
+
+timeout: 6000s
