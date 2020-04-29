@@ -15,14 +15,17 @@ steps:
   args: ["configure", "set", "aws_access_key_id", "$_AWS_ACCESS_KEY_ID"]
 - name: amazon/aws-cli
   args: ["configure", "set", "aws_secret_access_key", "$_AWS_SECRET_ACCESS_KEY"]
-- name: ubuntu
+- name: amazon/aws-cli
+  args:
+    - '-c'
+    - |
+      aws ecr get-login-password --region $_AWS_DEFAULT_REGION > password.txt
+- name: docker
   entrypoint: 'bash'
   args:
     - '-c'
     - |
-       apt update
-       apt install docker
-       docker login --username AWS --password-stdin $_AWS_ECR_URL $(aws ecr get-login-password --region $_AWS_DEFAULT_REGION)
+       docker login --username AWS --password-stdin $_AWS_ECR_URL $(cat password.txt)
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   args: ["./gradlew", "clean", "build"]
   env:
