@@ -4,11 +4,8 @@ steps:
   args:
     - '-c'
     - |
-      mkdir ~/.ssh
-      touch ~/.ssh/known_hosts
-      ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
       git init
-      git remote add origin git@github.com:/Metatavu/muisti-exhibition-ui.git
+      git remote add origin https://github.com/Metatavu/muisti-exhibition-ui.git
       git fetch --depth=1 origin $COMMIT_SHA
       git reset --hard FETCH_HEAD
       git submodule update --init
