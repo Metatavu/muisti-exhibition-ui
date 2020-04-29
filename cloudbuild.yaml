@@ -10,8 +10,8 @@ steps:
       git reset --hard FETCH_HEAD
       git submodule update --init
       ls -lha
-- name: amazon/aws-cli
-  args: ["$(ecr get-login --no-include-email --region $_AWS_DEFAULT_REGION)"]
+- name: amazonlinux
+  args: ["aws"]
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   args: ["./gradlew", "clean", "build"]
   env:
