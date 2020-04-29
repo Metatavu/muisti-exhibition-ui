@@ -20,6 +20,8 @@ steps:
   args:
     - '-c'
     - |
+      apt update
+      apt install awscli
       $(aws ecr get-login --no-include-email --region $_AWS_DEFAULT_REGION)
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   entrypoint: 'bash'
