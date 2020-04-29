@@ -16,10 +16,11 @@ steps:
 - name: amazon/aws-cli
   args: ["configure", "set", "aws_secret_access_key", "$_AWS_SECRET_ACCESS_KEY"]
 - name: amazon/aws-cli
+  entrypoint: 'bash'
   args:
     - '-c'
     - |
-      ecr get-login-password --region $_AWS_DEFAULT_REGION > password.txt
+      aws ecr get-login-password --region $_AWS_DEFAULT_REGION > password.txt
 - name: docker
   entrypoint: 'bash'
   args:
