@@ -22,11 +22,11 @@ steps:
     - |
       aws ecr get-login-password --region $_AWS_DEFAULT_REGION > ~/password.txt
 - name: docker
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        cat ~/password.txt | docker login --password-stdin
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      cat ~/password.txt | docker login --password-stdin
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   entrypoint: 'bash'
   args:
