@@ -4,11 +4,9 @@ import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEvent
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventTrigger
-import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProvider
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProviderFactory
 import fi.metatavu.muisti.exhibitionui.pages.PageView
@@ -20,7 +18,7 @@ import fi.metatavu.muisti.exhibitionui.BuildConfig
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import android.view.KeyEvent
-import android.widget.Button
+import android.view.ViewGroup
 import fi.metatavu.muisti.exhibitionui.R
 
 
@@ -89,7 +87,7 @@ class PageActivity : MuistiActivity() {
     }
 
     override fun onDestroy() {
-        this.closeView()
+        this.releaseView(currentPageView?.view)
         super.onDestroy()
     }
 
@@ -136,6 +134,7 @@ class PageActivity : MuistiActivity() {
      * @param pageView
      */
     private fun openView(pageView: PageView) {
+        releaseView(pageView.view)
         currentPageView = pageView
         this.root.addView(pageView.view)
         pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
@@ -147,18 +146,26 @@ class PageActivity : MuistiActivity() {
     /**
      * Closes a view
      *
-     * Method cancels all pending scheduled events and
-     * releases page view from this page activity instance
+     * Method cancels all pending scheduled events
      */
     private fun closeView() {
         MqttClientController.removeListener(mqttTriggerDeviceGroupEventListener)
         handler.removeCallbacksAndMessages(null)
         clickCounterHandler.removeCallbacksAndMessages(null)
-        val currentView = currentPageView?.view
-        currentPageView?.lifecycleListeners?.forEach { it.onPageDeactivate(this) }
 
-        if (currentView != null) {
-            this.root.removeView(currentView)
+        currentPageView?.lifecycleListeners?.forEach { it.onPageDeactivate(this) }
+    }
+
+    /**
+     * Removes all children from the specified views parent
+     *
+     * @param view view from which parent all children will be removed
+     */
+    private fun releaseView(view: View?) {
+        view ?: return
+        val parent = view.parent
+        if (parent is ViewGroup){
+            parent.removeAllViews()
         }
     }
 
