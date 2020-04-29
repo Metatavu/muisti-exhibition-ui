@@ -16,7 +16,7 @@ steps:
 - name: amazon/aws-cli
   args: ["configure", "set", "aws_secret_access_key", "$_AWS_SECRET_ACCESS_KEY"]
 - name: amazon/aws-cli
-  args: ["ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 414711980085.dkr.ecr.eu-central-1.amazonaws.com/"
+  args: ["ecr get-login-password --region $_AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $_AWS_ECR_URL"]
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   args: ["./gradlew", "clean", "build"]
   env:
