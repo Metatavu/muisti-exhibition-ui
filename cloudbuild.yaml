@@ -11,7 +11,7 @@ steps:
       git submodule update --init
       ls -lha
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
-  args: ["./gradlew", "clean", "build", "test"]
+  args: ["./gradlew", "clean", "build"]
   env:
     - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
     - 'ANDROID_HOME=/usr/lib/android-sdk'
