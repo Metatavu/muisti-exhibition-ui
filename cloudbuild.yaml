@@ -20,6 +20,7 @@ steps:
   args:
     - '-c'
     - |
+       apt update
        apt install docker
        docker login --username AWS --password-stdin $_AWS_ECR_URL $(aws ecr get-login-password --region $_AWS_DEFAULT_REGION)
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
