@@ -37,5 +37,5 @@ steps:
     - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
     - 'ANDROID_HOME=/usr/lib/android-sdk'
 options:
-  machineType: n1-standard-2
+  machineType: "n1-standard-2"
 timeout: 6001s
