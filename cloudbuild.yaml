@@ -11,7 +11,7 @@ steps:
       git submodule update --init
       ls -lha
 - name: amazonlinux
-  args: ["aws"]
+  args: ["$(aws ecr get-login --no-include-email --region $_AWS_DEFAULT_REGION)"]
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   args: ["./gradlew", "clean", "build"]
   env:
