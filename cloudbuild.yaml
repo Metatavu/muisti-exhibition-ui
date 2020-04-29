@@ -10,6 +10,7 @@ steps:
       git fetch --depth=1 origin $COMMIT_SHA
       git reset --hard FETCH_HEAD
       git submodule update --init
+      ls -lha
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   args: ["./gradlew", "clean", "build", "test"]
 
