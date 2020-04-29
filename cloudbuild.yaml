@@ -13,5 +13,5 @@ steps:
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   args: ["./gradlew", "clean", "build", "test"]
   env:
-    - "ANDROID_HOME=~/Android/Sdk/"
-
+    - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
+    - 'ANDROID_HOME=/usr/lib/android-sdk'
