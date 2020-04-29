@@ -20,7 +20,7 @@ steps:
   args:
     - '-c'
     - |
-      $(aws ecr get-login --no-include-email --region $_AWS_DEFAULT_REGION)
+       docker login --username AWS --password-stdin $_AWS_ECR_URL $(aws ecr get-login-password --region $_AWS_DEFAULT_REGION)
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   args: ["./gradlew", "clean", "build"]
   env:
