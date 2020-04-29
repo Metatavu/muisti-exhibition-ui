@@ -10,5 +10,5 @@ steps:
       git reset --hard FETCH_HEAD
       git submodule update --init
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
-  args: ["gradle", "clean", "build", "test"]
+  args: ["./gradlew", "clean", "build", "test"]
 
