@@ -21,7 +21,7 @@ steps:
     - '-c'
     - |
       aws ecr get-login-password --region $_AWS_DEFAULT_REGION > ~/password.txt
-- name: docker
+- name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
   args:
     - '-c'
