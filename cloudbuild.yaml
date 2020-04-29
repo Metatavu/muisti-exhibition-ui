@@ -20,6 +20,7 @@ steps:
   args:
     - '-c'
     - |
+      apt update
       apt install golang-go -y
       apt install docker -y
       go get -u github.com/omerh/aws-docker-login
