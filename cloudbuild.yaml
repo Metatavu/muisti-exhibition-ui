@@ -16,6 +16,7 @@ steps:
 - name: amazon/aws-cli
   args: ["configure", "set", "aws_secret_access_key", "$_AWS_SECRET_ACCESS_KEY"]
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
+  entrypoint: 'bash'
   args:
     - '-c'
     - |
