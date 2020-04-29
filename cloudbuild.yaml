@@ -19,7 +19,7 @@ steps:
   args:
     - '-c'
     - |
-      aws ecr get-login-password --region $_AWS_DEFAULT_REGION > password.txt
+      ecr get-login-password --region $_AWS_DEFAULT_REGION > password.txt
 - name: docker
   entrypoint: 'bash'
   args:
