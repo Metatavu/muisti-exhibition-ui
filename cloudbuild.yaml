@@ -12,7 +12,7 @@ steps:
       ls -lha
 
 - name: amazon/aws-cli
-  args: ["configure", "--AWS_ACCESS_KEY_ID=$_AWS_ACCESS_KEY_ID", "--AWS_SECRET_ACCESS_KEY=$_AWS_SECRET_ACCESS_KEY", "--AWS_DEFAULT_REGION=$_AWS_DEFAULT_REGION"]
+  args: ["configure", "set", "aws_access_key_id", "$_AWS_ACCESS_KEY_ID", "&&" , "configure", "set", "aws_secret_access_key", "$_AWS_SECRET_ACCESS_KEY"]
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   args: ["./gradlew", "clean", "build"]
   env:
