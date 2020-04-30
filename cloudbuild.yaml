@@ -50,7 +50,7 @@ steps:
     - '-c'
     - |
       sleep 10m
-      docker exec -it $(docker ps -aq) tail -f /var/log/supervisor/docker-android.stdout.log
+      docker exec -it docker-android_1 tail -f /var/log/supervisor/docker-android.stdout.log
 artifacts:
   objects:
     location: 'gs://metatavu-cloud-build-logs/$PROJECT_ID/$BUILD_ID'
