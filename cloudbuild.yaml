@@ -12,6 +12,16 @@ steps:
       git submodule update --init
       ls -lha
 
+- name: 'gcr.io/cloud-builders/docker'
+  waitFor: ["-"]
+  volumes:
+  - name: 'supervisorlogs'
+    path: '/var/log/supervisor'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      ls -lha /var/log/supervisor
 - name: amazon/aws-cli
   args: ["configure", "set", "aws_access_key_id", "$_AWS_ACCESS_KEY_ID"]
 - name: amazon/aws-cli
@@ -67,8 +77,7 @@ steps:
   args:
     - '-c'
     - |
-      sleep 10m
-      docker exec -it docker-android_1 tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -lha /var/log/supervisor
 artifacts:
   objects:
     location: 'gs://metatavu-cloud-build-logs/$PROJECT_ID/$BUILD_ID'
