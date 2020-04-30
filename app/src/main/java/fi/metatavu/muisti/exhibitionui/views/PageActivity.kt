@@ -19,6 +19,7 @@ import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import android.view.KeyEvent
 import android.view.ViewGroup
+import fi.metatavu.muisti.api.client.models.ExhibitionPageEventActionType
 import fi.metatavu.muisti.exhibitionui.R
 
 
@@ -139,8 +140,6 @@ class PageActivity : MuistiActivity() {
         this.root.addView(pageView.view)
         pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
         applyEventTriggers(pageView.page.eventTriggers)
-        requestedOrientation = pageView.orientation
-        MqttClientController.addListener(mqttTriggerDeviceGroupEventListener)
     }
 
     /**
@@ -152,7 +151,6 @@ class PageActivity : MuistiActivity() {
         MqttClientController.removeListener(mqttTriggerDeviceGroupEventListener)
         handler.removeCallbacksAndMessages(null)
         clickCounterHandler.removeCallbacksAndMessages(null)
-
         currentPageView?.lifecycleListeners?.forEach { it.onPageDeactivate(this) }
     }
 
@@ -242,6 +240,9 @@ class PageActivity : MuistiActivity() {
             Log.d(this.javaClass.name, "Failed to locate view by id $clickViewId")
         } else {
             clickView.setOnClickListener {
+                if (events.any{it.action == ExhibitionPageEventActionType.navigate}) {
+                    clickView.isClickable = false
+                }
                 triggerEvents(events)
             }
         }
