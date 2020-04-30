@@ -49,19 +49,58 @@ steps:
   args:
     - '-c'
     - |
-      ls -R /workspace/
-      sleep 5m
-      ls -R /workspace/
-      echo **************************************************
-      sleep 5m
-      ls -R /workspace/
-      echo **************************************************
-      sleep 5m
-      ls -R /workspace/
-      echo **************************************************
-      sleep 5m
-      ls -R /workspace/
-      echo **************************************************   
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
+      find / -name docker-android.stdout.log 
+      sleep 1m
 artifacts:
   objects:
     location: 'gs://metatavu-cloud-build-logs/$PROJECT_ID/$BUILD_ID'
