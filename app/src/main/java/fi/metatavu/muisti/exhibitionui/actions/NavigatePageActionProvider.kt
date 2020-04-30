@@ -4,7 +4,6 @@ import android.content.Intent
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventActionType
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventProperty
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
-import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
 /**
