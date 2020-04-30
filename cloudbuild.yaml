@@ -27,7 +27,7 @@ steps:
     - '-c'
     - |
       cat ~/password.txt | docker login --username AWS --password-stdin $_AWS_ECR_URL
-      docker run --privileged gcr.io/kubernetes-240206/android-build-docker:master --name android-build-dd
+      docker run --privileged --name android-build-dd gcr.io/kubernetes-240206/android-build-docker:master 
       docker exec android-build-dd ./gradlew clean build
 #- name: 'gcr.io/kubernetes-240206/android-build-docker:master'
  # entrypoint: 'bash'
