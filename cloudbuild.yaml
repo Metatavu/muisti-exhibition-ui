@@ -29,11 +29,11 @@ steps:
       cat ~/password.txt | docker login --username AWS --password-stdin $_AWS_ECR_URL
 
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
- entrypoint: 'bash'
+  entrypoint: 'bash'
   args:
     - '-c'
     - |
-      ./gradlew clean build
+      --privileged ./gradlew clean build
   env:
     - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
     - 'ANDROID_HOME=/usr/lib/android-sdk'
