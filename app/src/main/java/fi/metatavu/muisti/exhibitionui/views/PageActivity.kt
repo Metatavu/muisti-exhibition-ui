@@ -222,9 +222,9 @@ class PageActivity : MuistiActivity() {
     }
 
     /**
-     * Disables click events
+     * Disables clickable attribute from views attached to event triggers.
      *
-     * @param eventTriggers event triggers to be removed
+     * @param eventTriggers event triggers to disable click views from
      */
     private fun disableClickEvents(eventTriggers: Array<ExhibitionPageEventTrigger>?) {
         eventTriggers?.forEach {
