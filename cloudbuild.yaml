@@ -1,5 +1,13 @@
 steps:
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      sleep 15m
+      docker exec -it docker_android_1 tail -f /var/log/supervisor/docker-android.stdout.log
 - name: 'gcr.io/cloud-builders/git'
+  id: Git
   entrypoint: 'bash'
   args:
     - '-c'
@@ -12,8 +20,10 @@ steps:
       ls -lha
 
 - name: amazon/aws-cli
+  id: Aws1
   args: ["configure", "set", "aws_access_key_id", "$_AWS_ACCESS_KEY_ID"]
 - name: amazon/aws-cli
+  id: Aws2
   args: ["configure", "set", "aws_secret_access_key", "$_AWS_SECRET_ACCESS_KEY"]
 - name: amazon/aws-cli
   entrypoint: 'bash'
@@ -23,15 +33,19 @@ steps:
       aws ecr get-login-password --region $_AWS_DEFAULT_REGION > ~/password.txt
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
+  id: Docker
   args:
     - '-c'
     - |
       cat ~/password.txt | docker login --username AWS --password-stdin $_AWS_ECR_URL
-
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   entrypoint: 'bash'
+  waitFor:
+    - Git
+    - Aws1
+    - Aws2
+    - Docker
   args:
-    - '--privileged'
     - '-c'
     - |
       ./gradlew clean build
