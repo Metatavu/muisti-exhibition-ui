@@ -13,6 +13,7 @@
             android:id="@+id/save_button"
             android:onClick="exitSettings"
             android:layout_height="50dp"
+            android:transitionName="aa"
             android:layout_width="200dp"
             android:layout_gravity="center"
             android:text="@string/exhibition_perference_save" />

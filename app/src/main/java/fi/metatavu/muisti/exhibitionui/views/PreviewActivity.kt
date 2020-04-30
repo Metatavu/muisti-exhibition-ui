@@ -1,5 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.views
 
+import android.app.ActivityOptions
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -9,7 +10,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageView
-
 import kotlinx.android.synthetic.main.activity_preview.*
 import kotlinx.android.synthetic.main.content_preview.*
 import java.util.*
@@ -54,6 +54,8 @@ class PreviewActivity : MuistiActivity() {
      * Event handler for settings page button click
      */
     private val onSettingsPageButtonClick = View.OnClickListener {
-        startSettingsActivity()
+        val options = ActivityOptions
+        .makeSceneTransitionAnimation(this, settingsPageButton, "aa")
+        startSettingsActivity(options)
     }
 }

@@ -6,7 +6,6 @@ import fi.metatavu.muisti.api.client.models.Exhibition
 import fi.metatavu.muisti.api.client.models.ExhibitionDevice
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
-import fi.metatavu.muisti.exhibitionui.persistence.model.DeviceSettingName
 import fi.metatavu.muisti.exhibitionui.persistence.repository.DeviceSettingRepository
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import kotlinx.coroutines.launch
@@ -85,5 +84,4 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
     fun setExhibitionDeviceId(exhibitionDeviceId: String?) = viewModelScope.launch {
         DeviceSettings.setExhibitionDeviceId(exhibitionDeviceId)
     }
-
 }

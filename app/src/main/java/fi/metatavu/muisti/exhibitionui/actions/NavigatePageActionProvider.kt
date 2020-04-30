@@ -4,6 +4,7 @@ import android.content.Intent
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventActionType
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventProperty
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
+import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
 /**
@@ -19,17 +20,11 @@ class NavigatePageActionProvider(properties: Array<ExhibitionPageEventProperty>)
     override fun performAction(pageActivity: PageActivity) {
         val pageId = getPropertyUuid("pageId")
         if (pageId != null) {
-            val intent = Intent(pageActivity, PageActivity::class.java).apply {
-                putExtra("pageId", pageId.toString())
-            }
-
             val application = pageActivity.applicationContext as ExhibitionUIApplication
             val currentActivity = application.getCurrentActivity()
-            if (currentActivity is PageActivity) {
-                currentActivity.finish()
+            if (currentActivity is MuistiActivity) {
+                currentActivity.goToPage(pageId)
             }
-
-            pageActivity.startActivity(intent)
         }
     }
 
