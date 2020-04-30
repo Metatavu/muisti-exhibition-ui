@@ -42,7 +42,7 @@ steps:
   args:
     - '-c'
     - |
-      ./gradlew clean buid || echo "ok"
+      ./gradlew clean buid || exit 0
   volumes:
   - name: 'supervisorlogs'
     path: '/var/log/supervisor'
