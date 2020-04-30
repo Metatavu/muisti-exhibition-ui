@@ -76,10 +76,7 @@ steps:
     - '-c'
     - |
       ls -lha /var/log/supervisor
-artifacts:
-  objects:
-    location: 'gs://metatavu-cloud-build-logs/$PROJECT_ID/$BUILD_ID'
-    paths: ['/var/log/supervisor']
+      cat /var/log/supervisor/docker-android.stdout.log
 options:
   machineType: 'N1_HIGHCPU_8'
 timeout: 6001s
