@@ -50,27 +50,26 @@ steps:
     - '-c'
     - |
       mkdir /androidlogs/
-      find / "*.log"
+      find / -name "*.log"
       echo ******************
       sleep 3m
-      find / "*.log"
+      find / -name "*.log"
       echo ******************
       sleep 3m
-      find / "*.log"
+      find / -name "*.log"
       echo ******************
       sleep 3m
-      find / "*.log"
+      find / -name "*.log"
       echo ******************
       sleep 3m
-      find / "*.log"
+      find / -name "*.log"
+      echo ******************      
+      sleep 3m
+      find / -name "*.log"
       echo ******************
       sleep 3m
-      find / "*.log"
+      find / -name "*.log"
       echo ******************
-      sleep 3m
-      find / "*.log"
-      echo ******************
-      sleep 3m
       
 artifacts:
   objects:
