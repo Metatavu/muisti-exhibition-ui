@@ -23,7 +23,7 @@ class NavigatePageActionProvider(properties: Array<ExhibitionPageEventProperty>)
             val application = pageActivity.applicationContext as ExhibitionUIApplication
             val currentActivity = application.getCurrentActivity()
 
-            if (currentActivity is MuistiActivity) {
+            if (currentActivity is PageActivity) {
                 currentActivity.goToPage(pageId)
             }
         }
