@@ -19,6 +19,7 @@ import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import android.view.KeyEvent
 import android.view.ViewGroup
+import fi.metatavu.muisti.api.client.models.ExhibitionPageEventActionType
 import fi.metatavu.muisti.exhibitionui.R
 
 
@@ -76,8 +77,8 @@ class PageActivity : MuistiActivity() {
     }
 
     override fun onResume() {
-      setCurrentActivity(this)
-      super.onResume()
+        setCurrentActivity(this)
+        super.onResume()
     }
 
     override fun onPause() {
@@ -89,6 +90,11 @@ class PageActivity : MuistiActivity() {
     override fun onDestroy() {
         this.releaseView(currentPageView?.view)
         super.onDestroy()
+    }
+
+    override fun finish() {
+        disableClickEvents(currentPageView?.page?.eventTriggers)
+        super.finish()
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -137,10 +143,10 @@ class PageActivity : MuistiActivity() {
         releaseView(pageView.view)
         currentPageView = pageView
         this.root.addView(pageView.view)
-        pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
-        applyEventTriggers(pageView.page.eventTriggers)
         requestedOrientation = pageView.orientation
         MqttClientController.addListener(mqttTriggerDeviceGroupEventListener)
+        pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
+        applyEventTriggers(pageView.page.eventTriggers)
     }
 
     /**
@@ -152,7 +158,6 @@ class PageActivity : MuistiActivity() {
         MqttClientController.removeListener(mqttTriggerDeviceGroupEventListener)
         handler.removeCallbacksAndMessages(null)
         clickCounterHandler.removeCallbacksAndMessages(null)
-
         currentPageView?.lifecycleListeners?.forEach { it.onPageDeactivate(this) }
     }
 
@@ -214,6 +219,20 @@ class PageActivity : MuistiActivity() {
         }
         if(keyCodeUp != null) {
             bindKeyCodeEventListener(keyCodeUp, events, false)
+        }
+    }
+
+    /**
+     * Disables clickable attribute from views attached to event triggers.
+     *
+     * @param eventTriggers event triggers to disable click views from
+     */
+    private fun disableClickEvents(eventTriggers: Array<ExhibitionPageEventTrigger>?) {
+        eventTriggers?.forEach {
+            val clickViewId = it.clickViewId
+            if (clickViewId != null) {
+                findViewWithTag(clickViewId)?.isClickable = false
+            }
         }
     }
 
