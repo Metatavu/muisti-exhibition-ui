@@ -37,7 +37,7 @@ steps:
     - '-c'
     - |
       apt update
-      apt upgrade
+      apt install procps
       watch tail -f /var/log/supervisor/docker-android.stdout.log
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   entrypoint: 'bash'
