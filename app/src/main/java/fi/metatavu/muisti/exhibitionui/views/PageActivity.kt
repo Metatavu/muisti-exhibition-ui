@@ -94,6 +94,7 @@ class PageActivity : MuistiActivity() {
 
     override fun finish() {
         disableClickEvents(currentPageView?.page?.eventTriggers)
+        super.finish()
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
