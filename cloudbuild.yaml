@@ -53,9 +53,9 @@ steps:
     - '-c'
     - |
       sleep 10m
-      docker exec -it docker-android_1 tail -f /var/log/supervisor/docker-android.stdout.log
+      docker exec -it android-container tail -f /var/log/supervisor/docker-android.stdout.log
       sleep 5m
-      docker exec -it docker-android_1 tail -f /var/log/supervisor/docker-android.stdout.log
+      docker exec -it android-container tail -f /var/log/supervisor/docker-android.stdout.log
 
 options:
   machineType: 'N1_HIGHCPU_8'
