@@ -1,11 +1,5 @@
 steps:
-- name: 'gcr.io/cloud-builders/docker'
-  entrypoint: 'bash'
-  args:
-    - '-c'
-    - |
-      sleep 15m
-      docker exec -it docker_android_1 tail -f /var/log/supervisor/docker-android.stdout.log
+
 - name: 'gcr.io/cloud-builders/git'
   id: Git
   entrypoint: 'bash'
@@ -52,6 +46,14 @@ steps:
   env:
     - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
     - 'ANDROID_HOME=/usr/lib/android-sdk'
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  waitFor: ['-']
+  args:
+    - '-c'
+    - |
+      sleep 15m
+      docker exec -it docker_android_1 tail -f /var/log/supervisor/docker-android.stdout.log
 options:
   machineType: 'N1_HIGHCPU_8'
 timeout: 6001s
