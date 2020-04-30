@@ -27,15 +27,17 @@ steps:
     - '-c'
     - |
       cat ~/password.txt | docker login --username AWS --password-stdin $_AWS_ECR_URL
-- name: 'gcr.io/kubernetes-240206/android-build-docker:master'
-  entrypoint: 'bash'
-  args:
-    - '-c'
-    - |
-       ./gradlew clean build
-  env:
-    - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
-    - 'ANDROID_HOME=/usr/lib/android-sdk'
+      docker run --priviliged gcr.io/kubernetes-240206/android-build-docker:master --name android-build-dd
+      docker exec android-build-dd ./gradlew clean build
+#- name: 'gcr.io/kubernetes-240206/android-build-docker:master'
+ # entrypoint: 'bash'
+  #args:
+   # - '-c'
+    #- |
+     #  ./gradlew clean build
+ # env:
+  #  - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
+   # - 'ANDROID_HOME=/usr/lib/android-sdk'
 options:
   machineType: 'N1_HIGHCPU_8'
 timeout: 6001s
