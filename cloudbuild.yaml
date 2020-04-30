@@ -36,6 +36,7 @@ steps:
   args:
     - '-c'
     - |
+      export TERM=xterm
       watch cat /var/log/supervisor/docker-android.stdout.log
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   entrypoint: 'bash'
