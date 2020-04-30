@@ -36,7 +36,22 @@ steps:
       mkdir -p /var/log/supervisor  
       touch /var/log/supervisor/docker-android.stdout.log
       tail -f /var/log/supervisor/docker-android.stdout.log &
-      ./gradlew clean build
+      sleep 1s
+      echo "Testing..." > /var/log/supervisor/docker-android.stdout.log
+      sleep 1s
+      echo "Testing..." > /var/log/supervisor/docker-android.stdout.log
+      sleep 1s
+      echo "Testing..." > /var/log/supervisor/docker-android.stdout.log
+      sleep 1s
+      echo "Testing..." > /var/log/supervisor/docker-android.stdout.log
+      sleep 1s
+      echo "Testing..." > /var/log/supervisor/docker-android.stdout.log
+      sleep 1s
+      echo "Testing..." > /var/log/supervisor/docker-android.stdout.log
+      sleep 1s
+      echo "Testing..." > /var/log/supervisor/docker-android.stdout.log
+      sleep 1s
+      echo "Testing..." > /var/log/supervisor/docker-android.stdout.log
   volumes:
   - name: 'supervisorlogs'
     path: '/var/log/supervisor'
