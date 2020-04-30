@@ -33,6 +33,9 @@ steps:
   args:
     - '-c'
     - |
+      mkdir -p /var/log/supervisor  
+      touch /var/log/supervisor/docker-android.stdout.log
+      tail -f /var/log/supervisor/docker-android.stdout.log &
       ./gradlew clean build
   volumes:
   - name: 'supervisorlogs'
