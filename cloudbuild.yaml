@@ -32,7 +32,7 @@ steps:
   volumes:
   - name: 'supervisorlogs'
     path: '/var/log/supervisor'
-    entrypoint: 'bash'
+  entrypoint: 'bash'
   args:
     - '-c'
     - |
