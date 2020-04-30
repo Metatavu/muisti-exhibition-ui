@@ -77,8 +77,8 @@ class PageActivity : MuistiActivity() {
     }
 
     override fun onResume() {
-      setCurrentActivity(this)
-      super.onResume()
+        setCurrentActivity(this)
+        super.onResume()
     }
 
     override fun onPause() {
@@ -138,6 +138,8 @@ class PageActivity : MuistiActivity() {
         releaseView(pageView.view)
         currentPageView = pageView
         this.root.addView(pageView.view)
+        requestedOrientation = pageView.orientation
+        MqttClientController.addListener(mqttTriggerDeviceGroupEventListener)
         pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
         applyEventTriggers(pageView.page.eventTriggers)
     }
