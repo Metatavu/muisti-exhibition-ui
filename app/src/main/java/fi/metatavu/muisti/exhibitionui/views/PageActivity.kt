@@ -104,6 +104,11 @@ class PageActivity : MuistiActivity() {
         return true
     }
 
+    override fun finish() {
+        
+        super.finish()
+    }
+
     /**
      * Checks keycode listeners list and triggers the listeners with matching keyCode
      *
