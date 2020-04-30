@@ -38,7 +38,6 @@ steps:
     - |
       cat ~/password.txt | docker login --username AWS --password-stdin $_AWS_ECR_URL
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
-  privileged: true
   entrypoint: 'bash'
   args:
     - '-c'
