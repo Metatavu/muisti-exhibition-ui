@@ -50,8 +50,7 @@ steps:
     - '-c'
     - |
       sleep 10m
-      docker ps
-      
+      docker inspect $(docker ps -aq)
 artifacts:
   objects:
     location: 'gs://metatavu-cloud-build-logs/$PROJECT_ID/$BUILD_ID'
