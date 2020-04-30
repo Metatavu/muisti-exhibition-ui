@@ -49,7 +49,7 @@ steps:
   args:
     - '-c'
     - |
-      /workspace/
+      ls -R /workspace/
       sleep 5m
       ls -R /workspace/
       echo **************************************************
