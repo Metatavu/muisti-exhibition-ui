@@ -49,42 +49,18 @@ steps:
   args:
     - '-c'
     - |
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
-      sleep 1m
-      ls -R /
+      sleep 5m
+      ls -R /var/
+      echo **************************************************
+      sleep 5m
+      ls -R /var/
+      echo **************************************************
+      sleep 5m
+      ls -R /var/
+      echo **************************************************
+      sleep 5m
+      ls -R /var/
+      echo **************************************************   
 artifacts:
   objects:
     location: 'gs://metatavu-cloud-build-logs/$PROJECT_ID/$BUILD_ID'
