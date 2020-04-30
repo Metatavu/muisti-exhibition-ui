@@ -1,7 +1,6 @@
 steps:
 
 - name: 'gcr.io/cloud-builders/git'
-  id: Git
   entrypoint: 'bash'
   args:
     - '-c'
@@ -14,10 +13,8 @@ steps:
       ls -lha
 
 - name: amazon/aws-cli
-  id: Aws1
   args: ["configure", "set", "aws_access_key_id", "$_AWS_ACCESS_KEY_ID"]
 - name: amazon/aws-cli
-  id: Aws2
   args: ["configure", "set", "aws_secret_access_key", "$_AWS_SECRET_ACCESS_KEY"]
 - name: amazon/aws-cli
   entrypoint: 'bash'
@@ -27,18 +24,19 @@ steps:
       aws ecr get-login-password --region $_AWS_DEFAULT_REGION > ~/password.txt
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
-  id: Docker
   args:
     - '-c'
     - |
       cat ~/password.txt | docker login --username AWS --password-stdin $_AWS_ECR_URL
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   entrypoint: 'bash'
-  waitFor:
-    - Git
-    - Aws1
-    - Aws2
-    - Docker
+  volumes:
+  - name: 'supervisorlogs'
+    path: '/var/log/supervisor'
+  artifacts:
+    objects:
+      location: 'gs://metatavu-cloud-build-logs/$PROJECT_ID/$BUILD_ID'
+      paths: ['/var/log/supervisor']
   args:
     - '-c'
     - |
@@ -46,16 +44,6 @@ steps:
   env:
     - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
     - 'ANDROID_HOME=/usr/lib/android-sdk'
-- name: 'gcr.io/cloud-builders/docker'
-  entrypoint: 'bash'
-  waitFor: ['-']
-  args:
-    - '-c'
-    - |
-      sleep 10m
-      docker exec -it android-container tail -f /var/log/supervisor/docker-android.stdout.log
-      sleep 5m
-      docker exec -it android-container tail -f /var/log/supervisor/docker-android.stdout.log
 
 options:
   machineType: 'N1_HIGHCPU_8'
