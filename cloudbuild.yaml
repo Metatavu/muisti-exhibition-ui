@@ -28,12 +28,24 @@ steps:
     - '-c'
     - |
       cat ~/password.txt | docker login --username AWS --password-stdin $_AWS_ECR_URL
+- name: ubuntu
+  volumes:
+  - name: 'supervisorlogs'
+    path: '/var/log/supervisor'
+    entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      watch cat /var/log/supervisor/docker-android.stdout.log
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   entrypoint: 'bash'
   args:
     - '-c'
     - |
       ./gradlew clean build
+  volumes:
+  - name: 'supervisorlogs'
+    path: '/var/log/supervisor'
   env:
     - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
     - 'ANDROID_HOME=/usr/lib/android-sdk'
