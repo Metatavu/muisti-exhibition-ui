@@ -50,41 +50,41 @@ steps:
     - '-c'
     - |
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
       sleep 1m
-      tail -f /var/log/supervisor/docker-android.stdout.log
+      ls -R /
 artifacts:
   objects:
     location: 'gs://metatavu-cloud-build-logs/$PROJECT_ID/$BUILD_ID'
