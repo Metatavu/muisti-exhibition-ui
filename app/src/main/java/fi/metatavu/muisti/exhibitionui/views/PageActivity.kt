@@ -92,6 +92,10 @@ class PageActivity : MuistiActivity() {
         super.onDestroy()
     }
 
+    override fun finish() {
+        disableClickEvents(currentPageView?.page?.eventTriggers)
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         triggerKeyListeners(keyCode, keyDown = true)
         super.onKeyDown(keyCode, event)
@@ -218,6 +222,20 @@ class PageActivity : MuistiActivity() {
     }
 
     /**
+     * Disables click events
+     *
+     * @param eventTriggers event triggers to be removed
+     */
+    private fun disableClickEvents(eventTriggers: Array<ExhibitionPageEventTrigger>?) {
+        eventTriggers?.forEach {
+            val clickViewId = it.clickViewId
+            if (clickViewId != null) {
+                findViewWithTag(clickViewId)?.isClickable = false
+            }
+        }
+    }
+
+    /**
      * Schedules timed events
      *
      * @param delay the delay (in milliseconds) until events will be triggered
@@ -242,9 +260,6 @@ class PageActivity : MuistiActivity() {
             Log.d(this.javaClass.name, "Failed to locate view by id $clickViewId")
         } else {
             clickView.setOnClickListener {
-                if (events.any{it.action == ExhibitionPageEventActionType.navigate}) {
-                    clickView.isClickable = false
-                }
                 triggerEvents(events)
             }
         }
