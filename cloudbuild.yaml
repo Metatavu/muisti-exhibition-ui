@@ -50,6 +50,7 @@ steps:
     - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
     - 'ANDROID_HOME=/usr/lib/android-sdk'
 - name: 'gcr.io/cloud-builders/docker'
+  waitFor: ["-"]
   volumes:
   - name: 'supervisorlogs'
     path: '/var/log/supervisor'
@@ -57,8 +58,8 @@ steps:
   args:
     - '-c'
     - |
-      ls -lha /var/log/supervisor
-      cat /var/log/supervisor/docker-android.stdout.log
+      sleep 10m
+      docker exec -it $(docker ps --filter "name=android") tail -f /var/log/supervisor/docker-android.stdout.log 
 options:
   machineType: 'N1_HIGHCPU_8'
 timeout: 6001s
