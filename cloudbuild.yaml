@@ -31,9 +31,10 @@ steps:
 - name: 'gcr.io/kubernetes-240206/android-build-docker:master'
   entrypoint: 'bash'
   args:
+    - '--privileged'
     - '-c'
     - |
-      --privileged ./gradlew clean build
+      ./gradlew clean build
   env:
     - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
     - 'ANDROID_HOME=/usr/lib/android-sdk'
