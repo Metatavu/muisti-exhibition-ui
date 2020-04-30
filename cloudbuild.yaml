@@ -40,7 +40,7 @@ steps:
   env:
     - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
     - 'ANDROID_HOME=/usr/lib/android-sdk'
-- name: 'ubuntu'
+- name: 'gcr.io/cloud-builders/docker'
   waitFor: ["-"]
   volumes:
   - name: 'supervisorlogs'
