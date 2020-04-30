@@ -49,17 +49,18 @@ steps:
   args:
     - '-c'
     - |
+      /workspace/
       sleep 5m
-      ls -R /var/
+      ls -R /workspace/
       echo **************************************************
       sleep 5m
-      ls -R /var/
+      ls -R /workspace/
       echo **************************************************
       sleep 5m
-      ls -R /var/
+      ls -R /workspace/
       echo **************************************************
       sleep 5m
-      ls -R /var/
+      ls -R /workspace/
       echo **************************************************   
 artifacts:
   objects:
