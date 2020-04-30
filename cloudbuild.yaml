@@ -49,27 +49,8 @@ steps:
   args:
     - '-c'
     - |
-      mkdir /androidlogs/
-      find / -name "*.log"
-      echo ******************
-      sleep 3m
-      find / -name "*.log"
-      echo ******************
-      sleep 3m
-      find / -name "*.log"
-      echo ******************
-      sleep 3m
-      find / -name "*.log"
-      echo ******************
-      sleep 3m
-      find / -name "*.log"
-      echo ******************      
-      sleep 3m
-      find / -name "*.log"
-      echo ******************
-      sleep 3m
-      find / -name "*.log"
-      echo ******************
+      sleep 10m
+      docker ps
       
 artifacts:
   objects:
