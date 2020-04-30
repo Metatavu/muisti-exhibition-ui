@@ -49,46 +49,28 @@ steps:
   args:
     - '-c'
     - |
-      ls /androidlogs/
+      mkdir /androidlogs/
+      find / "*.log"
       echo ******************
-      sleep 1m
-      ls /androidlogs/
+      sleep 3m
+      find / "*.log"
       echo ******************
-      sleep 1m
-      ls /androidlogs/
+      sleep 3m
+      find / "*.log"
       echo ******************
-      sleep 1m
-      ls /androidlogs/
+      sleep 3m
+      find / "*.log"
       echo ******************
-      sleep 1m
-      
-      ls /androidlogs/
+      sleep 3m
+      find / "*.log"
       echo ******************
-      sleep 1m
-      
-      ls /androidlogs/
+      sleep 3m
+      find / "*.log"
       echo ******************
-      sleep 1m
-      
-      ls /androidlogs/
+      sleep 3m
+      find / "*.log"
       echo ******************
-      sleep 1m
-      
-      ls /androidlogs/
-      echo ******************
-      sleep 1m
-      
-      ls /androidlogs/
-      echo ******************
-      sleep 1m
-      
-      ls /androidlogs/
-      echo ******************
-      sleep 1m
-      
-      ls /androidlogs/
-      echo ******************
-      sleep 1m
+      sleep 3m
       
 artifacts:
   objects:
