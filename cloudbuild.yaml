@@ -28,7 +28,7 @@ steps:
     - '-c'
     - |
       cat ~/password.txt | docker login --username AWS --password-stdin $_AWS_ECR_URL
-- name: ubuntu
+- name: 'ubuntu'
   volumes:
   - name: 'supervisorlogs'
     path: '/var/log/supervisor'
