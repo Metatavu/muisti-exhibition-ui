@@ -33,10 +33,7 @@ steps:
   volumes:
   - name: 'supervisorlogs'
     path: '/var/log/supervisor'
-  artifacts:
-    objects:
-      location: 'gs://metatavu-cloud-build-logs/$PROJECT_ID/$BUILD_ID'
-      paths: ['/var/log/supervisor']
+
   args:
     - '-c'
     - |
@@ -44,7 +41,10 @@ steps:
   env:
     - 'ANDROID_SDK_ROOT=/usr/lib/android-sdk'
     - 'ANDROID_HOME=/usr/lib/android-sdk'
-
+artifacts:
+  objects:
+    location: 'gs://metatavu-cloud-build-logs/$PROJECT_ID/$BUILD_ID'
+    paths: ['/var/log/supervisor']
 options:
   machineType: 'N1_HIGHCPU_8'
 timeout: 6001s
