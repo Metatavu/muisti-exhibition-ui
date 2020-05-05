@@ -1,14 +1,30 @@
 package fi.metatavu.muisti.exhibitionui.views
 
+import android.app.ActivityOptions
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
+import fi.metatavu.muisti.exhibitionui.R
 import java.util.*
 
 /**
  * Muisti activity abstract class
  */
 abstract class MuistiActivity : AppCompatActivity(){
+    /**
+     * Opens a page view
+     *
+     * @param pageId page id
+     */
+    fun goToPage(pageId: UUID) {
+        val intent = Intent(this, PageActivity::class.java).apply{
+            putExtra("pageId", pageId.toString())
+        }
+        startActivity(intent)
+        finish()
+        overridePendingTransition(0, R.anim.basic_fade)
+    }
+
     /**
      * Sets current activity into application
      *
@@ -17,19 +33,6 @@ abstract class MuistiActivity : AppCompatActivity(){
     protected fun setCurrentActivity(activity: PageActivity?) {
         val application: ExhibitionUIApplication = this.applicationContext as ExhibitionUIApplication
         application.setCurrentActivity(activity)
-    }
-
-    /**
-     * Opens a page view
-     *
-     * @param pageId page id
-     */
-    protected fun goToPage(pageId: UUID) {
-        val intent = Intent(this, PageActivity::class.java).apply{
-            putExtra("pageId", pageId.toString())
-        }
-
-        startActivity(intent)
     }
 
     /**

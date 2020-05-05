@@ -19,17 +19,12 @@ class NavigatePageActionProvider(properties: Array<ExhibitionPageEventProperty>)
     override fun performAction(pageActivity: PageActivity) {
         val pageId = getPropertyUuid("pageId")
         if (pageId != null) {
-            val intent = Intent(pageActivity, PageActivity::class.java).apply {
-                putExtra("pageId", pageId.toString())
-            }
-
             val application = pageActivity.applicationContext as ExhibitionUIApplication
             val currentActivity = application.getCurrentActivity()
-            if (currentActivity is PageActivity) {
-                currentActivity.finish()
-            }
 
-            pageActivity.startActivity(intent)
+            if (currentActivity is PageActivity) {
+                currentActivity.goToPage(pageId)
+            }
         }
     }
 
