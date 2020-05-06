@@ -4,7 +4,6 @@ steps:
   args:
     - '-c'
     - |
-      pwd
       git init
       git remote add origin https://github.com/Metatavu/muisti-exhibition-ui.git
       git fetch --depth=1 origin $COMMIT_SHA
