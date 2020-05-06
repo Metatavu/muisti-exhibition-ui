@@ -9,7 +9,6 @@ steps:
       git fetch --depth=1 origin $COMMIT_SHA
       git reset --hard FETCH_HEAD
       git submodule update --init
-      ls -lha      
 - name: gcr.io/$PROJECT_ID/remote-builder
   env:
     - USERNAME=root
