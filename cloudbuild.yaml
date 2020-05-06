@@ -14,4 +14,4 @@ steps:
     - USERNAME=root
     - ZONE=us-central1-b
     - COMMAND=cd workspace && JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64 ANDROID_SDK_ROOT=/usr/lib/android-sdk ./gradlew clean test
-    - INSTANCE_ARGS=--zone us-central1-b --image-project=$PROJECT_ID --image=android-build-rev2
+    - INSTANCE_ARGS=--zone us-central1-b --image-project=$PROJECT_ID --image=android-build-rev3
