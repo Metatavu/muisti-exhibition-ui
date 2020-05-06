@@ -1,4 +1,16 @@
 steps:
+- name: 'gcr.io/cloud-builders/git'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      pwd
+      git init
+      git remote add origin https://github.com/Metatavu/muisti-exhibition-ui.git
+      git fetch --depth=1 origin $COMMIT_SHA
+      git reset --hard FETCH_HEAD
+      git submodule update --init
+      ls -lha      
 - name: gcr.io/$PROJECT_ID/remote-builder
   env:
     - USERNAME=root
