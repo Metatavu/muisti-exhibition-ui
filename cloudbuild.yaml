@@ -3,4 +3,4 @@ steps:
   env:
     - ZONE=us-central1-b
     - COMMAND=ls -la
-    - INSTANCE_ARGS=--zone us-central1 --image-project=$PROJECT_ID --image=android-build-rev1
+    - INSTANCE_ARGS=--zone us-central1-b --image-project=$PROJECT_ID --image=android-build-rev1
