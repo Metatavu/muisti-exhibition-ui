@@ -43,6 +43,16 @@ class PageViewContainer {
         fun livePageViewList(): LiveData<List<PageView>>  {
             return livePages
         }
+
+        /**
+         * Checks if page with id is contained in container
+         *
+         * @param id Page id to check
+         * @return whether or not to page is found in pageViews
+         */
+        fun contains(id: UUID): Boolean {
+            return pageViews.containsKey(id)
+        }
     }
 
 }

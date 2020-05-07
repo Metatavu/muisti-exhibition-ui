@@ -4,11 +4,9 @@ import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEvent
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventTrigger
-import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProvider
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProviderFactory
 import fi.metatavu.muisti.exhibitionui.pages.PageView
@@ -20,7 +18,8 @@ import fi.metatavu.muisti.exhibitionui.BuildConfig
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import android.view.KeyEvent
-import android.widget.Button
+import android.view.ViewGroup
+import fi.metatavu.muisti.api.client.models.ExhibitionPageEventActionType
 import fi.metatavu.muisti.exhibitionui.R
 
 
@@ -78,8 +77,8 @@ class PageActivity : MuistiActivity() {
     }
 
     override fun onResume() {
-      setCurrentActivity(this)
-      super.onResume()
+        setCurrentActivity(this)
+        super.onResume()
     }
 
     override fun onPause() {
@@ -89,8 +88,13 @@ class PageActivity : MuistiActivity() {
     }
 
     override fun onDestroy() {
-        this.closeView()
+        this.releaseView(currentPageView?.view)
         super.onDestroy()
+    }
+
+    override fun finish() {
+        disableClickEvents(currentPageView?.page?.eventTriggers)
+        super.finish()
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -136,29 +140,37 @@ class PageActivity : MuistiActivity() {
      * @param pageView
      */
     private fun openView(pageView: PageView) {
+        releaseView(pageView.view)
         currentPageView = pageView
         this.root.addView(pageView.view)
-        pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
-        applyEventTriggers(pageView.page.eventTriggers)
         requestedOrientation = pageView.orientation
         MqttClientController.addListener(mqttTriggerDeviceGroupEventListener)
+        pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
+        applyEventTriggers(pageView.page.eventTriggers)
     }
 
     /**
      * Closes a view
      *
-     * Method cancels all pending scheduled events and
-     * releases page view from this page activity instance
+     * Method cancels all pending scheduled events
      */
     private fun closeView() {
         MqttClientController.removeListener(mqttTriggerDeviceGroupEventListener)
         handler.removeCallbacksAndMessages(null)
         clickCounterHandler.removeCallbacksAndMessages(null)
-        val currentView = currentPageView?.view
         currentPageView?.lifecycleListeners?.forEach { it.onPageDeactivate(this) }
+    }
 
-        if (currentView != null) {
-            this.root.removeView(currentView)
+    /**
+     * Removes all children from the specified views parent
+     *
+     * @param view view from which parent all children will be removed
+     */
+    private fun releaseView(view: View?) {
+        view ?: return
+        val parent = view.parent
+        if (parent is ViewGroup){
+            parent.removeAllViews()
         }
     }
 
@@ -207,6 +219,20 @@ class PageActivity : MuistiActivity() {
         }
         if(keyCodeUp != null) {
             bindKeyCodeEventListener(keyCodeUp, events, false)
+        }
+    }
+
+    /**
+     * Disables clickable attribute from views attached to event triggers.
+     *
+     * @param eventTriggers event triggers to disable click views from
+     */
+    private fun disableClickEvents(eventTriggers: Array<ExhibitionPageEventTrigger>?) {
+        eventTriggers?.forEach {
+            val clickViewId = it.clickViewId
+            if (clickViewId != null) {
+                findViewWithTag(clickViewId)?.isClickable = false
+            }
         }
     }
 
