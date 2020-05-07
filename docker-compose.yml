@@ -76,5 +76,5 @@ services:
     privileged: true
     volumes:
       - ./app/build/outputs/apk/debug:/root/tmp
-      - /var/log/supervisor/:/var/log/supervisor/
+      - ./test-volumes/supervisorlogs/:/var/log/supervisor/
 
