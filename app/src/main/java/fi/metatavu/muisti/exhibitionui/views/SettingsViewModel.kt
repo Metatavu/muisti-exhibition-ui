@@ -76,6 +76,25 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         return DeviceSettings.getExhibitionDeviceId()
     }
 
+    /**
+     * Returns exhibition device id if set
+     *
+     * @return exhibition device id or null if not set
+     */
+    suspend fun getRfidDevice(): String? {
+        return DeviceSettings.getRfidDevice()
+    }
+
+    /**
+     * Returns exhibition device id if set
+     *
+     * @return exhibition device id or null if not set
+     */
+    suspend fun getRfidAntenna(): String? {
+        return DeviceSettings.getRfidAntenna()
+    }
+
+
 
     /**
      * Sets exhibition device id
@@ -86,4 +105,21 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         DeviceSettings.setExhibitionDeviceId(exhibitionDeviceId)
     }
 
+    /**
+     * Sets exhibition rfid device
+     *
+     * @param exhibitionDeviceId exhibition device id
+     */
+    fun setExhibitionRfidDevice(rfidDevice: String?) = viewModelScope.launch {
+        DeviceSettings.setExhibitionRfidDevice(rfidDevice)
+    }
+
+    /**
+     * Sets exhibition rfid device
+     *
+     * @param exhibitionDeviceId exhibition device id
+     */
+    fun setExhibitionRfidAntenna(rfidAntenna: String?) = viewModelScope.launch {
+        DeviceSettings.setExhibitionRfidAntenna(rfidAntenna)
+    }
 }

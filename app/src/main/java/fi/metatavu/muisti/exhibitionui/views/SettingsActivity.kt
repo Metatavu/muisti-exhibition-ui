@@ -6,6 +6,7 @@ import android.view.View
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.whenStarted
+import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -65,6 +66,7 @@ class SettingsActivity : MuistiActivity() {
                     exhibitionPreference.summary = exhibition?.name
 
                     loadExhibitionDevicesPreference(exhibitionId)
+                    loadRfidSettings()
                 }
             }
         }
@@ -74,15 +76,27 @@ class SettingsActivity : MuistiActivity() {
 
             mViewModel = ViewModelProvider(this).get(SettingsViewModel::class.java)
 
-            val exhibitionPreference: ListPreference = findPreference<ListPreference>("exhibition")!!
+            val exhibitionPreference: ListPreference = findPreference("exhibition")!!
             exhibitionPreference.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
                 onExhibitionPreferenceChange(preference as ListPreference, newValue as String)
                 true
             }
 
-            val exhibitionDevicePreference: ListPreference = findPreference<ListPreference>("exhibition_device")!!
+            val exhibitionDevicePreference: ListPreference = findPreference("exhibition_device")!!
             exhibitionDevicePreference.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
                 onExhibitionDevicePreferenceChange(preference as ListPreference, newValue as String)
+                true
+            }
+
+            val rfidDevicePreference: EditTextPreference = findPreference("rfid_device")!!
+            rfidDevicePreference.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
+                onExhibitionRfidDevicePreferenceChange(preference as EditTextPreference, newValue as String)
+                true
+            }
+
+            val rfidAntennaPreference: EditTextPreference = findPreference("rfid_antenna")!!
+            rfidAntennaPreference.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
+                onExhibitionRfidAntennaPreferenceChange(preference as EditTextPreference, newValue as String)
                 true
             }
         }
@@ -103,6 +117,20 @@ class SettingsActivity : MuistiActivity() {
                 listPreference.summary = listPreference.entries[index]
             else
                 listPreference.summary = getString(R.string.exhibition_perference_not_set)
+        }
+
+        /**
+         * Updates a preference list summary
+         *
+         * @param listPreference list preference
+         * @param newValue list value
+         */
+        private fun updateTextPreferenceSummary(textPreference: EditTextPreference, newValue: String?) {
+            if(newValue.isNullOrEmpty()){
+                textPreference.summary = getString(R.string.exhibition_perference_not_set)
+            } else {
+                textPreference.summary = newValue
+            }
         }
 
         /**
@@ -135,8 +163,24 @@ class SettingsActivity : MuistiActivity() {
             exhibitionDevicesPreference.value = exhibitionId?.toString()
             exhibitionDevicesPreference.summary = exhibitionDevice?.name
             updateListPreferenceSummary(exhibitionDevicesPreference, exhibitionDeviceId?.toString())
+        }
 
-       }
+        /**
+         * Loads exhibition devices preference data
+         *
+         * @param exhibitionId exhibition id
+         */
+        private suspend fun loadRfidSettings() {
+            val rfidDevicePreference: EditTextPreference = findPreference("rfid_device")!!
+            rfidDevicePreference.text = getRfidDevice()
+            rfidDevicePreference.summary = getRfidDevice()
+
+            val rfidAntennaPreference: EditTextPreference = findPreference("rfid_antenna")!!
+            rfidAntennaPreference.text = getRfidAntenna()
+            rfidAntennaPreference.summary = getRfidAntenna()
+        }
+
+
 
         /**
          * Lists all available exhibitions from API
@@ -175,6 +219,23 @@ class SettingsActivity : MuistiActivity() {
         }
 
         /**
+         * Returns exhibition device id from device setting
+         *
+         * @return exhibition device id
+         */
+        private suspend fun getRfidDevice(): String? = withContext(Dispatchers.Default) {
+            mViewModel?.getRfidDevice()
+        }
+        /**
+         * Returns exhibition device id from device setting
+         *
+         * @return exhibition device id
+         */
+        private suspend fun getRfidAntenna(): String? = withContext(Dispatchers.Default) {
+            mViewModel?.getRfidAntenna()
+        }
+
+        /**
          * Event handler for exhibition list change
          *
          * @param exhibitionPreference
@@ -199,6 +260,28 @@ class SettingsActivity : MuistiActivity() {
         private fun onExhibitionDevicePreferenceChange(exhibitionDevicePreference: ListPreference, newValue: String) {
             updateListPreferenceSummary(exhibitionDevicePreference, newValue)
             mViewModel?.setExhibitionDeviceId(newValue)
+        }
+
+        /**
+         * Event handler for exhibition device list change
+         *
+         * @param exhibitionDevicePreference
+         * @param newValue
+         */
+        private fun onExhibitionRfidDevicePreferenceChange(rfidDevicePreference: EditTextPreference, newValue: String) {
+            updateTextPreferenceSummary(rfidDevicePreference, newValue)
+            mViewModel?.setExhibitionRfidDevice(newValue)
+        }
+
+        /**
+         * Event handler for exhibition device list change
+         *
+         * @param exhibitionDevicePreference
+         * @param newValue
+         */
+        private fun onExhibitionRfidAntennaPreferenceChange(rfidAntennaPreference: EditTextPreference, newValue: String) {
+            updateTextPreferenceSummary(rfidAntennaPreference, newValue)
+            mViewModel?.setExhibitionRfidAntenna(newValue)
         }
     }
 }

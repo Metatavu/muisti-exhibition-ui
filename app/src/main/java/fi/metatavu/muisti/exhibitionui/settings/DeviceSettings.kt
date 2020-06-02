@@ -52,6 +52,24 @@ class DeviceSettings {
         }
 
         /**
+         * Returns exhibition device id if set
+         *
+         * @return exhibition device id or null if not set
+         */
+        suspend fun getRfidDevice(): String? {
+            return getSettingValue(DeviceSettingName.EXHIBITION_RFID_DEVICE)
+        }
+
+        /**
+         * Returns exhibition device id if set
+         *
+         * @return exhibition device id or null if not set
+         */
+        suspend fun getRfidAntenna(): String? {
+            return getSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA)
+        }
+
+        /**
          * Sets exhibition device id
          *
          * @param exhibitionDeviceId exhibition device id
@@ -67,6 +85,24 @@ class DeviceSettings {
          */
         suspend fun setExhibitionDeviceId(exhibitionDeviceId: UUID?) {
             setExhibitionDeviceId(exhibitionDeviceId?.toString())
+        }
+
+        /**
+         * Sets exhibition rfid device
+         *
+         * @param exhibitionDeviceId exhibition device id
+         */
+        suspend fun setExhibitionRfidDevice(rfidDevice: String?) {
+            setSettingValue(DeviceSettingName.EXHIBITION_RFID_DEVICE, rfidDevice)
+        }
+
+        /**
+         * Sets exhibition rfid antenna
+         *
+         * @param exhibitionDeviceId exhibition device id
+         */
+        suspend fun setExhibitionRfidAntenna(rfidAntenna: String?) {
+            setSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA, rfidAntenna)
         }
 
         /**
