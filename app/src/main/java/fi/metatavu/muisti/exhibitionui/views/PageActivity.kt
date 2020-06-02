@@ -2,24 +2,23 @@ package fi.metatavu.muisti.exhibitionui.views
 
 import android.os.Bundle
 import android.os.Handler
+import android.transition.Fade
 import android.util.Log
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
-import fi.metatavu.muisti.api.client.models.ExhibitionPageEvent
-import fi.metatavu.muisti.api.client.models.ExhibitionPageEventTrigger
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProvider
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProviderFactory
 import fi.metatavu.muisti.exhibitionui.pages.PageView
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import kotlinx.android.synthetic.main.activity_page.*
 import java.util.*
-import fi.metatavu.muisti.api.client.models.MqttTriggerDeviceGroupEvent
 import fi.metatavu.muisti.exhibitionui.BuildConfig
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import android.view.KeyEvent
 import android.view.ViewGroup
-import fi.metatavu.muisti.api.client.models.ExhibitionPageEventActionType
+import android.view.Window
+import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.exhibitionui.R
 
 
@@ -28,7 +27,6 @@ import fi.metatavu.muisti.exhibitionui.R
  */
 class PageActivity : MuistiActivity() {
 
-    private var currentPageView: PageView? = null
     private val handler: Handler = Handler()
     private val deviceGroupEvents = mutableMapOf<String, Array<ExhibitionPageEvent>>()
     private val keyDownListeners = mutableListOf<KeyCodeListener>()
@@ -49,11 +47,16 @@ class PageActivity : MuistiActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        window.requestFeature(Window.FEATURE_CONTENT_TRANSITIONS)
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-
+/*
+        window.enterTransition?.duration = 5000
+        window.exitTransition?.duration = 5000
+*/
         setContentView(R.layout.activity_page)
         setImmersiveMode()
+
         val pageId: String? = intent.getStringExtra("pageId")
 
         val pageView = PageViewContainer.getPageView(UUID.fromString(pageId))
@@ -61,6 +64,8 @@ class PageActivity : MuistiActivity() {
             // TODO: Handle error
             return
         }
+
+        intent.getStringArrayListExtra("elements")?.map{ setTransitionTargetName(it) }
 
         settings_button.setOnClickListener{
             settingsButtonClick()
@@ -88,7 +93,7 @@ class PageActivity : MuistiActivity() {
     }
 
     override fun onDestroy() {
-        this.releaseView(currentPageView?.view)
+        //this.releaseView(currentPageView?.view)
         super.onDestroy()
     }
 
@@ -142,6 +147,8 @@ class PageActivity : MuistiActivity() {
     private fun openView(pageView: PageView) {
         releaseView(pageView.view)
         currentPageView = pageView
+        setTransitions(pageView.page.enterTransitions)
+        pageView.page.exitTransitions.map { it.options?.morph?.views?.map { this::setTransitionNameExit } }
         this.root.addView(pageView.view)
         requestedOrientation = pageView.orientation
         MqttClientController.addListener(mqttTriggerDeviceGroupEventListener)
@@ -182,6 +189,30 @@ class PageActivity : MuistiActivity() {
     private fun applyEventTriggers(eventTriggers: Array<ExhibitionPageEventTrigger>) {
         deviceGroupEvents.clear()
         eventTriggers.map(this::applyEventTrigger)
+    }
+
+    private fun setTransitions(transitions: Array<ExhibitionPageTransition>) {
+        transitions.forEach{
+            it.options?.morph?.views?.map(this::setTransitionTargetName)
+        }
+    }
+
+    private fun setTransitionTargetName(morphPair : ExhibitionPageTransitionOptionsMorphView) {
+        val view = findViewWithTag(morphPair.targetId) ?: return
+        view.transitionName = morphPair.targetId
+        transitionElements.add(view)
+    }
+
+    private fun setTransitionTargetName(elementName: String) {
+        val view = findViewWithTag(elementName) ?: return
+        view.transitionName = elementName
+        transitionElements.add(view)
+    }
+
+    private fun setTransitionNameExit(morphPair : ExhibitionPageTransitionOptionsMorphView) {
+        val view = findViewWithTag(morphPair.sourceId) ?: return
+        view.transitionName = morphPair.targetId
+        transitionElements.add(view)
     }
 
     /**
@@ -306,17 +337,6 @@ class PageActivity : MuistiActivity() {
         }
 
         provider.performAction(this)
-    }
-
-    /**
-     * Finds a view with tag
-     *
-     * @param tag tag
-     * @return view or null if not found
-     */
-    private fun findViewWithTag(tag: String?): View? {
-        tag ?: return null
-        return root.findViewWithTag(tag)
     }
 
     /**

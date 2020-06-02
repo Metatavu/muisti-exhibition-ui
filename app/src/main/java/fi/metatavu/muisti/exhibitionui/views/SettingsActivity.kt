@@ -130,12 +130,11 @@ class SettingsActivity : MuistiActivity() {
             val exhibitionDevice = exhibitionDevices?.find { it.id!!.equals(exhibitionDeviceId) }
 
             val exhibitionDevicesPreference: ListPreference = findPreference<ListPreference>("exhibition_device")!!
-            exhibitionDevicesPreference.entries = exhibitionDevices?.map { it.name }?.toTypedArray()
-            exhibitionDevicesPreference.entryValues = exhibitionDevices?.map { it.id.toString() }?.toTypedArray()
+            exhibitionDevicesPreference.entries = exhibitionDevices?.map { it.name }?.toTypedArray() ?: emptyArray()
+            exhibitionDevicesPreference.entryValues = exhibitionDevices?.map { it.id.toString() }?.toTypedArray()  ?: emptyArray()
             exhibitionDevicesPreference.value = exhibitionId?.toString()
             exhibitionDevicesPreference.summary = exhibitionDevice?.name
             updateListPreferenceSummary(exhibitionDevicesPreference, exhibitionDeviceId?.toString())
-
        }
 
         /**

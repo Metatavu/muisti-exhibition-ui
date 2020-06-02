@@ -5,8 +5,11 @@ import androidx.room.*
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import fi.metatavu.muisti.api.client.infrastructure.UUIDAdapter
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventTrigger
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
+import fi.metatavu.muisti.api.client.models.ExhibitionPageTransition
+import fi.metatavu.muisti.api.client.models.Transition
 import fi.metatavu.muisti.exhibitionui.persistence.types.UUIDConverter
 import java.util.*
 
@@ -42,7 +45,15 @@ data class Page (
 
     @NonNull
     @TypeConverters(ExhibitionPageViewConverter::class)
-    val eventTriggers: Array<ExhibitionPageEventTrigger> = emptyArray()
+    val eventTriggers: Array<ExhibitionPageEventTrigger> = emptyArray(),
+
+    @NonNull
+    @TypeConverters(ExhibitionPageViewConverter::class)
+    val enterTransitions: Array<ExhibitionPageTransition> = emptyArray(),
+
+    @NonNull
+    @TypeConverters(ExhibitionPageViewConverter::class)
+    val exitTransitions: Array<ExhibitionPageTransition> = emptyArray()
 )
 
 /**
@@ -52,6 +63,7 @@ data class Page (
 class ExhibitionPageViewConverter {
     private val moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
+        .add(UUIDAdapter())
         .build()
 
     private val pageResourceJsonAdapter: JsonAdapter<Array<ExhibitionPageResource>> = moshi.adapter<Array<ExhibitionPageResource>>(
@@ -59,6 +71,9 @@ class ExhibitionPageViewConverter {
 
     private val pageEventJsonAdapter: JsonAdapter<Array<ExhibitionPageEventTrigger>> = moshi.adapter<Array<ExhibitionPageEventTrigger>>(
         Array<ExhibitionPageEventTrigger>::class.java)
+
+    private val transitionJsonAdapter: JsonAdapter<Array<ExhibitionPageTransition>> = moshi.adapter<Array<ExhibitionPageTransition>>(
+        Array<ExhibitionPageTransition>::class.java)
 
     /**
      * Returns an exhibition page resource
@@ -80,6 +95,28 @@ class ExhibitionPageViewConverter {
     @TypeConverter
     fun exhibitionPageResourceToJson(exhibitionPageResource: Array<ExhibitionPageResource>): String {
         return pageResourceJsonAdapter.toJson(exhibitionPageResource)
+    }
+
+    /**
+     * Returns an array of transitions
+     *
+     * @param data json data of the transitions
+     * @return Transitions object
+     */
+    @TypeConverter
+    fun stringToTransition(data: String): Array<ExhibitionPageTransition>? {
+        return transitionJsonAdapter.fromJson(data)
+    }
+
+    /**
+     * Returns a json transitions
+     *
+     * @param transitions page transitions to convert to json
+     * @return json data of the Transitions
+     */
+    @TypeConverter
+    fun transitionToJson(transitions: Array<ExhibitionPageTransition>): String {
+        return transitionJsonAdapter.toJson(transitions)
     }
 
     /**
