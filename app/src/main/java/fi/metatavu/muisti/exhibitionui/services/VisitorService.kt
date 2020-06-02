@@ -27,7 +27,7 @@ class UpdatePagesService : JobIntentService() {
             Log.d(javaClass.name, "Pages update failed", e)
         }
     }
-}*/
+}
 
 object ProcessVisitors : MqttActionInterface {
 
@@ -100,3 +100,4 @@ object ProcessVisitors : MqttActionInterface {
         pageRepository.deletePage(pageId)
     }
 }
+        */

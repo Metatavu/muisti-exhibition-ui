@@ -6,9 +6,7 @@ import android.content.Intent
 import android.os.Handler
 import android.util.Log
 import androidx.core.app.JobIntentService
-import fi.metatavu.muisti.api.client.models.MqttProximityUpdate
-import fi.metatavu.muisti.api.client.models.Visitor
-import fi.metatavu.muisti.api.client.models.VisitorSession
+import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
@@ -49,14 +47,11 @@ class ExhibitionUIApplication : Application() {
 
         if (antennas != null && device != null) {
             for (antenna in antennas) {
-                val topic = "${BuildConfig.MQTT_BASE_TOPIC}/$device/$antenna/"
-
-                System.out.println("Proximity listen for ${topic}")
-
+                val topic = "${BuildConfig.MQTT_BASE_TOPIC}/$device/$antenna"
                 MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
-                    if (it.strength!! > 50) {
+                    if (it.strength > 50) {
                         if (VisitorSessionContainer.getVisitorSessionId() == null) {
-                            visitorLogin(it.tag!!)
+                            visitorLogin(it.tag)
                         }
                     }
                 })
@@ -68,10 +63,6 @@ class ExhibitionUIApplication : Application() {
         super.onCreate()
         MuistiMqttService()
         startProximityListening()
-
-        handler.postDelayed({
-            VisitorSessionContainer.setVisitorSessionId(UUID.randomUUID())
-        }, 5000)
     }
 
     /**
@@ -133,22 +124,23 @@ class ExhibitionUIApplication : Application() {
     }
 
     private fun visitorLogin(tagId: String) = GlobalScope.launch {
-        val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
         val exhibitionId = DeviceSettings.getExhibitionDeviceId()
 
         if (exhibitionId != null) {
             val existingSession = findExistingSession(exhibitionId, tagId)
 
             if (existingSession != null) {
-                VisitorSessionContainer.setVisitorSessionId(existingSession.id)
+                VisitorSessionContainer.setVisitorSession(existingSession)
             } else {
                 val visitorSession = createNewVisitorSession(exhibitionId, tagId)
                 if (visitorSession != null) {
-                    VisitorSessionContainer.setVisitorSessionId(visitorSession.id)
+                    val visitor = findVisitor(exhibitionId, visitorSession.visitorIds[0])
+                    if(visitor != null){
+                        VisitorSessionContainer.addCurrentVisitor(visitor)
+                    }
+                    VisitorSessionContainer.setVisitorSession(visitorSession)
                 }
             }
-
-
             /**
             val existingSessions = visitorSessionsApi.listVisitorSessions(exhibitionId = exhibitionId, tagId = tagId)
             if (existingSessions.isNotEmpty()) {
@@ -176,7 +168,10 @@ class ExhibitionUIApplication : Application() {
     }
 
     private suspend fun createNewVisitorSession(exhibitionId: UUID, tagId: String): VisitorSession? {
-        val visitor = findExistingVisitor(exhibitionId = exhibitionId, tagId = tagId)
+        val visitor = findExistingVisitor(exhibitionId = exhibitionId, tagId = tagId) ?: return null
+        val visitorSessionApi = MuistiApiFactory.getVisitorSessionsApi()
+        val session = VisitorSession(VisitorSessionState.aCTIVE, arrayOf(visitor.id ?: return null))
+        return visitorSessionApi.createVisitorSession(exhibitionId, session)
     }
 
     private suspend fun findExistingVisitor(exhibitionId: UUID, tagId: String): Visitor? {
@@ -189,6 +184,12 @@ class ExhibitionUIApplication : Application() {
         }
 
         return null
+    }
+
+    private suspend fun findVisitor(exhibitionId: UUID, userId: UUID): Visitor? {
+        val visitorsApi = MuistiApiFactory.getVisitorsApi()
+
+        return visitorsApi.findVisitor(exhibitionId = exhibitionId, visitorId = userId)
     }
 
 

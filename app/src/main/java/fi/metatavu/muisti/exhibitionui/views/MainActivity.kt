@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import fi.metatavu.muisti.api.client.models.MqttProximityUpdate
 import fi.metatavu.muisti.api.client.models.MqttTriggerDeviceGroupEvent
+import fi.metatavu.muisti.api.client.models.VisitorSession
 import fi.metatavu.muisti.exhibitionui.BuildConfig
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
@@ -57,13 +58,6 @@ class MainActivity : MuistiActivity() {
      * if user cannot be logged in because of configuration errors, user is redirected into
      * the settings activity
      */
-    /**
-     * Logs the visitor in to the system if visitor and redirects user forward
-     *
-     * if user cannot be logged in because of configuration errors, user is redirected into
-     * the settings activity
-     */
-
     private fun visitorLogin() = GlobalScope.launch {
         val exhibitionId = DeviceSettings.getExhibitionId()
         val deviceId = DeviceSettings.getExhibitionDeviceId()
@@ -73,24 +67,29 @@ class MainActivity : MuistiActivity() {
             // val tagId = getDeviceId()
             // mViewModel?.visitorLogin(exhibitionId, tagId)
 
-            waitForVisitor({
+            waitForVisitor {
                 if (frontPage != null) {
+                    val visitor = VisitorSessionContainer.getCurrentVisitors().getOrNull(0)?.email ?: "vieras"
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, "Hei $visitor", Toast.LENGTH_LONG).show()
+                    }
                     waitForPage(frontPage)
                 } else {
                     startPreviewActivity()
                 }
-            })
+            }
         } else {
             startSettingsActivity()
         }
     }
 
-    private fun waitForVisitor(callback: () -> Unit) {
+    private fun waitForVisitor(callback: (visitor: VisitorSession) -> Unit) {
         handler.postDelayed({
-            if (VisitorSessionContainer.getVisitorSessionId() == null) {
+            val visitor = VisitorSessionContainer.getVisitorSession()
+            if (visitor == null) {
                 waitForVisitor(callback)
             } else {
-                callback()
+                callback(visitor)
             }
         }, "waitForVisitor", 500)
     }
