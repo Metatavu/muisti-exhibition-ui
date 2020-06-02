@@ -6,15 +6,24 @@ import android.os.Bundle
 import android.os.Handler
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
+import fi.metatavu.muisti.api.client.models.MqttProximityUpdate
+import fi.metatavu.muisti.api.client.models.MqttTriggerDeviceGroupEvent
+import fi.metatavu.muisti.exhibitionui.BuildConfig
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
+import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
+import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
+import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import okhttp3.internal.wait
 import java.lang.Exception
 import java.util.*
+import java.util.function.Function
 
 /**
  * Main activity class
@@ -48,21 +57,42 @@ class MainActivity : MuistiActivity() {
      * if user cannot be logged in because of configuration errors, user is redirected into
      * the settings activity
      */
+    /**
+     * Logs the visitor in to the system if visitor and redirects user forward
+     *
+     * if user cannot be logged in because of configuration errors, user is redirected into
+     * the settings activity
+     */
+
     private fun visitorLogin() = GlobalScope.launch {
         val exhibitionId = DeviceSettings.getExhibitionId()
         val deviceId = DeviceSettings.getExhibitionDeviceId()
+
         if (exhibitionId != null && deviceId != null) {
-            val tagId = getDeviceId()
-            mViewModel?.visitorLogin(exhibitionId, tagId)
             val frontPage = mViewModel?.getFrontPage(exhibitionId, deviceId)
-            if (frontPage != null) {
-                waitForPage(frontPage)
-            } else {
-                startPreviewActivity()
-            }
+            // val tagId = getDeviceId()
+            // mViewModel?.visitorLogin(exhibitionId, tagId)
+
+            waitForVisitor({
+                if (frontPage != null) {
+                    waitForPage(frontPage)
+                } else {
+                    startPreviewActivity()
+                }
+            })
         } else {
             startSettingsActivity()
         }
+    }
+
+    private fun waitForVisitor(callback: () -> Unit) {
+        handler.postDelayed({
+            if (VisitorSessionContainer.getVisitorSessionId() == null) {
+                waitForVisitor(callback)
+            } else {
+                callback()
+            }
+        }, "waitForVisitor", 500)
     }
 
     /**
@@ -79,6 +109,12 @@ class MainActivity : MuistiActivity() {
             }
         }, "visitorLogin", 500)
     }
+
+    /**
+     * Returns a device id
+     *
+     * @return device id
+     */
     /**
      * Returns a device id
      *
@@ -93,6 +129,9 @@ class MainActivity : MuistiActivity() {
         }
     }
 
+    /**
+     * Starts a preview activity
+     */
     /**
      * Starts a preview activity
      */

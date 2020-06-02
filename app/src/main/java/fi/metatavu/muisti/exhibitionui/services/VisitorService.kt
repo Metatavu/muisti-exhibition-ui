@@ -49,28 +49,6 @@ object ProcessVisitors : MqttActionInterface {
     }
 
     /**
-     * Retrieves all pages from from the currently selected exhibition and saves them to the local database
-     */
-    fun updateAllPages() {
-        GlobalScope.launch {
-            try {
-                val exhibitionId = DeviceSettings.getExhibitionId()
-                if (exhibitionId != null) {
-                    val pages = MuistiApiFactory.getExhibitionPagesApi().listExhibitionPages(
-                        exhibitionId = exhibitionId,
-                        exhibitionContentVersionId = null,
-                        exhibitionDeviceId = null
-                    )
-
-                    addPages(pages)
-                }
-            } catch (e: Exception) {
-                Log.e(javaClass.name, "Updating all pages failed", e)
-            }
-        }
-    }
-
-    /**
      * Updates a single page from from the currently selected exhibition and saves it to the local database
      *
      * @param pageId pageId to delete

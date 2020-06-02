@@ -21,6 +21,10 @@ class MuistiMqttClient(serverURL : String) {
         mqttClient.subscribe("${BuildConfig.MQTT_BASE_TOPIC}/#")
     }
 
+    fun isConnected(): Boolean {
+        return mqttClient.isConnected
+    }
+
     /**
      * Publish message into MQTT topic
      *

@@ -25,6 +25,15 @@ class MuistiApiFactory {
         }
 
         /**
+         * Returns initialized visitors API
+         *
+         * @return initialized visitors API
+         */
+        suspend fun getVisitorsApi(): VisitorsApi {
+            waitForToken()
+            return VisitorsApi(BuildConfig.MUISTI_API_BASE_URL)
+        }
+        /**
          * Returns initialized exhibitions API
          *
          * @return initialized exhibitions API

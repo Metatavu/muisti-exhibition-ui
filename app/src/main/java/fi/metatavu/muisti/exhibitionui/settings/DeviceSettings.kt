@@ -70,6 +70,15 @@ class DeviceSettings {
         }
 
         /**
+         * Returns exhibition device id if set
+         *
+         * @return exhibition device id or null if not set
+         */
+        suspend fun getRfidAntennas(): List<String>? {
+            return this.getRfidAntenna()?.split(",")
+        }
+
+        /**
          * Sets exhibition device id
          *
          * @param exhibitionDeviceId exhibition device id
