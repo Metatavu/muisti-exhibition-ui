@@ -68,7 +68,6 @@ object UpdateLayouts : MqttActionInterface {
             try {
                 val layouts = MuistiApiFactory.getPageLayoutsApi().listPageLayouts(deviceModelId = null, screenOrientation = null)
                 addLayouts(layouts)
-                Log.d(javaClass.name, "Updated ${layouts.size} layouts.")
             } catch (e: Exception) {
                 Log.e(javaClass.name, "Failed to update all layouts", e)
             }

@@ -52,8 +52,6 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
 
             val existing = layoutDao.findByLayoutId(id.toString())
             if (existing == null) {
-                Log.d(LayoutRepository::javaClass.name, "Adding layout $id to database")
-
                 layoutDao.insert(Layout(
                     name = it.name,
                     data = it.data,
@@ -62,8 +60,6 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
                     modifiedAt = it.modifiedAt!!
                 ))
             } else {
-                Log.d(LayoutRepository::javaClass.name, "Update layout $id to database")
-
                 layoutDao.update(existing.copy(
                     name = it.name,
                     data = it.data,
