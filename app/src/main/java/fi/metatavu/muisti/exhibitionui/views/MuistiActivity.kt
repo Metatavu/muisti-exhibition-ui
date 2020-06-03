@@ -2,6 +2,8 @@ package fi.metatavu.muisti.exhibitionui.views
 
 import android.app.ActivityOptions
 import android.content.Intent
+import android.os.Handler
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
@@ -10,7 +12,40 @@ import java.util.*
 /**
  * Muisti activity abstract class
  */
-abstract class MuistiActivity : AppCompatActivity(){
+abstract class MuistiActivity : AppCompatActivity() {
+
+    private var settingsClickCOunter = 0
+    private val clickCounterHandler = Handler()
+
+    /**
+     * Starts listening for index button click
+     *
+     * @param button button
+     */
+    protected fun listenIndexButton(button: Button) {
+        button.setOnClickListener{
+            indexButtonClick()
+        }
+    }
+
+    /**
+     * Starts listening for settings button click
+     *
+     * @param button button
+     */
+    protected fun listenSettingsButton(button: Button) {
+        button.setOnClickListener{
+            settingsButtonClick()
+        }
+    }
+
+    /**
+     * Removes settings and index page listeners
+     */
+    protected fun removeSettingsAndIndexListeners() {
+        clickCounterHandler.removeCallbacksAndMessages(null)
+    }
+
     /**
      * Opens a page view
      *
@@ -49,5 +84,41 @@ abstract class MuistiActivity : AppCompatActivity(){
     protected fun startMainActivity(){
         val intent = Intent(this, MainActivity::class.java)
         this.startActivity(intent)
+    }
+
+    /**
+     * Handler for settings button click
+     *
+     * Increases settings click count and navigates to settings if it has been clicked 5 times.
+     * Counter resets to zero after 1 sec
+     */
+    private fun settingsButtonClick() {
+        clickCounterHandler.removeCallbacksAndMessages("settings")
+        settingsClickCOunter += 1
+        if (settingsClickCOunter > 4) {
+            startSettingsActivity()
+        } else {
+            clickCounterHandler.postDelayed({
+                settingsClickCOunter = 0
+            }, "settings", 1000)
+        }
+    }
+
+    /**
+     * Handler for settings button click
+     *
+     * Increases settings click count and navigates to settings if it has been clicked 5 times.
+     * Counter resets to zero after 1 sec
+     */
+    private fun indexButtonClick() {
+        clickCounterHandler.removeCallbacksAndMessages("index")
+        settingsClickCOunter += 1
+        if (settingsClickCOunter > 4) {
+            startMainActivity()
+        } else {
+            clickCounterHandler.postDelayed( {
+                settingsClickCOunter = 0
+            }, "index", 1000)
+        }
     }
 }
