@@ -114,11 +114,6 @@ class MainActivity : MuistiActivity() {
      *
      * @return device id
      */
-    /**
-     * Returns a device id
-     *
-     * @return device id
-     */
     @SuppressLint("HardwareIds")
     private fun getDeviceId(): String {
         try {
@@ -128,9 +123,6 @@ class MainActivity : MuistiActivity() {
         }
     }
 
-    /**
-     * Starts a preview activity
-     */
     /**
      * Starts a preview activity
      */

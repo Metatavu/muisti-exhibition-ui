@@ -74,6 +74,16 @@ class MuistiApiFactory {
         }
 
         /**
+         * Returns initialized exhibition pages API
+         *
+         * @return initialized exhibition pages API
+         */
+        suspend fun getRfidAntennaApi(): RfidAntennasApi {
+            waitForToken()
+            return RfidAntennasApi(BuildConfig.MUISTI_API_BASE_URL)
+        }
+
+        /**
          * Waits for API client to have an access token
          *
          * @throws ClientException when access token waiting times out

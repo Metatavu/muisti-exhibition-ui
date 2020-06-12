@@ -61,6 +61,7 @@
             android:name=".services.ConstructPagesService"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service android:name=".services.UpdateRfidAntennaService" />
     </application>
 
 </manifest>
