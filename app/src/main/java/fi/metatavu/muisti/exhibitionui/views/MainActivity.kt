@@ -19,6 +19,7 @@ import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
+import kotlinx.android.synthetic.main.activity_page.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.internal.wait
@@ -40,6 +41,13 @@ class MainActivity : MuistiActivity() {
         mViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
         setContentView(R.layout.activity_main)
         supportActionBar?.hide()
+
+        listenSettingsButton(settings_button)
+    }
+
+    override fun onDestroy() {
+        removeSettingsAndIndexListeners()
+        super.onDestroy()
     }
 
     override fun onStart() {

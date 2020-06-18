@@ -12,8 +12,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage
 class MuistiMqttCallBack( var listener: (topic: String?,message: String) -> Unit ) : MqttCallback {
 
     override fun messageArrived(topic: String?, mqttMessage: MqttMessage?) {
-        Log.d(javaClass.name, topic)
-        listener(topic, mqttMessage.toString())
+       listener(topic, mqttMessage.toString())
     }
 
     override fun connectionLost(cause: Throwable?) {

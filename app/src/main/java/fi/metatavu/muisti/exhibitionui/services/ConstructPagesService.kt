@@ -26,8 +26,6 @@ class ConstructPagesService : JobIntentService() {
         GlobalScope.launch {
             val pages = pageRepository.listAll()
             if (pages != null) {
-                Log.d(ConstructPagesService::javaClass.name, "Constructing ${pages.size} pages...")
-
                 for (page in pages) {
                     constructPage(page)
                 }
@@ -47,12 +45,10 @@ class ConstructPagesService : JobIntentService() {
             val layout = layoutRepository.getLayout(layoutId)
 
             if (layout != null) {
-                Log.d(ConstructPagesService::javaClass.name, "Constructing page ${pageId}...")
                 val context = ExhibitionUIApplication.instance.applicationContext
                 val pageView = PageViewFactory.buildPageView(context, page, layout)
                 if (pageView != null) {
                     PageViewContainer.setPageView(pageId, pageView)
-                    Log.d(ConstructPagesService::javaClass.name, "Constructed page ${page.name} - ${pageId}.")
                 } else {
                     Log.d(ConstructPagesService::javaClass.name, "Could not construct page ${pageId}.")
                 }
