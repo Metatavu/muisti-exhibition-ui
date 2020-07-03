@@ -1,5 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.mqtt
 
+import android.util.Log
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fi.metatavu.muisti.api.client.infrastructure.UUIDAdapter
@@ -28,6 +29,10 @@ class MqttClientController {
         init {
             client.connect()
             client.setCallBack(MuistiMqttCallBack(trigger))
+        }
+
+        fun isConnected(): Boolean {
+            return client.isConnected()
         }
 
         /**

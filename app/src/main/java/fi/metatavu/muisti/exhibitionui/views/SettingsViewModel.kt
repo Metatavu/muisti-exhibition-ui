@@ -76,7 +76,19 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         return DeviceSettings.getExhibitionDeviceId()
     }
 
+    /**
+     * Returns exhibition device id if set
+     *
+     * @return exhibition device id or null if not set
+     */
+    suspend fun getRfidAntenna(): String? {
+        return DeviceSettings.getRfidAntenna()
+    }
 
+
+    suspend fun setExhibitionAntennas() {
+        //DeviceSettings.setExhibitionRfidAntenna()
+    }
     /**
      * Sets exhibition device id
      *
@@ -85,5 +97,4 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
     fun setExhibitionDeviceId(exhibitionDeviceId: String?) = viewModelScope.launch {
         DeviceSettings.setExhibitionDeviceId(exhibitionDeviceId)
     }
-
 }

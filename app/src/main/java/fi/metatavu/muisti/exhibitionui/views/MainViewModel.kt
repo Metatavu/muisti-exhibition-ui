@@ -28,11 +28,12 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
      * @param tagId visitor tag id
      */
     suspend fun visitorLogin(exhibitionId: UUID, tagId: String) {
+        /**
         val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
 
         val visitorSessions = visitorSessionsApi.listVisitorSessions(exhibitionId)
         // TODO: Add better support for finding visitor session by tag
-        var visitorSession = visitorSessions.firstOrNull{ it.users.firstOrNull{ it.tagId == tagId } != null }
+        var visitorSession = visitorSessions.firstOrNull{ it.visitorIds.firstOrNull{ it.tagId == tagId } != null }
 
         if (visitorSession == null) {
             val users: Array<VisitorSessionUser> = arrayOf(VisitorSessionUser(userId = UUID.randomUUID(), tagId = tagId))
@@ -42,6 +43,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         }
 
         VisitorSessionContainer.setVisitorSessionId(visitorSession.id)
+        **/
     }
 
     /**

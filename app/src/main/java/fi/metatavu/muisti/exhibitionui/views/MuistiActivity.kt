@@ -7,6 +7,8 @@ import android.transition.Fade
 import android.transition.Transition
 import android.util.Log
 import android.view.View
+import android.os.Handler
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Pair
 import android.view.Window
@@ -18,11 +20,46 @@ import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageView
 import kotlinx.android.synthetic.main.activity_page.*
+import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import java.util.*
 
 /**
  * Muisti activity abstract class
  */
+abstract class MuistiActivity : AppCompatActivity() {
+
+    private var settingsClickCOunter = 0
+    private val clickCounterHandler = Handler()
+
+    /**
+     * Starts listening for index button click
+     *
+     * @param button button
+     */
+    protected fun listenIndexButton(button: Button) {
+        button.setOnClickListener{
+            indexButtonClick()
+        }
+    }
+
+    /**
+     * Starts listening for settings button click
+     *
+     * @param button button
+     */
+    protected fun listenSettingsButton(button: Button) {
+        button.setOnClickListener{
+            settingsButtonClick()
+        }
+    }
+
+    /**
+     * Removes settings and index page listeners
+     */
+    protected fun removeSettingsAndIndexListeners() {
+        clickCounterHandler.removeCallbacksAndMessages(null)
+    }
+
 abstract class MuistiActivity : AppCompatActivity() {
 
     var currentPageView: PageView? = null
@@ -118,6 +155,43 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     protected fun startMainActivity(){
         val intent = Intent(this, MainActivity::class.java)
+        VisitorSessionContainer.setVisitorSession(null)
         this.startActivity(intent)
+    }
+
+    /**
+     * Handler for settings button click
+     *
+     * Increases settings click count and navigates to settings if it has been clicked 5 times.
+     * Counter resets to zero after 1 sec
+     */
+    private fun settingsButtonClick() {
+        clickCounterHandler.removeCallbacksAndMessages("settings")
+        settingsClickCOunter += 1
+        if (settingsClickCOunter > 4) {
+            startSettingsActivity()
+        } else {
+            clickCounterHandler.postDelayed({
+                settingsClickCOunter = 0
+            }, "settings", 1000)
+        }
+    }
+
+    /**
+     * Handler for settings button click
+     *
+     * Increases settings click count and navigates to settings if it has been clicked 5 times.
+     * Counter resets to zero after 1 sec
+     */
+    private fun indexButtonClick() {
+        clickCounterHandler.removeCallbacksAndMessages("index")
+        settingsClickCOunter += 1
+        if (settingsClickCOunter > 4) {
+            startMainActivity()
+        } else {
+            clickCounterHandler.postDelayed( {
+                settingsClickCOunter = 0
+            }, "index", 1000)
+        }
     }
 }
