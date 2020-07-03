@@ -86,24 +86,19 @@ object UpdateRfidAntenna : MqttActionInterface {
     /**
      * Retrieves all pages from from the currently selected exhibition and saves them to the local database
      */
-    fun updateDeviceAntennas(updateExhibitionId: UUID, antennaId: UUID) {
+    fun updateDeviceAntennas() {
         GlobalScope.launch {
             try {
                 val exhibitionId = DeviceSettings.getExhibitionId() ?: return@launch
                 val exhibitionDeviceId = DeviceSettings.getExhibitionDeviceId() ?: return@launch
-                if (exhibitionId != updateExhibitionId){
-                    return@launch
-                }
-
                 val exhibitionDevice = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = exhibitionDeviceId)
-
                 val antennas = MuistiApiFactory.getRfidAntennaApi().listRfidAntennas(exhibitionId = exhibitionId, deviceGroupId = exhibitionDevice.groupId, roomId = null)
 
 
                 antennas.forEach {
-                    if(exhibitionDevice.groupId == it.groupId){
+                    if (exhibitionDevice.groupId == it.groupId) {
                         DeviceSettings.addExhibitionRfidAntenna(it)
-                    } else if (DeviceSettings.hasRfidAntenna(it)){
+                    } else if (DeviceSettings.hasRfidAntenna(it)) {
                         DeviceSettings.removeExhibitionRfidAntenna(it)
                     }
                 }

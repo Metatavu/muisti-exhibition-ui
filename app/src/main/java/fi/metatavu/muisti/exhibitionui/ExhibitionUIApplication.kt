@@ -15,6 +15,7 @@ import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.lang.Exception
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -42,14 +43,14 @@ class ExhibitionUIApplication : Application() {
 
 
     private fun startProximityListening() = GlobalScope.launch {
-        val antennas = DeviceSettings.getRfidAntennas()
-        val device = DeviceSettings.getRfidDevice()
-
-        if (antennas != null && device != null) {
+        val antennas =  listOf("88120480/1/","88120480/2/","16250009/1/","16250009/2/")//DeviceSettings.getRfidAntennas()
+        Log.d(javaClass.name, "Proximity start")
+        if (!antennas.isNullOrEmpty()) {
             for (antenna in antennas) {
-                val topic = "${BuildConfig.MQTT_BASE_TOPIC}/$device/$antenna"
+                val topic = "${BuildConfig.MQTT_BASE_TOPIC}/$antenna"
                 MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
-                    if (it.strength > 50) {
+                    Log.d(javaClass.name, "Proximity recieved message ${it}")
+                    if (it.strength > 35) {
                         if (VisitorSessionContainer.getVisitorSessionId() == null) {
                             visitorLogin(it.tag)
                         }
@@ -124,7 +125,7 @@ class ExhibitionUIApplication : Application() {
     }
 
     private fun visitorLogin(tagId: String) = GlobalScope.launch {
-        val exhibitionId = DeviceSettings.getExhibitionDeviceId()
+        val exhibitionId = DeviceSettings.getExhibitionId()
 
         if (exhibitionId != null) {
             val existingSession = findExistingSession(exhibitionId, tagId)
@@ -158,12 +159,14 @@ class ExhibitionUIApplication : Application() {
 
     private suspend fun findExistingSession(exhibitionId: UUID, tagId: String): VisitorSession? {
         val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
-
-        val existingSessions = visitorSessionsApi.listVisitorSessions(exhibitionId = exhibitionId, tagId = tagId)
-        if (existingSessions.isNotEmpty()) {
-            return existingSessions[0]
+        try {
+            val existingSessions = visitorSessionsApi.listVisitorSessions(exhibitionId = exhibitionId, tagId = tagId)
+            if (existingSessions.isNotEmpty()) {
+                return existingSessions[0]
+            }
+        } catch (e: Exception){
+            Log.e(javaClass.name, "Cannot get existing session response: $e")
         }
-
         return null
     }
 

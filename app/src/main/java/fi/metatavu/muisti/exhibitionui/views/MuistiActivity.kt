@@ -7,6 +7,7 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
+import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import java.util.*
 
 /**
@@ -83,6 +84,7 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     protected fun startMainActivity(){
         val intent = Intent(this, MainActivity::class.java)
+        VisitorSessionContainer.setVisitorSession(null)
         this.startActivity(intent)
     }
 

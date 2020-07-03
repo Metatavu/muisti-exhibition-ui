@@ -90,7 +90,7 @@ class SettingsActivity : MuistiActivity() {
 
             val rfidDevicePreference: EditTextPreference = findPreference("rfid_device")!!
             rfidDevicePreference.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
-                onExhibitionRfidDevicePreferenceChange(preference as EditTextPreference, newValue as String)
+                //onExhibitionRfidDevicePreferenceChange(preference as EditTextPreference, newValue as String)
                 true
             }
 
@@ -171,13 +171,9 @@ class SettingsActivity : MuistiActivity() {
          * @param exhibitionId exhibition id
          */
         private suspend fun loadRfidSettings() {
-            val rfidDevicePreference: EditTextPreference = findPreference("rfid_device")!!
-            rfidDevicePreference.text = getRfidDevice()
-            rfidDevicePreference.summary = getRfidDevice()
-
-            val rfidAntennaPreference: EditTextPreference = findPreference("rfid_antenna")!!
+            /*val rfidAntennaPreference: EditTextPreference = findPreference("rfid_antennas")!!
             rfidAntennaPreference.text = getRfidAntenna()
-            rfidAntennaPreference.summary = getRfidAntenna()
+            rfidAntennaPreference.summary = getRfidAntenna() */
         }
 
 
@@ -223,14 +219,6 @@ class SettingsActivity : MuistiActivity() {
          *
          * @return exhibition device id
          */
-        private suspend fun getRfidDevice(): String? = withContext(Dispatchers.Default) {
-            mViewModel?.getRfidDevice()
-        }
-        /**
-         * Returns exhibition device id from device setting
-         *
-         * @return exhibition device id
-         */
         private suspend fun getRfidAntenna(): String? = withContext(Dispatchers.Default) {
             mViewModel?.getRfidAntenna()
         }
@@ -268,20 +256,9 @@ class SettingsActivity : MuistiActivity() {
          * @param exhibitionDevicePreference
          * @param newValue
          */
-        private fun onExhibitionRfidDevicePreferenceChange(rfidDevicePreference: EditTextPreference, newValue: String) {
-            updateTextPreferenceSummary(rfidDevicePreference, newValue)
-            mViewModel?.setExhibitionRfidDevice(newValue)
-        }
-
-        /**
-         * Event handler for exhibition device list change
-         *
-         * @param exhibitionDevicePreference
-         * @param newValue
-         */
         private fun onExhibitionRfidAntennaPreferenceChange(rfidAntennaPreference: EditTextPreference, newValue: String) {
             updateTextPreferenceSummary(rfidAntennaPreference, newValue)
-            mViewModel?.setExhibitionRfidAntenna(newValue)
+            //mViewModel?.setExhibitionAntennas(newValue)
         }
     }
 }
