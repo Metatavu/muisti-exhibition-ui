@@ -60,12 +60,6 @@ abstract class MuistiActivity : AppCompatActivity() {
         clickCounterHandler.removeCallbacksAndMessages(null)
     }
 
-abstract class MuistiActivity : AppCompatActivity() {
-
-    var currentPageView: PageView? = null
-
-    val transitionElements = mutableListOf<View>()
-
     /**
      * Opens a page view
      *

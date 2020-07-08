@@ -38,10 +38,11 @@ class ExhibitionUIApplication : Application() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 1, 1, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 1, 4, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueConstructPagesServiceTask() }, 1, 15, TimeUnit.SECONDS)
-
     }
 
-
+    /**
+     * Starts mqtt proximity listening
+     */
     private fun startProximityListening() = GlobalScope.launch {
         val antennas =  DeviceSettings.getRfidAntennas()
         Log.d(javaClass.name, "Proximity start")
@@ -123,6 +124,12 @@ class ExhibitionUIApplication : Application() {
         JobIntentService.enqueueWork(this, ConstructPagesService::class.java, 5, serviceIntent)
     }
 
+
+    /**
+     * Attempts to log the visitor in
+     *
+     * @param tagId tagId to attempt to log in with
+     */
     private fun visitorLogin(tagId: String) = GlobalScope.launch {
         val exhibitionId = DeviceSettings.getExhibitionId()
 
@@ -134,28 +141,23 @@ class ExhibitionUIApplication : Application() {
             } else {
                 val visitorSession = createNewVisitorSession(exhibitionId, tagId)
                 if (visitorSession != null) {
-                    val visitor = findVisitor(exhibitionId, visitorSession.visitorIds[0])
+                    val visitor = findVisitorWithUserId(exhibitionId, visitorSession.visitorIds[0])
                     if(visitor != null){
                         VisitorSessionContainer.addCurrentVisitor(visitor)
                     }
                     VisitorSessionContainer.setVisitorSession(visitorSession)
                 }
             }
-            /**
-            val existingSessions = visitorSessionsApi.listVisitorSessions(exhibitionId = exhibitionId, tagId = tagId)
-            if (existingSessions.isNotEmpty()) {
-                VisitorSessionContainer.setVisitorSessionId(existingSessions[0].id)
-            } else {
-
-            }
-            **/
         }
-
-        // Attempt to find existing visitor session
-        /// If available login
-        // If not create new (if permitted)
     }
 
+    /**
+     * Attempts to find an existing visitor session in exhibition with users tag
+     *
+     * @param exhibitionId ExhibitionId to find the session with
+     * @param tagId Tag to find the session with
+     * @return Visitor session or null if not found
+     */
     private suspend fun findExistingSession(exhibitionId: UUID, tagId: String): VisitorSession? {
         val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
         try {
@@ -169,6 +171,13 @@ class ExhibitionUIApplication : Application() {
         return null
     }
 
+    /**
+     * Creates a new visitor session
+     *
+     * @param exhibitionId exhibition to create the session in
+     * @param tagId tag to add into the session
+     * @return Visitor Session or null if creation fails
+     */
     private suspend fun createNewVisitorSession(exhibitionId: UUID, tagId: String): VisitorSession? {
         val visitor = findExistingVisitor(exhibitionId = exhibitionId, tagId = tagId) ?: return null
         val visitorSessionApi = MuistiApiFactory.getVisitorSessionsApi()
@@ -176,6 +185,13 @@ class ExhibitionUIApplication : Application() {
         return visitorSessionApi.createVisitorSession(exhibitionId, session)
     }
 
+    /**
+     * Finds existing visitor with tag
+     *
+     * @param exhibitionId exhibition to find the visitor in
+     * @param tagId tagId to find the visitor with
+     * @return Visitor or null if not found
+     */
     private suspend fun findExistingVisitor(exhibitionId: UUID, tagId: String): Visitor? {
         val visitorsApi = MuistiApiFactory.getVisitorsApi()
 
@@ -188,7 +204,14 @@ class ExhibitionUIApplication : Application() {
         return null
     }
 
-    private suspend fun findVisitor(exhibitionId: UUID, userId: UUID): Visitor? {
+    /**
+     * Finds existing visitor with userId
+     *
+     * @param exhibitionId exhibition to find the visitor in
+     * @param userId userId to find the visitor with
+     * @return Visitor or null if not found
+     */
+    private suspend fun findVisitorWithUserId(exhibitionId: UUID, userId: UUID): Visitor? {
         val visitorsApi = MuistiApiFactory.getVisitorsApi()
 
         return visitorsApi.findVisitor(exhibitionId = exhibitionId, visitorId = userId)
