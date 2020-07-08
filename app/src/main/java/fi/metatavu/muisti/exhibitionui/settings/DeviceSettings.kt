@@ -1,5 +1,8 @@
 package fi.metatavu.muisti.exhibitionui.settings
 
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.Types
+import fi.metatavu.muisti.api.client.infrastructure.Serializer.moshi
 import fi.metatavu.muisti.api.client.models.RfidAntenna
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
 import fi.metatavu.muisti.exhibitionui.persistence.model.DeviceSettingName
@@ -15,6 +18,10 @@ class DeviceSettings {
 
         private val deviceSettingRepository: DeviceSettingRepository =
             DeviceSettingRepository(ExhibitionUIDatabase.getDatabase().deviceSettingDao())
+        private val listType = Types.newParameterizedType(MutableList::class.java, RfidAntenna::class.java)
+        private val jsonAdapter: JsonAdapter<List<RfidAntenna>> = moshi.adapter<List<RfidAntenna>>(listType)
+
+
 
         /**
          * Returns exhibition id if set
@@ -58,17 +65,19 @@ class DeviceSettings {
          *
          * @return rfidantenna string or null if not set
          */
-        suspend fun getRfidAntenna(): String? {
-            return getSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA)
+        suspend fun getRfidAntennas(): List<RfidAntenna> {
+            val rfidAntennas = jsonAdapter.fromJson(getSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA) ?: return emptyList())
+            return rfidAntennas ?: emptyList()
         }
 
         /**
-         * Returns Rfid Antennas list if set
+         * Returns Rfid Antenna string if set
          *
-         * @return Rfid Antennas list or null if not set
+         * @return rfidantenna string or null if not set
          */
-        suspend fun getRfidAntennas(): List<String>? {
-            return this.getRfidAntenna()?.split(",")
+        suspend fun hasRfidAntenna(rfidAntenna: RfidAntenna): Boolean {
+            val rfidAntennas = jsonAdapter.fromJson(getSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA) ?: return false)
+            return rfidAntennas?.any { it.id == rfidAntenna.id} ?: false
         }
 
         /**
@@ -89,21 +98,13 @@ class DeviceSettings {
             setExhibitionDeviceId(exhibitionDeviceId?.toString())
         }
 
-        suspend fun addExhibitionRfidAntenna(rfidAntenna: RfidAntenna) {
-            val newAntennaList = getRfidAntennas()?.toMutableList() ?: mutableListOf()
-            newAntennaList.add("${rfidAntenna.readerId}/${rfidAntenna.antennaNumber}")
-            setSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA, newAntennaList.joinToString(","))
+        suspend fun setExhibitionAntennaList(rfidAntennaList: List<RfidAntenna>) {
+            val antennaJson = jsonAdapter.toJson(rfidAntennaList)
+            setSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA, antennaJson)
         }
 
-        suspend fun removeExhibitionRfidAntenna(rfidAntenna: RfidAntenna) {
-            val newAntennaList = getRfidAntennas()?.toMutableList() ?: mutableListOf()
-            newAntennaList.remove("${rfidAntenna.readerId}/${rfidAntenna.antennaNumber}")
-            setSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA, newAntennaList.joinToString(","))
-        }
-
-        suspend fun hasRfidAntenna(rfidAntenna: RfidAntenna) : Boolean {
-            val newAntennaList = getRfidAntennas()?.toMutableList() ?: mutableListOf()
-            return newAntennaList.contains("${rfidAntenna.readerId}/${rfidAntenna.antennaNumber}")
+        suspend fun removeAllExhibitionRfidAntennas() {
+            setSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA, null)
         }
 
         /**

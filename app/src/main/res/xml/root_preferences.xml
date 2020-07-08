@@ -31,14 +31,10 @@
 
         <EditTextPreference
             app:summary="@string/exhibition_perference_not_set"
-            app:key="rfid_device"
-            app:title="@string/exhibition_rfid_perference_title"/>
-
-        <EditTextPreference
-            app:summary="@string/exhibition_perference_not_set"
-            app:title="@string/exhibition_rfid_antenna_perference_title"
-            android:inputType="number"
-            app:key="rfid_antenna" />
+            app:title="@string/exhibition_rfid_antennas_perference_title"
+            android:inputType="text"
+            android:enabled="false"
+            app:key="rfid_antennas" />
 
     </PreferenceCategory>
 

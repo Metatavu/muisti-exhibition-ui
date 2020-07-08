@@ -67,13 +67,8 @@ class PageActivity : MuistiActivity() {
         listenIndexButton(index_page_button)
         intent.getStringArrayListExtra("elements")?.map{ setTransitionTargetName(it) }
 
-        settings_button.setOnClickListener{
-            settingsButtonClick()
-        }
-
-        index_page_button.setOnClickListener{
-            indexButtonClick()
-        }
+        listenIndexButton(index_page_button)
+        listenSettingsButton(settings_button)
 
         pageView.view.layoutParams.height = ConstraintLayout.LayoutParams.MATCH_PARENT
         pageView.view.layoutParams.width = ConstraintLayout.LayoutParams.MATCH_PARENT

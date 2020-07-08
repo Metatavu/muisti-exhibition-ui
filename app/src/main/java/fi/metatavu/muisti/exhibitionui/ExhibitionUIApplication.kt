@@ -43,13 +43,12 @@ class ExhibitionUIApplication : Application() {
 
 
     private fun startProximityListening() = GlobalScope.launch {
-        val antennas =  listOf("88120480/1/","88120480/2/","16250009/1/","16250009/2/")//DeviceSettings.getRfidAntennas()
+        val antennas =  DeviceSettings.getRfidAntennas()
         Log.d(javaClass.name, "Proximity start")
         if (!antennas.isNullOrEmpty()) {
             for (antenna in antennas) {
-                val topic = "${BuildConfig.MQTT_BASE_TOPIC}/$antenna"
+                val topic = "${BuildConfig.MQTT_BASE_TOPIC}/${toAntennaPath(antenna)}"
                 MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
-                    Log.d(javaClass.name, "Proximity recieved message ${it}")
                     if (it.strength > 35) {
                         if (VisitorSessionContainer.getVisitorSessionId() == null) {
                             visitorLogin(it.tag)
@@ -195,9 +194,18 @@ class ExhibitionUIApplication : Application() {
         return visitorsApi.findVisitor(exhibitionId = exhibitionId, visitorId = userId)
     }
 
+    /**
+     * Returns rfidAntenna as an mqtt path.
+     *
+     * @param rfidAntenna rfidAntenna
+     * @return UUID or null if string is null
+     */
+    private fun toAntennaPath(rfidAntenna: RfidAntenna): String {
+        return "${rfidAntenna.readerId}/${rfidAntenna.antennaNumber}/"
+    }
+
 
     companion object {
         lateinit var instance: ExhibitionUIApplication
     }
-
 }

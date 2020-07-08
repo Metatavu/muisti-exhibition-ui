@@ -35,6 +35,8 @@ object UpdateRfidAntenna : MqttActionInterface {
 
     private val pageRepository: PageRepository
 
+    private val antennaUpdateListener = mutableListOf({})
+
     /**
      * Constructor
      */
@@ -53,18 +55,39 @@ object UpdateRfidAntenna : MqttActionInterface {
         val antennaDeleteListener = MqttTopicListener(super.mqttTopic("/rfidantennas/delete"), MqttRfidAntennaDelete::class.java) {
             antennaUpdate(it.exhibitionId, it.id)
         }
+
         return listOf(antennaCreateListener, antennaUpdateListener, antennaDeleteListener)
     }
 
     /**
-     * Retrieves all pages from from the currently selected exhibition and saves them to the local database
+     * Add Antenna Update Listener
+     *
+     * Adds a listener that gets triggered when antennas are updated
      */
-    fun antennaUpdate(updateExhibitionId: UUID, antennaId: UUID) {
+    fun addAntennaUpdateListener(listener: () -> Unit){
+        antennaUpdateListener.add(listener)
+    }
+
+    /**
+     * Remove Antenna Update Listener
+     *
+     * Removes listener that gets triggered when antennas are updated
+     */
+    fun removeAntennaUpdateListener(listener: () -> Unit){
+        antennaUpdateListener.remove(listener)
+    }
+
+    /**
+     * Antenna update
+     *
+     * Updates device antennas if the incoming update is related to the selected exhibition
+     */
+    private fun antennaUpdate(updateExhibitionId: UUID, antennaId: UUID) {
         GlobalScope.launch {
             try {
                 val exhibitionId = DeviceSettings.getExhibitionId() ?: return@launch
                 val exhibitionDeviceId = DeviceSettings.getExhibitionDeviceId() ?: return@launch
-                if (exhibitionId != updateExhibitionId){
+                if (exhibitionId != updateExhibitionId) {
                     return@launch
                 }
 
@@ -72,10 +95,8 @@ object UpdateRfidAntenna : MqttActionInterface {
 
                 val antenna = MuistiApiFactory.getRfidAntennaApi().findRfidAntenna(exhibitionId = exhibitionId, rfidAntennaId = antennaId)
 
-                if(exhibitionDevice.groupId == antenna.groupId){
-                    DeviceSettings.addExhibitionRfidAntenna(antenna)
-                } else if (DeviceSettings.hasRfidAntenna(antenna)){
-                    DeviceSettings.removeExhibitionRfidAntenna(antenna)
+                if (exhibitionDevice.groupId == antenna.groupId || DeviceSettings.hasRfidAntenna(antenna)) {
+                    updateDeviceAntennas()
                 }
             } catch (e: Exception) {
                 Log.e(javaClass.name, "Updating antenna failed", e)
@@ -84,7 +105,7 @@ object UpdateRfidAntenna : MqttActionInterface {
     }
 
     /**
-     * Retrieves all pages from from the currently selected exhibition and saves them to the local database
+     * Updates device antennas for the currently selected device
      */
     fun updateDeviceAntennas() {
         GlobalScope.launch {
@@ -93,15 +114,10 @@ object UpdateRfidAntenna : MqttActionInterface {
                 val exhibitionDeviceId = DeviceSettings.getExhibitionDeviceId() ?: return@launch
                 val exhibitionDevice = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = exhibitionDeviceId)
                 val antennas = MuistiApiFactory.getRfidAntennaApi().listRfidAntennas(exhibitionId = exhibitionId, deviceGroupId = exhibitionDevice.groupId, roomId = null)
-
-
-                antennas.forEach {
-                    if (exhibitionDevice.groupId == it.groupId) {
-                        DeviceSettings.addExhibitionRfidAntenna(it)
-                    } else if (DeviceSettings.hasRfidAntenna(it)) {
-                        DeviceSettings.removeExhibitionRfidAntenna(it)
-                    }
-                }
+                DeviceSettings.removeAllExhibitionRfidAntennas()
+                val list: List<RfidAntenna> = antennas.toList()
+                DeviceSettings.setExhibitionAntennaList(list)
+                antennaUpdateListener.forEach { it.invoke() }
             } catch (e: Exception) {
                 Log.e(javaClass.name, "Updating antenna failed", e)
             }
