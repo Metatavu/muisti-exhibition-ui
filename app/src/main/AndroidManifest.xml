@@ -14,16 +14,19 @@
         <activity
             android:name=".views.PreviewActivity"
             android:label="@string/title_activity_preview"
+            android:screenOrientation="behind"
             android:theme="@style/AppTheme.NoActionBar"/>
 
         <activity
             android:name=".views.PageActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
+            android:screenOrientation="behind"
             android:theme="@style/FullscreenTheme" />
 
         <activity
             android:name=".views.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
+            android:screenOrientation="behind"
             android:theme="@style/FullscreenTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

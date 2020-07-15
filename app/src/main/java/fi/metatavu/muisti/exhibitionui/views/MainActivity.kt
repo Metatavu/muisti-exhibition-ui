@@ -41,7 +41,6 @@ class MainActivity : MuistiActivity() {
         mViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
         setContentView(R.layout.activity_main)
         supportActionBar?.hide()
-
         listenSettingsButton(settings_button)
     }
 
@@ -72,8 +71,8 @@ class MainActivity : MuistiActivity() {
 
         if (exhibitionId != null && deviceId != null) {
             val frontPage = mViewModel?.getFrontPage(exhibitionId, deviceId)
-            // val tagId = getDeviceId()
-            // mViewModel?.visitorLogin(exhibitionId, tagId)
+            val tagId = getDeviceId()
+            mViewModel?.visitorLogin(exhibitionId, tagId)
 
             waitForVisitor {
                 if (frontPage != null) {

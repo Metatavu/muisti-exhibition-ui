@@ -1,8 +1,10 @@
 package fi.metatavu.muisti.exhibitionui.views
 
+import android.animation.TimeInterpolator
 import android.os.Bundle
 import android.os.Handler
 import android.transition.Fade
+import android.transition.Visibility
 import android.util.Log
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -18,7 +20,9 @@ import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import android.view.KeyEvent
 import android.view.ViewGroup
 import android.view.Window
+import android.view.animation.*
 import fi.metatavu.muisti.api.client.models.*
+import fi.metatavu.muisti.api.client.models.Animation
 import fi.metatavu.muisti.exhibitionui.R
 
 
@@ -45,16 +49,6 @@ class PageActivity : MuistiActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        window.requestFeature(Window.FEATURE_CONTENT_TRANSITIONS)
-        super.onCreate(savedInstanceState)
-        supportActionBar?.hide()
-/*
-        window.enterTransition?.duration = 5000
-        window.exitTransition?.duration = 5000
-*/
-        setContentView(R.layout.activity_page)
-        setImmersiveMode()
-
         val pageId: String? = intent.getStringExtra("pageId")
 
         val pageView = PageViewContainer.getPageView(UUID.fromString(pageId))
@@ -63,16 +57,40 @@ class PageActivity : MuistiActivity() {
             return
         }
 
+        super.onCreate(savedInstanceState)
+
+        val context = this
+
+        val pageEnterTransitions = pageView.page.enterTransitions.mapNotNull { context.getPageAnimation(it.transition, Visibility.MODE_IN) }
+        val pageExitTransitions = pageView.page.exitTransitions.mapNotNull { context.getPageAnimation(it.transition, Visibility.MODE_OUT) }
+
+        with(window) {
+            requestFeature(Window.FEATURE_CONTENT_TRANSITIONS)
+            allowEnterTransitionOverlap = true
+            enterTransition = if(pageEnterTransitions.isNotEmpty()){
+                pageEnterTransitions[0]
+            } else {
+                null
+            }
+            exitTransition = if(pageExitTransitions.isNotEmpty()){
+                pageExitTransitions[0]
+            } else {
+                null
+            }
+        }
+        supportActionBar?.hide()
+
+        setContentView(R.layout.activity_page)
+        setImmersiveMode()
+
         listenSettingsButton(settings_button)
         listenIndexButton(index_page_button)
-        intent.getStringArrayListExtra("elements")?.map{ setTransitionTargetName(it) }
 
         listenIndexButton(index_page_button)
         listenSettingsButton(settings_button)
 
         pageView.view.layoutParams.height = ConstraintLayout.LayoutParams.MATCH_PARENT
         pageView.view.layoutParams.width = ConstraintLayout.LayoutParams.MATCH_PARENT
-
         this.openView(pageView)
     }
 
@@ -88,7 +106,7 @@ class PageActivity : MuistiActivity() {
     }
 
     override fun onDestroy() {
-        //this.releaseView(currentPageView?.view)
+        this.releaseView(currentPageView?.view)
         super.onDestroy()
     }
 
@@ -142,9 +160,9 @@ class PageActivity : MuistiActivity() {
     private fun openView(pageView: PageView) {
         releaseView(pageView.view)
         currentPageView = pageView
-        setTransitions(pageView.page.enterTransitions)
-        pageView.page.exitTransitions.map { it.options?.morph?.views?.map { this::setTransitionNameExit } }
         this.root.addView(pageView.view)
+        setSharedElementTransitions(pageView.page.enterTransitions)
+        setSharedElementTransitions(pageView.page.exitTransitions)
         requestedOrientation = pageView.orientation
         MqttClientController.addListener(mqttTriggerDeviceGroupEventListener)
         pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
@@ -186,25 +204,23 @@ class PageActivity : MuistiActivity() {
         eventTriggers.map(this::applyEventTrigger)
     }
 
-    private fun setTransitions(transitions: Array<ExhibitionPageTransition>) {
+    /**
+     * Sets shared element transition target names for all elements
+     *
+     * @param transitions Array of ExhibitionPageTransitions
+     */
+    private fun setSharedElementTransitions(transitions: Array<ExhibitionPageTransition>) {
         transitions.forEach{
             it.options?.morph?.views?.map(this::setTransitionTargetName)
         }
     }
 
+    /**
+     * Sets transition target name for transition morph
+     *
+     * @param morphPair ExhibitionPageTransitionOptionsMorphView
+     */
     private fun setTransitionTargetName(morphPair : ExhibitionPageTransitionOptionsMorphView) {
-        val view = findViewWithTag(morphPair.targetId) ?: return
-        view.transitionName = morphPair.targetId
-        transitionElements.add(view)
-    }
-
-    private fun setTransitionTargetName(elementName: String) {
-        val view = findViewWithTag(elementName) ?: return
-        view.transitionName = elementName
-        transitionElements.add(view)
-    }
-
-    private fun setTransitionNameExit(morphPair : ExhibitionPageTransitionOptionsMorphView) {
         val view = findViewWithTag(morphPair.sourceId) ?: return
         view.transitionName = morphPair.targetId
         transitionElements.add(view)
@@ -234,7 +250,7 @@ class PageActivity : MuistiActivity() {
 
         if (deviceGroupEvent != null) {
             val deviceGroupEventList = deviceGroupEvents.get(deviceGroupEvent) ?: arrayOf<ExhibitionPageEvent>()
-            deviceGroupEvents.put(deviceGroupEvent, deviceGroupEventList.plus(events))
+            deviceGroupEvents[deviceGroupEvent] = deviceGroupEventList.plus(events)
         }
 
         val keyCodeUp = eventTrigger.keyUp
@@ -253,7 +269,7 @@ class PageActivity : MuistiActivity() {
      *
      * @param eventTriggers event triggers to disable click views from
      */
-    private fun disableClickEvents(eventTriggers: Array<ExhibitionPageEventTrigger>?) {
+    fun disableClickEvents(eventTriggers: Array<ExhibitionPageEventTrigger>?) {
         eventTriggers?.forEach {
             val clickViewId = it.clickViewId
             if (clickViewId != null) {
@@ -332,6 +348,44 @@ class PageActivity : MuistiActivity() {
         }
 
         provider.performAction(this)
+    }
+
+    /**
+     * Gets interpolator based on animation time iterpolation enum
+     *
+     * @param interpolator Animation time interpolation enum
+     * @return Android TimeInterpolator
+     */
+    private fun getInterpolator(interpolator: AnimationTimeInterpolation): TimeInterpolator {
+        return when (interpolator) {
+            AnimationTimeInterpolation.accelerate -> AccelerateInterpolator()
+            AnimationTimeInterpolation.acceleratedecelerate -> AccelerateDecelerateInterpolator()
+            AnimationTimeInterpolation.anticipate -> AnticipateInterpolator()
+            AnimationTimeInterpolation.anticipateovershoot -> AnticipateOvershootInterpolator()
+            AnimationTimeInterpolation.bounce -> BounceInterpolator()
+            AnimationTimeInterpolation.decelerate -> DecelerateInterpolator()
+            AnimationTimeInterpolation.linear -> LinearInterpolator()
+            AnimationTimeInterpolation.overshoot -> OvershootInterpolator()
+        }
+    }
+
+    /**
+     * Returns android transition, Only supports fade.
+     *
+     * @param transition transition to parse
+     * @param mode Visibility mode in or mode out based on
+     * @return Android Transition or null if no supported animation can be generated.
+     */
+    private fun getPageAnimation(transition: Transition, mode: Int) : android.transition.Transition? {
+        return if(transition.animation == Animation.fade) {
+            val fade = Fade()
+            fade.duration = transition.duration.toLong()
+            fade.interpolator = getInterpolator(transition.timeInterpolation)
+            fade.mode = mode
+            fade
+        } else {
+            null
+        }
     }
 
     /**

@@ -24,7 +24,6 @@ class NavigatePageActionProvider(properties: Array<ExhibitionPageEventProperty>)
             val currentActivity = application.getCurrentActivity()
 
             if (currentActivity is PageActivity) {
-                Log.d(javaClass.name, "Page had transition element count = " + currentActivity.transitionElements.count())
                 currentActivity.goToPage(pageId, currentActivity.transitionElements)
             }
         }
