@@ -95,9 +95,7 @@ object UpdateRfidAntenna : MqttActionInterface {
                 }
 
                 val exhibitionDevice = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = exhibitionDeviceId)
-
                 val updatedAntenna = MuistiApiFactory.getRfidAntennaApi().findRfidAntenna(exhibitionId = exhibitionId, rfidAntennaId = antennaId)
-
                 if (exhibitionDevice.groupId == updatedAntenna.groupId || DeviceSettings.hasRfidAntenna(updatedAntenna)) {
                     updateDeviceAntennas()
                 }
@@ -117,8 +115,8 @@ object UpdateRfidAntenna : MqttActionInterface {
                 val exhibitionDeviceId = DeviceSettings.getExhibitionDeviceId() ?: return@launch
                 val exhibitionDevice = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = exhibitionDeviceId)
                 val antennas = MuistiApiFactory.getRfidAntennaApi().listRfidAntennas(exhibitionId = exhibitionId, deviceGroupId = exhibitionDevice.groupId, roomId = null)
-                DeviceSettings.removeAllExhibitionRfidAntennas()
                 val list: List<RfidAntenna> = antennas.toList()
+
                 DeviceSettings.setExhibitionAntennaList(list)
                 antennaUpdateListener.forEach { it.invoke() }
             } catch (e: Exception) {
