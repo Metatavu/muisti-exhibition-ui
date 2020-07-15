@@ -31,6 +31,10 @@ class MqttClientController {
             client.setCallBack(MuistiMqttCallBack(trigger))
         }
 
+        /**
+         * Returns weather or not the client is connected or not
+         * @return true if connected false if not
+         */
         fun isConnected(): Boolean {
             return client.isConnected()
         }
