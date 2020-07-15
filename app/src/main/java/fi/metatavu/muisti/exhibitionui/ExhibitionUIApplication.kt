@@ -130,7 +130,7 @@ class ExhibitionUIApplication : Application() {
      *
      * @param tagId tagId to attempt to log in with
      */
-    private fun visitorLogin(tagId: String) = GlobalScope.launch {
+    fun visitorLogin(tagId: String) = GlobalScope.launch {
         val exhibitionId = DeviceSettings.getExhibitionId()
 
         if (exhibitionId != null) {

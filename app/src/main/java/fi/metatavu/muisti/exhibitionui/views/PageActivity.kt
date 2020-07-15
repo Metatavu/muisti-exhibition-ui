@@ -86,9 +86,6 @@ class PageActivity : MuistiActivity() {
         listenSettingsButton(settings_button)
         listenIndexButton(index_page_button)
 
-        listenIndexButton(index_page_button)
-        listenSettingsButton(settings_button)
-
         pageView.view.layoutParams.height = ConstraintLayout.LayoutParams.MATCH_PARENT
         pageView.view.layoutParams.width = ConstraintLayout.LayoutParams.MATCH_PARENT
         this.openView(pageView)

@@ -61,9 +61,9 @@ class DeviceSettings {
 
 
         /**
-         * Returns Rfid Antenna string if set
+         * Returns Rfid Antenna list or empty list
          *
-         * @return rfidantenna string or null if not set
+         * @return list of Rfid Antennas
          */
         suspend fun getRfidAntennas(): List<RfidAntenna> {
             val rfidAntennas = jsonAdapter.fromJson(getSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA) ?: return emptyList())
@@ -71,9 +71,10 @@ class DeviceSettings {
         }
 
         /**
-         * Returns Rfid Antenna string if set
+         * Weather or not the antenna is found in the current antenna list
          *
-         * @return rfidantenna string or null if not set
+         * @param rfidAntenna antenna to look for
+         * @return boolean
          */
         suspend fun hasRfidAntenna(rfidAntenna: RfidAntenna): Boolean {
             val rfidAntennas = jsonAdapter.fromJson(getSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA) ?: return false)
@@ -98,11 +99,19 @@ class DeviceSettings {
             setExhibitionDeviceId(exhibitionDeviceId?.toString())
         }
 
+        /**
+         * Sets exhibition antenna list
+         *
+         * @param rfidAntennaList to set into settings
+         */
         suspend fun setExhibitionAntennaList(rfidAntennaList: List<RfidAntenna>) {
             val antennaJson = jsonAdapter.toJson(rfidAntennaList)
             setSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA, antennaJson)
         }
 
+        /**
+         * Sets rfid Antenna list to null
+         */
         suspend fun removeAllExhibitionRfidAntennas() {
             setSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA, null)
         }

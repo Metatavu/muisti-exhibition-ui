@@ -7,6 +7,7 @@ import android.os.Handler
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Pair
+import fi.metatavu.muisti.exhibitionui.BuildConfig
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.pages.PageView
 import kotlinx.android.synthetic.main.activity_page.*
@@ -22,6 +23,7 @@ abstract class MuistiActivity : AppCompatActivity() {
     private val clickCounterHandler = Handler()
     protected var currentPageView: PageView? = null
     val transitionElements: MutableList<View> = mutableListOf()
+
     /**
      * Starts listening for index button click
      *
@@ -41,6 +43,17 @@ abstract class MuistiActivity : AppCompatActivity() {
     protected fun listenSettingsButton(button: Button) {
         button.setOnClickListener{
             settingsButtonClick()
+        }
+    }
+
+    /**
+     * Starts listening for login button click
+     *
+     * @param button button
+     */
+    protected fun listenLoginButton(button: Button) {
+        button.setOnClickListener{
+            loginButtonClick()
         }
     }
 
@@ -107,10 +120,17 @@ abstract class MuistiActivity : AppCompatActivity() {
     /**
      * Starts Main Activity
      */
-    protected fun startMainActivity(){
+    private fun startMainActivity(){
         val intent = Intent(this, MainActivity::class.java)
         VisitorSessionContainer.setVisitorSession(null)
         this.startActivity(intent)
+    }
+
+    /**
+     * Logs in with debug account
+     */
+    private fun debugLogin() {
+        ExhibitionUIApplication.instance.visitorLogin(BuildConfig.KEYCLOAK_DEMO_TAG)
     }
 
     /**
@@ -146,6 +166,24 @@ abstract class MuistiActivity : AppCompatActivity() {
             clickCounterHandler.postDelayed( {
                 settingsClickCOunter = 0
             }, "index", 1000)
+        }
+    }
+
+    /**
+     * Handler for login button click
+     *
+     * Increases settings click count and navigates to settings if it has been clicked 5 times.
+     * Counter resets to zero after 1 sec
+     */
+    private fun loginButtonClick() {
+        clickCounterHandler.removeCallbacksAndMessages("login")
+        settingsClickCOunter += 1
+        if (settingsClickCOunter > 4) {
+            debugLogin()
+        } else {
+            clickCounterHandler.postDelayed( {
+                settingsClickCOunter = 0
+            }, "login", 1000)
         }
     }
 }

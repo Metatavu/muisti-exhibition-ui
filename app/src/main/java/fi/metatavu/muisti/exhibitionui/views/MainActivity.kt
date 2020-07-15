@@ -19,7 +19,9 @@ import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_page.*
+import kotlinx.android.synthetic.main.activity_page.settings_button
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.internal.wait
@@ -42,6 +44,7 @@ class MainActivity : MuistiActivity() {
         setContentView(R.layout.activity_main)
         supportActionBar?.hide()
         listenSettingsButton(settings_button)
+        listenLoginButton(login_button)
     }
 
     override fun onDestroy() {
@@ -90,6 +93,11 @@ class MainActivity : MuistiActivity() {
         }
     }
 
+    /**
+     * Triggers the callback once visitor has been logged in
+     *
+     * @param callback callback to trigger on visitor login
+     */
     private fun waitForVisitor(callback: (visitor: VisitorSession) -> Unit) {
         handler.postDelayed({
             val visitor = VisitorSessionContainer.getVisitorSession()

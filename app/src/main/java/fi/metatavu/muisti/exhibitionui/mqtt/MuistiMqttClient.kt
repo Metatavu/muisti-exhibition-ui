@@ -21,6 +21,10 @@ class MuistiMqttClient(serverURL : String) {
         mqttClient.subscribe("${BuildConfig.MQTT_BASE_TOPIC}/#")
     }
 
+    /**
+     * Returns weather or not the client is connected or not
+     * @return true if connected false if not
+     */
     fun isConnected(): Boolean {
         return mqttClient.isConnected
     }

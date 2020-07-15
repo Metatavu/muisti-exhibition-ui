@@ -21,19 +21,38 @@ class VisitorSessionContainer {
 
         private val currentVisitors: MutableList<Visitor> = mutableListOf()
 
+        /**
+         * Get current visitor list
+         *
+         * @return List of Visitors
+         */
         fun getCurrentVisitors() : List<Visitor>{
             return currentVisitors
         }
 
+        /**
+         * Add visitor
+         *
+         * @param visitor to add to current visitors
+         * @return List of Visitors
+         */
         fun addCurrentVisitor(visitor: Visitor) {
             currentVisitors.add(visitor)
         }
 
+        /**
+         * Remove current visitor
+         *
+         * @param visitor Visitor to remove
+         */
         fun removeCurrentVisitor(visitor: Visitor) {
             currentVisitors.remove(visitor)
         }
 
-        fun clearCurrentVisitors(visitor: Visitor) {
+        /**
+         * Clears current visitor list
+         */
+        fun clearCurrentVisitors() {
             currentVisitors.clear()
         }
 
@@ -56,9 +75,9 @@ class VisitorSessionContainer {
         }
 
         /**
-         * Sets current visitor session id
+         * Sets current visitor session
          *
-         * @param visitorSessionId visitor session id
+         * @param visitorSession visitor session
          */
         fun setVisitorSession(visitorSession: VisitorSession?) {
             this.visitorSession = visitorSession

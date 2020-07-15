@@ -47,13 +47,13 @@ object UpdateRfidAntenna : MqttActionInterface {
 
     override fun getMqttTopicListeners(): List<MqttTopicListener<*>> {
         val antennaCreateListener = MqttTopicListener(super.mqttTopic("/rfidantennas/create"), MqttRfidAntennaCreate::class.java) {
-            antennaUpdate(it.exhibitionId, it.id)
+            handleAntennaUpdate(it.exhibitionId, it.id)
         }
         val antennaUpdateListener = MqttTopicListener(super.mqttTopic("/rfidantennas/update"), MqttRfidAntennaUpdate::class.java) {
-            antennaUpdate(it.exhibitionId, it.id)
+            handleAntennaUpdate(it.exhibitionId, it.id)
         }
         val antennaDeleteListener = MqttTopicListener(super.mqttTopic("/rfidantennas/delete"), MqttRfidAntennaDelete::class.java) {
-            antennaUpdate(it.exhibitionId, it.id)
+            handleAntennaUpdate(it.exhibitionId, it.id)
         }
 
         return listOf(antennaCreateListener, antennaUpdateListener, antennaDeleteListener)
@@ -62,7 +62,8 @@ object UpdateRfidAntenna : MqttActionInterface {
     /**
      * Add Antenna Update Listener
      *
-     * Adds a listener that gets triggered when antennas are updated
+     * Adds a listener to trigger when antennas are updated
+     * @param listener listener to add
      */
     fun addAntennaUpdateListener(listener: () -> Unit){
         antennaUpdateListener.add(listener)
@@ -71,18 +72,20 @@ object UpdateRfidAntenna : MqttActionInterface {
     /**
      * Remove Antenna Update Listener
      *
-     * Removes listener that gets triggered when antennas are updated
+     * Removes a listener to trigger when antennas are updated
+     * @param listener listener to remove
      */
     fun removeAntennaUpdateListener(listener: () -> Unit){
         antennaUpdateListener.remove(listener)
     }
 
     /**
-     * Antenna update
+     * Handle Antenna Update
      *
-     * Updates device antennas if the incoming update is related to the selected exhibition
+     * Updates device antennas if the incoming update is related to the selected exhibition or device group
+     * @param updateExhibitionId exhibition Id where update happened
      */
-    private fun antennaUpdate(updateExhibitionId: UUID, antennaId: UUID) {
+    private fun handleAntennaUpdate(updateExhibitionId: UUID, antennaId: UUID) {
         GlobalScope.launch {
             try {
                 val exhibitionId = DeviceSettings.getExhibitionId() ?: return@launch
@@ -93,9 +96,9 @@ object UpdateRfidAntenna : MqttActionInterface {
 
                 val exhibitionDevice = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = exhibitionDeviceId)
 
-                val antenna = MuistiApiFactory.getRfidAntennaApi().findRfidAntenna(exhibitionId = exhibitionId, rfidAntennaId = antennaId)
+                val updatedAntenna = MuistiApiFactory.getRfidAntennaApi().findRfidAntenna(exhibitionId = exhibitionId, rfidAntennaId = antennaId)
 
-                if (exhibitionDevice.groupId == antenna.groupId || DeviceSettings.hasRfidAntenna(antenna)) {
+                if (exhibitionDevice.groupId == updatedAntenna.groupId || DeviceSettings.hasRfidAntenna(updatedAntenna)) {
                     updateDeviceAntennas()
                 }
             } catch (e: Exception) {
