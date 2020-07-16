@@ -5,29 +5,19 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.provider.Settings
-import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
-import fi.metatavu.muisti.api.client.models.MqttProximityUpdate
-import fi.metatavu.muisti.api.client.models.MqttTriggerDeviceGroupEvent
 import fi.metatavu.muisti.api.client.models.VisitorSession
-import fi.metatavu.muisti.exhibitionui.BuildConfig
 import fi.metatavu.muisti.exhibitionui.R
-import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
-import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
-import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.activity_page.*
 import kotlinx.android.synthetic.main.activity_page.settings_button
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import okhttp3.internal.wait
 import java.lang.Exception
 import java.util.*
-import java.util.function.Function
 
 /**
  * Main activity class

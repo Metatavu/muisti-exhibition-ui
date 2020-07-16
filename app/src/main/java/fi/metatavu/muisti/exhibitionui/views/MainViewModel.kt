@@ -3,11 +3,7 @@ package fi.metatavu.muisti.exhibitionui.views
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import fi.metatavu.muisti.api.client.models.VisitorSession
-import fi.metatavu.muisti.api.client.models.VisitorSessionState
-import fi.metatavu.muisti.api.client.models.VisitorSessionUser
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
-import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import java.lang.Exception
 import java.util.*
 

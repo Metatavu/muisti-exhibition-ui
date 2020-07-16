@@ -2,12 +2,6 @@ package fi.metatavu.muisti.exhibitionui.session
 
 import fi.metatavu.muisti.api.client.models.Visitor
 import fi.metatavu.muisti.api.client.models.VisitorSession
-import fi.metatavu.muisti.api.client.models.VisitorSessionUser
-import fi.metatavu.muisti.api.client.models.VisitorSessionState
-import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
-import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import java.util.*
 
 /**
