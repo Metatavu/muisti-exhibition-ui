@@ -1,9 +1,11 @@
 package fi.metatavu.muisti.exhibitionui.views
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.*
 import fi.metatavu.muisti.api.client.models.Exhibition
 import fi.metatavu.muisti.api.client.models.ExhibitionDevice
+import fi.metatavu.muisti.api.client.models.RfidAntenna
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
 import fi.metatavu.muisti.exhibitionui.persistence.model.DeviceSettingName
@@ -76,6 +78,15 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         return DeviceSettings.getExhibitionDeviceId()
     }
 
+    /**
+     * Returns Rfid antennas from device settings
+     *
+     * @return List of Rfid Antennas
+     */
+    suspend fun getRfidAntennas(): List<RfidAntenna> {
+        return DeviceSettings.getRfidAntennas()
+    }
+
 
     /**
      * Sets exhibition device id
@@ -85,5 +96,4 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
     fun setExhibitionDeviceId(exhibitionDeviceId: String?) = viewModelScope.launch {
         DeviceSettings.setExhibitionDeviceId(exhibitionDeviceId)
     }
-
 }

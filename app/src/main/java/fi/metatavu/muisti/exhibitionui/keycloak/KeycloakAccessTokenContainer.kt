@@ -24,12 +24,10 @@ class KeycloakAccessTokenContainer {
         fun getAccessToken(): KeycloakAccessToken? {
             try {
                 synchronized(this) {
-                    val expireTime = OffsetDateTime.now().minusSeconds(expireSlack)
+                    val now = OffsetDateTime.now()
+                    val expires = accessTokenExpires?.minusSeconds(expireSlack)
 
-                    if ((accessToken == null) || (accessTokenExpires == null) || (accessTokenExpires!!.isBefore(
-                            expireTime
-                        ))
-                    ) {
+                    if ((accessToken == null) || expires == null || expires.isBefore(now)) {
                         accessToken = KeycloakAccessTokenProvider().getAccessToken()
                         val expiresIn = accessToken?.expiresIn ?: return null
                         accessTokenExpires = OffsetDateTime.now().plusSeconds(expiresIn)

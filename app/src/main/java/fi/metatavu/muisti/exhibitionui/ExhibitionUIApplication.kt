@@ -3,8 +3,20 @@ package fi.metatavu.muisti.exhibitionui
 import android.app.Activity
 import android.app.Application
 import android.content.Intent
+import android.os.Handler
+import android.util.Log
 import androidx.core.app.JobIntentService
+import fi.metatavu.muisti.api.client.models.*
+import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
+import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
+import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import fi.metatavu.muisti.exhibitionui.services.*
+import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
+import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import java.lang.Exception
+import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -14,6 +26,7 @@ import java.util.concurrent.TimeUnit
 class ExhibitionUIApplication : Application() {
 
     private var currentActivity: Activity? = null
+    private var handler: Handler = Handler()
 
     /**
      * Constructor
@@ -25,12 +38,32 @@ class ExhibitionUIApplication : Application() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 1, 1, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 1, 4, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueConstructPagesServiceTask() }, 1, 15, TimeUnit.SECONDS)
+    }
 
+    /**
+     * Starts mqtt proximity listening
+     */
+    private fun startProximityListening() = GlobalScope.launch {
+        val antennas =  DeviceSettings.getRfidAntennas()
+        Log.d(javaClass.name, "Proximity start")
+        if (!antennas.isNullOrEmpty()) {
+            for (antenna in antennas) {
+                val topic = "${BuildConfig.MQTT_BASE_TOPIC}/${toAntennaPath(antenna)}"
+                MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
+                    if (it.strength > 35) {
+                        if (VisitorSessionContainer.getVisitorSessionId() == null) {
+                            visitorLogin(it.tag)
+                        }
+                    }
+                })
+            }
+        }
     }
 
     override fun onCreate() {
         super.onCreate()
         MuistiMqttService()
+        startProximityListening()
     }
 
     /**
@@ -91,8 +124,111 @@ class ExhibitionUIApplication : Application() {
         JobIntentService.enqueueWork(this, ConstructPagesService::class.java, 5, serviceIntent)
     }
 
+
+    /**
+     * Attempts to log the visitor in
+     *
+     * @param tagId tagId to attempt to log in with
+     */
+    fun visitorLogin(tagId: String) = GlobalScope.launch {
+        val exhibitionId = DeviceSettings.getExhibitionId()
+
+        if (exhibitionId != null) {
+            val existingSession = findExistingSession(exhibitionId, tagId)
+
+            if (existingSession != null) {
+                VisitorSessionContainer.setVisitorSession(existingSession)
+            } else {
+                val visitorSession = createNewVisitorSession(exhibitionId, tagId)
+                if (visitorSession != null) {
+                    val visitor = findVisitorWithUserId(exhibitionId, visitorSession.visitorIds[0])
+                    if(visitor != null){
+                        VisitorSessionContainer.addCurrentVisitor(visitor)
+                    }
+                    VisitorSessionContainer.setVisitorSession(visitorSession)
+                }
+            }
+        }
+    }
+
+    /**
+     * Attempts to find an existing visitor session in exhibition with users tag
+     *
+     * @param exhibitionId ExhibitionId to find the session with
+     * @param tagId Tag to find the session with
+     * @return Visitor session or null if not found
+     */
+    private suspend fun findExistingSession(exhibitionId: UUID, tagId: String): VisitorSession? {
+        val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
+        try {
+            val existingSessions = visitorSessionsApi.listVisitorSessions(exhibitionId = exhibitionId, tagId = tagId)
+            if (existingSessions.isNotEmpty()) {
+                return existingSessions[0]
+            }
+        } catch (e: Exception){
+            Log.e(javaClass.name, "Cannot get existing session response: $e")
+        }
+        return null
+    }
+
+    /**
+     * Creates a new visitor session
+     *
+     * @param exhibitionId exhibition to create the session in
+     * @param tagId tag to add into the session
+     * @return Visitor Session or null if creation fails
+     */
+    private suspend fun createNewVisitorSession(exhibitionId: UUID, tagId: String): VisitorSession? {
+        val visitor = findExistingVisitor(exhibitionId = exhibitionId, tagId = tagId) ?: return null
+        val visitorSessionApi = MuistiApiFactory.getVisitorSessionsApi()
+        val session = VisitorSession(VisitorSessionState.aCTIVE, arrayOf(visitor.id ?: return null))
+        return visitorSessionApi.createVisitorSession(exhibitionId, session)
+    }
+
+    /**
+     * Finds existing visitor with tag
+     *
+     * @param exhibitionId exhibition to find the visitor in
+     * @param tagId tagId to find the visitor with
+     * @return Visitor or null if not found
+     */
+    private suspend fun findExistingVisitor(exhibitionId: UUID, tagId: String): Visitor? {
+        val visitorsApi = MuistiApiFactory.getVisitorsApi()
+
+        val existingVisitors = visitorsApi.listVisitors(exhibitionId = exhibitionId, tagId = tagId)
+
+        if (existingVisitors.isNotEmpty()) {
+            return existingVisitors[0]
+        }
+
+        return null
+    }
+
+    /**
+     * Finds existing visitor with userId
+     *
+     * @param exhibitionId exhibition to find the visitor in
+     * @param userId userId to find the visitor with
+     * @return Visitor or null if not found
+     */
+    private suspend fun findVisitorWithUserId(exhibitionId: UUID, userId: UUID): Visitor? {
+        val visitorsApi = MuistiApiFactory.getVisitorsApi()
+
+        return visitorsApi.findVisitor(exhibitionId = exhibitionId, visitorId = userId)
+    }
+
+    /**
+     * Returns rfidAntenna as an mqtt path.
+     *
+     * @param rfidAntenna rfidAntenna
+     * @return UUID or null if string is null
+     */
+    private fun toAntennaPath(rfidAntenna: RfidAntenna): String {
+        return "${rfidAntenna.readerId}/${rfidAntenna.antennaNumber}/"
+    }
+
+
     companion object {
         lateinit var instance: ExhibitionUIApplication
     }
-
 }

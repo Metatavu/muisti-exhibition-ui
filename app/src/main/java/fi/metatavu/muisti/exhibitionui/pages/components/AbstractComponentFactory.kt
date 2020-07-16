@@ -57,6 +57,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      */
     protected fun setId(view: T, value: String?) {
         view.tag = value
+        view.transitionName = value
     }
 
     /**

@@ -25,6 +25,15 @@ class MuistiApiFactory {
         }
 
         /**
+         * Returns initialized visitors API
+         *
+         * @return initialized visitors API
+         */
+        suspend fun getVisitorsApi(): VisitorsApi {
+            waitForToken()
+            return VisitorsApi(BuildConfig.MUISTI_API_BASE_URL)
+        }
+        /**
          * Returns initialized exhibitions API
          *
          * @return initialized exhibitions API
@@ -62,6 +71,16 @@ class MuistiApiFactory {
         suspend fun getExhibitionPagesApi(): ExhibitionPagesApi {
             waitForToken()
             return ExhibitionPagesApi(BuildConfig.MUISTI_API_BASE_URL)
+        }
+
+        /**
+         * Returns initialized exhibition pages API
+         *
+         * @return initialized exhibition pages API
+         */
+        suspend fun getRfidAntennaApi(): RfidAntennasApi {
+            waitForToken()
+            return RfidAntennasApi(BuildConfig.MUISTI_API_BASE_URL)
         }
 
         /**

@@ -1,6 +1,7 @@
 package fi.metatavu.muisti.exhibitionui.actions
 
 import android.content.Intent
+import android.util.Log
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventActionType
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventProperty
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
@@ -23,7 +24,7 @@ class NavigatePageActionProvider(properties: Array<ExhibitionPageEventProperty>)
             val currentActivity = application.getCurrentActivity()
 
             if (currentActivity is PageActivity) {
-                currentActivity.goToPage(pageId)
+                currentActivity.goToPage(pageId, currentActivity.transitionElements)
             }
         }
     }

@@ -1,5 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.session
 
+import fi.metatavu.muisti.api.client.models.Visitor
 import fi.metatavu.muisti.api.client.models.VisitorSession
 import fi.metatavu.muisti.api.client.models.VisitorSessionUser
 import fi.metatavu.muisti.api.client.models.VisitorSessionState
@@ -16,7 +17,53 @@ class VisitorSessionContainer {
 
     companion object {
 
-        private var visitorSessionId: UUID? = null
+        private var visitorSession: VisitorSession? = null
+
+        private val currentVisitors: MutableList<Visitor> = mutableListOf()
+
+        /**
+         * Get current visitor list
+         *
+         * @return List of Visitors
+         */
+        fun getCurrentVisitors() : List<Visitor>{
+            return currentVisitors
+        }
+
+        /**
+         * Add visitor
+         *
+         * @param visitor to add to current visitors
+         * @return List of Visitors
+         */
+        fun addCurrentVisitor(visitor: Visitor) {
+            currentVisitors.add(visitor)
+        }
+
+        /**
+         * Remove current visitor
+         *
+         * @param visitor Visitor to remove
+         */
+        fun removeCurrentVisitor(visitor: Visitor) {
+            currentVisitors.remove(visitor)
+        }
+
+        /**
+         * Clears current visitor list
+         */
+        fun clearCurrentVisitors() {
+            currentVisitors.clear()
+        }
+
+        /**
+         * Returns current visitor session
+         *
+         * @return current visitor session
+         */
+        fun getVisitorSession(): VisitorSession? {
+            return visitorSession
+        }
 
         /**
          * Returns current visitor session id
@@ -24,16 +71,16 @@ class VisitorSessionContainer {
          * @return current visitor session id
          */
         fun getVisitorSessionId(): UUID? {
-            return visitorSessionId
+            return visitorSession?.id
         }
 
         /**
-         * Sets current visitor session id
+         * Sets current visitor session
          *
-         * @param visitorSessionId visitor session id
+         * @param visitorSession visitor session
          */
-        fun setVisitorSessionId(visitorSessionId: UUID?) {
-            this.visitorSessionId = visitorSessionId
+        fun setVisitorSession(visitorSession: VisitorSession?) {
+            this.visitorSession = visitorSession
         }
     }
 

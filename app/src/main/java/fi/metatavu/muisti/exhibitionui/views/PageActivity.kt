@@ -1,25 +1,28 @@
 package fi.metatavu.muisti.exhibitionui.views
 
+import android.animation.TimeInterpolator
 import android.os.Bundle
 import android.os.Handler
+import android.transition.Fade
+import android.transition.Visibility
 import android.util.Log
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
-import fi.metatavu.muisti.api.client.models.ExhibitionPageEvent
-import fi.metatavu.muisti.api.client.models.ExhibitionPageEventTrigger
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProvider
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProviderFactory
 import fi.metatavu.muisti.exhibitionui.pages.PageView
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import kotlinx.android.synthetic.main.activity_page.*
 import java.util.*
-import fi.metatavu.muisti.api.client.models.MqttTriggerDeviceGroupEvent
 import fi.metatavu.muisti.exhibitionui.BuildConfig
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import android.view.KeyEvent
 import android.view.ViewGroup
-import fi.metatavu.muisti.api.client.models.ExhibitionPageEventActionType
+import android.view.Window
+import android.view.animation.*
+import fi.metatavu.muisti.api.client.models.*
+import fi.metatavu.muisti.api.client.models.Animation
 import fi.metatavu.muisti.exhibitionui.R
 
 
@@ -28,14 +31,11 @@ import fi.metatavu.muisti.exhibitionui.R
  */
 class PageActivity : MuistiActivity() {
 
-    private var currentPageView: PageView? = null
     private val handler: Handler = Handler()
     private val deviceGroupEvents = mutableMapOf<String, Array<ExhibitionPageEvent>>()
     private val keyDownListeners = mutableListOf<KeyCodeListener>()
     private val keyUpListeners = mutableListOf<KeyCodeListener>()
 
-    private var settingsClickCOunter = 0
-    private val clickCounterHandler = Handler()
 
     // TODO: Listen only device group messages
     private val mqttTriggerDeviceGroupEventListener = MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/deviceGroupId", MqttTriggerDeviceGroupEvent::class.java) {
@@ -49,11 +49,6 @@ class PageActivity : MuistiActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        supportActionBar?.hide()
-
-        setContentView(R.layout.activity_page)
-        setImmersiveMode()
         val pageId: String? = intent.getStringExtra("pageId")
 
         val pageView = PageViewContainer.getPageView(UUID.fromString(pageId))
@@ -62,17 +57,37 @@ class PageActivity : MuistiActivity() {
             return
         }
 
-        settings_button.setOnClickListener{
-            settingsButtonClick()
-        }
+        super.onCreate(savedInstanceState)
 
-        index_page_button.setOnClickListener{
-            indexButtonClick()
+        val context = this
+
+        val pageEnterTransitions = pageView.page.enterTransitions.mapNotNull { context.getPageAnimation(it.transition, Visibility.MODE_IN) }
+        val pageExitTransitions = pageView.page.exitTransitions.mapNotNull { context.getPageAnimation(it.transition, Visibility.MODE_OUT) }
+
+        with(window) {
+            requestFeature(Window.FEATURE_CONTENT_TRANSITIONS)
+            allowEnterTransitionOverlap = true
+            enterTransition = if(pageEnterTransitions.isNotEmpty()){
+                pageEnterTransitions[0]
+            } else {
+                null
+            }
+            exitTransition = if(pageExitTransitions.isNotEmpty()){
+                pageExitTransitions[0]
+            } else {
+                null
+            }
         }
+        supportActionBar?.hide()
+
+        setContentView(R.layout.activity_page)
+        setImmersiveMode()
+
+        listenSettingsButton(settings_button)
+        listenIndexButton(index_page_button)
 
         pageView.view.layoutParams.height = ConstraintLayout.LayoutParams.MATCH_PARENT
         pageView.view.layoutParams.width = ConstraintLayout.LayoutParams.MATCH_PARENT
-
         this.openView(pageView)
     }
 
@@ -143,6 +158,8 @@ class PageActivity : MuistiActivity() {
         releaseView(pageView.view)
         currentPageView = pageView
         this.root.addView(pageView.view)
+        setSharedElementTransitions(pageView.page.enterTransitions)
+        setSharedElementTransitions(pageView.page.exitTransitions)
         requestedOrientation = pageView.orientation
         MqttClientController.addListener(mqttTriggerDeviceGroupEventListener)
         pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
@@ -157,8 +174,8 @@ class PageActivity : MuistiActivity() {
     private fun closeView() {
         MqttClientController.removeListener(mqttTriggerDeviceGroupEventListener)
         handler.removeCallbacksAndMessages(null)
-        clickCounterHandler.removeCallbacksAndMessages(null)
         currentPageView?.lifecycleListeners?.forEach { it.onPageDeactivate(this) }
+        removeSettingsAndIndexListeners()
     }
 
     /**
@@ -185,6 +202,28 @@ class PageActivity : MuistiActivity() {
     }
 
     /**
+     * Sets shared element transition target names for all elements
+     *
+     * @param transitions Array of ExhibitionPageTransitions
+     */
+    private fun setSharedElementTransitions(transitions: Array<ExhibitionPageTransition>) {
+        transitions.forEach{
+            it.options?.morph?.views?.map(this::setTransitionTargetName)
+        }
+    }
+
+    /**
+     * Sets transition target name for transition morph
+     *
+     * @param morphPair ExhibitionPageTransitionOptionsMorphView
+     */
+    private fun setTransitionTargetName(morphPair : ExhibitionPageTransitionOptionsMorphView) {
+        val view = findViewWithTag(morphPair.sourceId) ?: return
+        view.transitionName = morphPair.targetId
+        transitionElements.add(view)
+    }
+
+    /**
      * Applies an event trigger
      *
      * @param eventTrigger event trigger to be applied
@@ -208,7 +247,7 @@ class PageActivity : MuistiActivity() {
 
         if (deviceGroupEvent != null) {
             val deviceGroupEventList = deviceGroupEvents.get(deviceGroupEvent) ?: arrayOf<ExhibitionPageEvent>()
-            deviceGroupEvents.put(deviceGroupEvent, deviceGroupEventList.plus(events))
+            deviceGroupEvents[deviceGroupEvent] = deviceGroupEventList.plus(events)
         }
 
         val keyCodeUp = eventTrigger.keyUp
@@ -227,7 +266,7 @@ class PageActivity : MuistiActivity() {
      *
      * @param eventTriggers event triggers to disable click views from
      */
-    private fun disableClickEvents(eventTriggers: Array<ExhibitionPageEventTrigger>?) {
+    fun disableClickEvents(eventTriggers: Array<ExhibitionPageEventTrigger>?) {
         eventTriggers?.forEach {
             val clickViewId = it.clickViewId
             if (clickViewId != null) {
@@ -309,14 +348,41 @@ class PageActivity : MuistiActivity() {
     }
 
     /**
-     * Finds a view with tag
+     * Gets interpolator based on animation time iterpolation enum
      *
-     * @param tag tag
-     * @return view or null if not found
+     * @param interpolator Animation time interpolation enum
+     * @return Android TimeInterpolator
      */
-    private fun findViewWithTag(tag: String?): View? {
-        tag ?: return null
-        return root.findViewWithTag(tag)
+    private fun getInterpolator(interpolator: AnimationTimeInterpolation): TimeInterpolator {
+        return when (interpolator) {
+            AnimationTimeInterpolation.accelerate -> AccelerateInterpolator()
+            AnimationTimeInterpolation.acceleratedecelerate -> AccelerateDecelerateInterpolator()
+            AnimationTimeInterpolation.anticipate -> AnticipateInterpolator()
+            AnimationTimeInterpolation.anticipateovershoot -> AnticipateOvershootInterpolator()
+            AnimationTimeInterpolation.bounce -> BounceInterpolator()
+            AnimationTimeInterpolation.decelerate -> DecelerateInterpolator()
+            AnimationTimeInterpolation.linear -> LinearInterpolator()
+            AnimationTimeInterpolation.overshoot -> OvershootInterpolator()
+        }
+    }
+
+    /**
+     * Returns android transition, Only supports fade.
+     *
+     * @param transition transition to parse
+     * @param mode Visibility mode in or mode out based on
+     * @return Android Transition or null if no supported animation can be generated.
+     */
+    private fun getPageAnimation(transition: Transition, mode: Int) : android.transition.Transition? {
+        return if(transition.animation == Animation.fade) {
+            val fade = Fade()
+            fade.duration = transition.duration.toLong()
+            fade.interpolator = getInterpolator(transition.timeInterpolation)
+            fade.mode = mode
+            fade
+        } else {
+            null
+        }
     }
 
     /**
@@ -329,42 +395,6 @@ class PageActivity : MuistiActivity() {
                 or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_FULLSCREEN
                 or View.SYSTEM_UI_FLAG_IMMERSIVE)
-    }
-
-    /**
-     * Handler for settings button click
-     *
-     * Increases settings click count and navigates to settings if it has been clicked 5 times.
-     * Counter resets to zero after 1 sec
-     */
-    private fun settingsButtonClick() {
-        clickCounterHandler.removeCallbacksAndMessages("settings")
-        settingsClickCOunter += 1
-        if (settingsClickCOunter > 4) {
-            startSettingsActivity()
-        } else {
-            clickCounterHandler.postDelayed({
-                settingsClickCOunter = 0
-            }, "settings", 1000)
-        }
-    }
-
-    /**
-     * Handler for settings button click
-     *
-     * Increases settings click count and navigates to settings if it has been clicked 5 times.
-     * Counter resets to zero after 1 sec
-     */
-    private fun indexButtonClick() {
-        clickCounterHandler.removeCallbacksAndMessages("index")
-        settingsClickCOunter += 1
-        if (settingsClickCOunter > 4) {
-            startMainActivity()
-        } else {
-            clickCounterHandler.postDelayed( {
-                settingsClickCOunter = 0
-            }, "index", 1000)
-        }
     }
 }
 

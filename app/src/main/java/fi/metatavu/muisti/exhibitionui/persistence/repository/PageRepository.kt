@@ -101,7 +101,9 @@ class PageRepository(private val pageDao: PageDao) {
                 modifiedAt = it.modifiedAt!!,
                 resources = it.resources,
                 eventTriggers = it.eventTriggers,
-                layoutId = it.layoutId
+                layoutId = it.layoutId,
+                enterTransitions = it.enterTransitions,
+                exitTransitions = it.exitTransitions
             )
             if (existing == null) {
                 pageDao.insert(page)
