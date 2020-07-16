@@ -51,7 +51,7 @@ class PageViewFactory {
          * @return build view group or null if failed
          */
         private fun buildViewGroup(buildContext: ComponentBuildContext) : View? {
-            val factory = componentFactories.find { it.name == buildContext.pageLayoutView.widget }
+            val factory = componentFactories.find { it.name == buildContext.pageLayoutView.widget.name }
             val root = factory?.buildComponent(buildContext)
             root?: return null
 
