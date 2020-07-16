@@ -1,11 +1,13 @@
 package fi.metatavu.muisti.exhibitionui.pages
 
 import android.content.Context
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import fi.metatavu.muisti.exhibitionui.pages.components.*
 import fi.metatavu.muisti.exhibitionui.persistence.model.Layout
 import fi.metatavu.muisti.exhibitionui.persistence.model.Page
+import java.util.*
 
 /**
  * Page view factory
@@ -51,7 +53,9 @@ class PageViewFactory {
          * @return build view group or null if failed
          */
         private fun buildViewGroup(buildContext: ComponentBuildContext) : View? {
-            val factory = componentFactories.find { it.name == buildContext.pageLayoutView.widget.name }
+
+            val factory = componentFactories.find { it.name.toLowerCase(Locale.ROOT) == buildContext.pageLayoutView.widget.name.toLowerCase(Locale.ROOT) }
+
             val root = factory?.buildComponent(buildContext)
             root?: return null
 
