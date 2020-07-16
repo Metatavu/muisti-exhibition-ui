@@ -15,3 +15,5 @@
 .idea/dictionaries/anttileppa.xml
 app/.env
 app/.env_tests
+.env
+.idea/jarRepositories.xml
