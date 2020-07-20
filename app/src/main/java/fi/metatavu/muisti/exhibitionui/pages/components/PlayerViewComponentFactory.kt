@@ -19,7 +19,7 @@ import java.io.File
 
 /**
  * Component factory for player components
- */§
+ */
 class PlayerViewComponentFactory : AbstractComponentFactory<PlayerView>() {
     override val name: String
         get() = "PlayerView"
