@@ -1,6 +1,8 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 import android.content.Context
 import android.graphics.Color
+import android.util.Log
+import android.view.View
 import androidx.annotation.NonNull
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.maps.MapView
@@ -11,6 +13,7 @@ import com.mapbox.mapboxsdk.style.expressions.Expression.get
 import com.mapbox.mapboxsdk.style.layers.FillExtrusionLayer
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory.*
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
+import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleListener
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 import mil.nga.geopackage.GeoPackage
@@ -48,6 +51,18 @@ class MapViewComponentFactory: AbstractComponentFactory<MapView>() {
         return mapView
     }
 
+    override fun setProperty(buildContext: ComponentBuildContext, parent: View?, view: MapView, property: PageLayoutViewProperty) {
+        try {
+            when (property.name) {
+                "src" -> { }
+                "sqlFilterQuery" -> { }
+                else -> super.setProperty(buildContext, parent, view, property)
+            }
+        } catch (e: Exception) {
+            Log.d(PlayerViewComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
+        }
+    }
+
 }
 
 private class MapViewLifeCycleListener(val view: MapView, val offLineFile: File, val sqlFilterQuery: String): PageViewLifecycleListener, OnMapReadyCallback {
@@ -63,10 +78,13 @@ private class MapViewLifeCycleListener(val view: MapView, val offLineFile: File,
 
         val context: Context = pageActivity
         Mapbox.getInstance(context, "pk.eyJ1Ijoic2ltZW9ucGFsdG9ub3YiLCJhIjoiY2thMmM3cnhzMDAzODNlbDlhc3IwZzJ1MSJ9.5AA8AXZW9g9wAtj2V5hcvA")
+        view.onStart()
         view.getMapAsync(this)
     }
 
-    override fun onPageDeactivate(pageActivity: PageActivity) {}
+    override fun onPageDeactivate(pageActivity: PageActivity) {
+        view.onDestroy()
+    }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.mapboxMap = mapboxMap
