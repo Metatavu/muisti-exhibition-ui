@@ -32,7 +32,6 @@ class MapComponentContainer(buildContext: ComponentBuildContext): FrameLayout(bu
         )
     }
 
-
 }
 
 /**
@@ -111,7 +110,7 @@ private class MapViewLifeCycleListener(val buildContext: ComponentBuildContext, 
             }
 
         }
-    }
+    }W
 
     override fun onLowMemory() {
         mapView.onLowMemory()
@@ -134,3 +133,4 @@ private class MapViewLifeCycleListener(val buildContext: ComponentBuildContext, 
     }
 
 }
+
