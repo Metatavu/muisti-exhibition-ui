@@ -110,7 +110,7 @@ private class MapViewLifeCycleListener(val buildContext: ComponentBuildContext, 
             }
 
         }
-    }W
+    }
 
     override fun onLowMemory() {
         mapView.onLowMemory()
