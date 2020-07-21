@@ -28,7 +28,6 @@ class MapComponentContainer(buildContext: ComponentBuildContext): FrameLayout(bu
         )
     }
 
-
 }
 
 /**
