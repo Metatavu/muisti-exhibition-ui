@@ -72,6 +72,7 @@ android {
             buildConfigField("String", "MQTT_PASSWORD", "\"${System.getProperty('MQTT_PASSWORD')}\"")
             buildConfigField("String", "MQTT_BASE_TOPIC", "\"${System.getProperty('MQTT_BASE_TOPIC')}\"")
             buildConfigField("String", "KEYCLOAK_DEMO_TAG", "\"${System.getProperty('KEYCLOAK_DEMO_TAG')}\"")
+            buildConfigField("String", "MAP_BOX_ACCESS_TOKEN", "\"${System.getProperty('MAP_BOX_ACCESS_TOKEN')}\"")
         }
 
         debug {
@@ -87,6 +88,7 @@ android {
             buildConfigField("String", "MQTT_PASSWORD", "\"${System.getProperty('MQTT_PASSWORD')}\"")
             buildConfigField("String", "MQTT_BASE_TOPIC", "\"${System.getProperty('MQTT_BASE_TOPIC')}\"")
             buildConfigField("String", "KEYCLOAK_DEMO_TAG", "\"${System.getProperty('KEYCLOAK_DEMO_TAG')}\"")
+            buildConfigField("String", "MAP_BOX_ACCESS_TOKEN", "\"${System.getProperty('MAP_BOX_ACCESS_TOKEN')}\"")
         }
     }
     lintOptions {
@@ -168,14 +170,11 @@ dependencies {
 
     implementation 'com.github.deano2390:FlowTextView:2.0.5'
 
-    //MapBox
+    // MapBox
     implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:9.2.0'
 
     // Apache IOUtils
     implementation "org.apache.commons:commons-io:1.3.2"
-
-    //GeoPackage
-    implementation "mil.nga.geopackage:geopackage:4.0.0"
 
     // Android test
 
