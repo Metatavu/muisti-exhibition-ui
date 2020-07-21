@@ -2,6 +2,7 @@ package fi.metatavu.muisti.exhibitionui.pages.components
 
 import android.content.Context
 import android.graphics.Color
+import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
@@ -20,6 +21,9 @@ import fi.metatavu.muisti.exhibitionui.BuildConfig
 import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleListener
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
+/**
+ * Component container for initializing life cycle-listener for Map View
+ */
 class MapComponentContainer(buildContext: ComponentBuildContext): FrameLayout(buildContext.context) {
 
     init {
@@ -65,6 +69,13 @@ class MapViewComponentFactory: AbstractComponentFactory<MapComponentContainer>()
 
 }
 
+/**
+ * Life cycle-listener for Map View
+ *
+ * @param buildContext buildContext
+ * @param view mapComponentContainer
+ *
+ */
 private class MapViewLifeCycleListener(val buildContext: ComponentBuildContext, val view: MapComponentContainer): PageViewLifecycleListener, OnMapReadyCallback {
 
     private lateinit var mapView: MapView
@@ -101,4 +112,25 @@ private class MapViewLifeCycleListener(val buildContext: ComponentBuildContext, 
 
         }
     }
+
+    override fun onLowMemory() {
+        mapView.onLowMemory()
+    }
+
+    override fun onPause() {
+        mapView.onPause()
+    }
+
+    override fun onResume() {
+        mapView.onResume()
+    }
+
+    override fun onStop() {
+        mapView.onStop()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        mapView.onSaveInstanceState(outState)
+    }
+
 }

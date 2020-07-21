@@ -1,5 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.pages
 
+import android.os.Bundle
 import android.view.View
 import fi.metatavu.muisti.exhibitionui.persistence.model.Page
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
@@ -25,6 +26,36 @@ interface PageViewLifecycleListener {
      */
     fun onPageDeactivate (pageActivity: PageActivity)
 
+    /**
+     * Method invoked when page is on low memory
+     *
+     */
+    fun onLowMemory ()
+
+    /**
+     * Method invoked when page is resumed
+     *
+     */
+    fun onResume ()
+
+    /**
+     * Method invoked when page is paused
+     *
+     */
+    fun onPause ()
+
+    /**
+     * Method invoked when page is stopped
+     *
+     */
+    fun onStop ()
+
+    /**
+     * Method invoked when instance state is saved
+     *
+     * @param outState state
+     */
+    fun onSaveInstanceState (outState: Bundle)
 }
 
 /**

@@ -3,6 +3,7 @@ package fi.metatavu.muisti.exhibitionui.pages.components
 import android.content.Context
 import android.graphics.Color
 import android.net.Uri
+import android.os.Bundle
 import android.util.Log
 import android.view.View
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -81,5 +82,15 @@ private class PlayerPageViewLifecycleListener(val offlineFile: File, val playerV
     override fun onPageDeactivate(pageActivity: PageActivity) {
         playerView.player?.release()
     }
+
+    override fun onLowMemory() {}
+
+    override fun onResume() {}
+
+    override fun onPause() {}
+
+    override fun onStop() {}
+
+    override fun onSaveInstanceState(outState: Bundle) {}
 
 }
