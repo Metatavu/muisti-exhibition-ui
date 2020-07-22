@@ -53,19 +53,6 @@ class MapViewComponentFactory: AbstractComponentFactory<MapComponentContainer>()
         }
         return componentContainer
     }
-
-    override fun setProperty(buildContext: ComponentBuildContext, parent: View?, view: MapComponentContainer, property: PageLayoutViewProperty) {
-        try {
-            when (property.name) {
-                "src" -> { }
-                "sqlFilterQuery" -> { }
-                else -> super.setProperty(buildContext, parent, view, property)
-            }
-        } catch (e: Exception) {
-            Log.d(PlayerViewComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
-        }
-    }
-
 }
 
 /**
@@ -101,6 +88,7 @@ private class MapViewLifeCycleListener(val buildContext: ComponentBuildContext, 
         this.mapboxMap.setStyle(Style.OUTDOORS) {
             @Override
             fun onStyleLoaded(@NonNull style: Style) {
+                //Implement once the Geopackage-library is functional
             }
 
         }
