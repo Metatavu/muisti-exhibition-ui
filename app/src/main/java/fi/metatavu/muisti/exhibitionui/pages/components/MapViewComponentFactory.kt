@@ -93,7 +93,7 @@ private class MapViewLifeCycleListener(val buildContext: ComponentBuildContext, 
     }
 
     override fun onPageDeactivate(pageActivity: PageActivity) {
-        mapView.onDestroy()
+        mapView.onStop()
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
@@ -101,12 +101,6 @@ private class MapViewLifeCycleListener(val buildContext: ComponentBuildContext, 
         this.mapboxMap.setStyle(Style.OUTDOORS) {
             @Override
             fun onStyleLoaded(@NonNull style: Style) {
-                style.addSource(geoJsonSource)
-                style.addLayer(
-                    FillExtrusionLayer("deaths", "deaths").withProperties(
-                        fillExtrusionColor(Color.RED),
-                        fillExtrusionOpacity(0.7f),
-                        fillExtrusionHeight(get("height"))))
             }
 
         }
@@ -130,6 +124,10 @@ private class MapViewLifeCycleListener(val buildContext: ComponentBuildContext, 
 
     override fun onSaveInstanceState(outState: Bundle) {
         mapView.onSaveInstanceState(outState)
+    }
+
+    override fun onDestroy() {
+        mapView.onDestroy()
     }
 
 }

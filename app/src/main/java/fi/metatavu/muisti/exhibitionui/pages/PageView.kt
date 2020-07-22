@@ -56,6 +56,11 @@ interface PageViewLifecycleListener {
      * @param outState state
      */
     fun onSaveInstanceState (outState: Bundle)
+
+    /**
+     * Method invoked when page is destroyed
+     */
+    fun onDestroy ()
 }
 
 /**
