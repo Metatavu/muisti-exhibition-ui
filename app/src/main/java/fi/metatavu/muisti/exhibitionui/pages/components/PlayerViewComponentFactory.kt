@@ -83,14 +83,28 @@ private class PlayerPageViewLifecycleListener(val offlineFile: File, val playerV
         playerView.player?.release()
     }
 
-    override fun onLowMemory() {}
+    override fun onLowMemory() {
+        //No need to implement currently
+    }
 
-    override fun onResume() {}
+    override fun onResume() {
+        //No need to implement currently
+    }
 
-    override fun onPause() {}
+    override fun onPause() {
+        //No need to implement currently
+    }
 
-    override fun onStop() {}
+    override fun onStop() {
+        //No need to implement currently
+    }
 
-    override fun onSaveInstanceState(outState: Bundle) {}
+    override fun onSaveInstanceState(outState: Bundle) {
+        //No need to implement currently
+    }
+
+    override fun onDestroy() {
+        //No need to implement currently
+    }
 
 }
