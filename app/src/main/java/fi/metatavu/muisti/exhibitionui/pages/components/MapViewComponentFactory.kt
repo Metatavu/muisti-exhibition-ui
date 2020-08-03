@@ -23,6 +23,7 @@ import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
 /**
  * Component container for initializing life cycle-listener for Map View
+ * @param buildContext Component Build Context
  */
 class MapComponentContainer(buildContext: ComponentBuildContext): FrameLayout(buildContext.context) {
 
@@ -119,4 +120,3 @@ private class MapViewLifeCycleListener(val buildContext: ComponentBuildContext, 
     }
 
 }
-
