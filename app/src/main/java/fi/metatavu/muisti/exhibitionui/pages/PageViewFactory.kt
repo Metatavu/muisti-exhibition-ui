@@ -27,7 +27,7 @@ class PageViewFactory {
             componentFactories.add(LinearLayoutComponentFactory())
             componentFactories.add(FrameLayoutComponentFactory())
             componentFactories.add(RelativeLayoutComponentFactory())
-            componentFactories.add(FlowTextViewComponentFactory())
+            componentFactories.add(MapViewComponentFactory())
         }
 
         /**

@@ -3,6 +3,7 @@ package fi.metatavu.muisti.exhibitionui.views
 import android.animation.TimeInterpolator
 import android.os.Bundle
 import android.os.Handler
+import android.os.PersistableBundle
 import android.transition.Fade
 import android.transition.Visibility
 import android.util.Log
@@ -94,17 +95,20 @@ class PageActivity : MuistiActivity() {
     override fun onResume() {
         setCurrentActivity(this)
         super.onResume()
+        currentPageView?.lifecycleListeners?.forEach { it.onResume() }
     }
 
     override fun onPause() {
         setCurrentActivity(null)
         this.closeView()
         super.onPause()
+        currentPageView?.lifecycleListeners?.forEach { it.onPause() }
     }
 
     override fun onDestroy() {
         this.releaseView(currentPageView?.view)
         super.onDestroy()
+        currentPageView?.lifecycleListeners?.forEach { it.onDestroy() }
     }
 
     override fun finish() {
@@ -122,6 +126,16 @@ class PageActivity : MuistiActivity() {
         triggerKeyListeners(keyCode, keyDown = false)
         super.onKeyUp(keyCode, event)
         return true
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        currentPageView?.lifecycleListeners?.forEach { it.onLowMemory() }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
+        super.onSaveInstanceState(outState, outPersistentState)
+        currentPageView?.lifecycleListeners?.forEach { it.onSaveInstanceState(outState) }
     }
 
     /**
