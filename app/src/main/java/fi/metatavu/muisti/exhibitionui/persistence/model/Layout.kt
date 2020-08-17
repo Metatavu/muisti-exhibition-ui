@@ -5,6 +5,7 @@ import androidx.room.*
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import fi.metatavu.muisti.api.client.infrastructure.UUIDAdapter
 import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.exhibitionui.persistence.types.UUIDConverter
 import java.util.*
@@ -46,10 +47,10 @@ data class Layout (
 class PageLayoutViewConverter {
     private val moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
+        .add(UUIDAdapter())
         .build()
 
-    private val jsonAdapter: JsonAdapter<PageLayoutView> = moshi.adapter<PageLayoutView>(
-        PageLayoutView::class.java)
+    private val jsonAdapter: JsonAdapter<PageLayoutView> = moshi.adapter(PageLayoutView::class.java)
 
     /**
      * Returns a page layout
