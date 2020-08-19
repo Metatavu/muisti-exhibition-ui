@@ -1,13 +1,12 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
-import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Typeface
 import android.util.Log
 import android.view.View
+import android.view.ViewOutlineProvider
 import android.widget.Button
-import androidx.appcompat.text.AllCapsTransformationMethod
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
-import android.graphics.Paint
 
 /**
  * Component factory for buttons
@@ -41,6 +40,7 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
                 "text" ->setText(buildContext, view, property)
                 "textStyle" -> setTextStyle(view, property)
                 "allCaps" -> setAllCaps(view, property.value)
+                "gravity" -> setGravity(view, property.value)
                 else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
@@ -132,5 +132,17 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
         if ("false" == value) {
             button.transformationMethod = null
         }
+    }
+
+    /**
+     * Sets gravity property
+     *
+     * @param view view component
+     * @param value value
+     */
+    private fun setGravity(view: Button, value: String) {
+        val gravity = parseGravity(value)
+        gravity ?: return
+        view.gravity = gravity
     }
 }
