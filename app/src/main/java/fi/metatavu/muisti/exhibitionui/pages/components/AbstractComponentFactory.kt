@@ -89,7 +89,6 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             "layout_marginLeft" -> setLayoutMargin(view, property)
             "layout_toRightOf" -> setLayoutOf(view, property)
             "layout_gravity" -> setLayoutGravity(view, property.value)
-            "backgroundColor" -> setBackground(view, property.value)
             "background" -> setBackground(view, property.value)
             else -> Log.d(ImageViewComponentFactory::javaClass.name, "Property ${property.name} not supported on ${view.javaClass.name} view")
         }
