@@ -5,7 +5,9 @@ import android.graphics.Typeface
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import androidx.appcompat.text.AllCapsTransformationMethod
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import android.graphics.Paint
 
 /**
  * Component factory for buttons
@@ -34,16 +36,29 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
             when(property.name) {
                 "width" -> setWidth(view, property.value)
                 "height" -> setHeight(view, property.value)
-                "textColor" -> view.setTextColor(Color.parseColor(property.value))
+                "textColor" -> setTextColor(view, property.value)
                 "textSize" -> setTextSize(view, property)
                 "text" ->setText(buildContext, view, property)
                 "textStyle" -> setTextStyle(view, property)
-
+                "allCaps" -> setAllCaps(view, property.value)
                 else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
             Log.d(ButtonComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
         }
+    }
+
+
+    /**
+     * Sets text color
+     *
+     * @param view view
+     * @param value value
+     */
+    private fun setTextColor(view: Button, value: String) {
+        val color = getColor(value)
+        color ?: return
+        view.setTextColor(color)
     }
 
     /**
@@ -105,5 +120,17 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
     private fun setText(buildContext: ComponentBuildContext, button: Button, property: PageLayoutViewProperty) {
         val text = getResourceData(buildContext, property.value)
         button.text = text ?: property.value
+    }
+
+    /**
+     * Sets button height
+     *
+     * @param button button
+     * @param value value
+     */
+    private fun setAllCaps(button: Button, value: String) {
+        if ("false" == value) {
+            button.transformationMethod = null
+        }
     }
 }

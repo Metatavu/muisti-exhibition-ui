@@ -89,6 +89,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             "layout_marginLeft" -> setLayoutMargin(view, property)
             "layout_toRightOf" -> setLayoutOf(view, property)
             "layout_gravity" -> setLayoutGravity(view, property.value)
+            "backgroundColor" -> setBackground(view, property.value)
             "background" -> setBackground(view, property.value)
             else -> Log.d(ImageViewComponentFactory::javaClass.name, "Property ${property.name} not supported on ${view.javaClass.name} view")
         }
@@ -101,16 +102,23 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @return color property value
      */
     protected fun getColor(value: String?): Int? {
-        value ?: return null
+        if (value.isNullOrBlank()) {
+            return null
+        }
 
         try {
-            return Color.parseColor(value)
+            if (value.length === 4 && value.startsWith("#")) {
+                return Color.parseColor("#" + value.substring(1).map { "$it$it" }.joinToString (""))
+            } else {
+                return Color.parseColor(value)
+            }
         } catch (e: IllegalArgumentException) {
             return null
         }
     }
 
-    /**
+
+   /**
      * Returns URI property value
      *
      * @param value value

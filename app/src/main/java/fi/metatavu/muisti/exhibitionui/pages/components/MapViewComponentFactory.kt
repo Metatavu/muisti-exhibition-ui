@@ -1,10 +1,7 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
 import android.content.Context
-import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import android.widget.FrameLayout
 import androidx.annotation.NonNull
 import com.mapbox.mapboxsdk.Mapbox
@@ -12,11 +9,7 @@ import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.maps.Style
-import com.mapbox.mapboxsdk.style.expressions.Expression.get
-import com.mapbox.mapboxsdk.style.layers.FillExtrusionLayer
-import com.mapbox.mapboxsdk.style.layers.PropertyFactory.*
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
-import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.exhibitionui.BuildConfig
 import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleListener
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
@@ -65,9 +58,9 @@ class MapViewComponentFactory: AbstractComponentFactory<MapComponentContainer>()
  */
 private class MapViewLifeCycleListener(val buildContext: ComponentBuildContext, val view: MapComponentContainer): PageViewLifecycleListener, OnMapReadyCallback {
 
-    private lateinit var mapView: MapView
-    private lateinit var geoJsonSource: GeoJsonSource
-    private lateinit var mapboxMap: MapboxMap
+    private var mapView: MapView? = null
+    private var geoJsonSource: GeoJsonSource? = null
+    private var mapboxMap: MapboxMap? = null
 
     override fun onPageActivate(pageActivity: PageActivity) {
         val context: Context = pageActivity
@@ -81,12 +74,12 @@ private class MapViewLifeCycleListener(val buildContext: ComponentBuildContext, 
     }
 
     override fun onPageDeactivate(pageActivity: PageActivity) {
-        mapView.onStop()
+        mapView?.onStop()
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.mapboxMap = mapboxMap
-        this.mapboxMap.setStyle(Style.OUTDOORS) {
+        this.mapboxMap?.setStyle(Style.OUTDOORS) {
             @Override
             fun onStyleLoaded(@NonNull style: Style) {
                 //Implement once the Geopackage-library is functional
@@ -96,27 +89,27 @@ private class MapViewLifeCycleListener(val buildContext: ComponentBuildContext, 
     }
 
     override fun onLowMemory() {
-        mapView.onLowMemory()
+        mapView?.onLowMemory()
     }
 
     override fun onPause() {
-        mapView.onPause()
+        mapView?.onPause()
     }
 
     override fun onResume() {
-        mapView.onResume()
+        mapView?.onResume()
     }
 
     override fun onStop() {
-        mapView.onStop()
+        mapView?.onStop()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        mapView.onSaveInstanceState(outState)
+        mapView?.onSaveInstanceState(outState)
     }
 
     override fun onDestroy() {
-        mapView.onDestroy()
+        mapView?.onDestroy()
     }
 
 }
