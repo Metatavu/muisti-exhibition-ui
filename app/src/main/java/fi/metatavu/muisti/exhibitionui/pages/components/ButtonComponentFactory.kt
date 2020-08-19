@@ -1,9 +1,10 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
-import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Typeface
 import android.util.Log
 import android.view.View
+import android.view.ViewOutlineProvider
 import android.widget.Button
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 
@@ -34,16 +35,30 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
             when(property.name) {
                 "width" -> setWidth(view, property.value)
                 "height" -> setHeight(view, property.value)
-                "textColor" -> view.setTextColor(Color.parseColor(property.value))
+                "textColor" -> setTextColor(view, property.value)
                 "textSize" -> setTextSize(view, property)
                 "text" ->setText(buildContext, view, property)
                 "textStyle" -> setTextStyle(view, property)
-
+                "allCaps" -> setAllCaps(view, property.value)
+                "gravity" -> setGravity(view, property.value)
                 else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
             Log.d(ButtonComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
         }
+    }
+
+
+    /**
+     * Sets text color
+     *
+     * @param view view
+     * @param value value
+     */
+    private fun setTextColor(view: Button, value: String) {
+        val color = getColor(value)
+        color ?: return
+        view.setTextColor(color)
     }
 
     /**
@@ -105,5 +120,29 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
     private fun setText(buildContext: ComponentBuildContext, button: Button, property: PageLayoutViewProperty) {
         val text = getResourceData(buildContext, property.value)
         button.text = text ?: property.value
+    }
+
+    /**
+     * Sets button height
+     *
+     * @param button button
+     * @param value value
+     */
+    private fun setAllCaps(button: Button, value: String) {
+        if ("false" == value) {
+            button.transformationMethod = null
+        }
+    }
+
+    /**
+     * Sets gravity property
+     *
+     * @param view view component
+     * @param value value
+     */
+    private fun setGravity(view: Button, value: String) {
+        val gravity = parseGravity(value)
+        gravity ?: return
+        view.gravity = gravity
     }
 }

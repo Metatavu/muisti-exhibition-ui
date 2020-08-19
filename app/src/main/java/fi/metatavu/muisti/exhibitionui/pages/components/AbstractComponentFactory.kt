@@ -101,16 +101,23 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @return color property value
      */
     protected fun getColor(value: String?): Int? {
-        value ?: return null
+        if (value.isNullOrBlank()) {
+            return null
+        }
 
         try {
-            return Color.parseColor(value)
+            if (value.length === 4 && value.startsWith("#")) {
+                return Color.parseColor("#" + value.substring(1).map { "$it$it" }.joinToString (""))
+            } else {
+                return Color.parseColor(value)
+            }
         } catch (e: IllegalArgumentException) {
             return null
         }
     }
 
-    /**
+
+   /**
      * Returns URI property value
      *
      * @param value value
