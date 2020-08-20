@@ -1,10 +1,11 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
-import android.graphics.Paint
+import android.content.res.Resources
+import android.graphics.BitmapFactory
 import android.graphics.Typeface
+import android.graphics.drawable.BitmapDrawable
 import android.util.Log
 import android.view.View
-import android.view.ViewOutlineProvider
 import android.widget.Button
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 
@@ -41,6 +42,7 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
                 "textStyle" -> setTextStyle(view, property)
                 "allCaps" -> setAllCaps(view, property.value)
                 "gravity" -> setGravity(view, property.value)
+                "backgroundImage" -> setBackgroundImage(buildContext, view, property.value)
                 else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
@@ -59,6 +61,21 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
         val color = getColor(value)
         color ?: return
         view.setTextColor(color)
+    }
+
+    /**
+     * Sets background image
+     *
+     * @param buildContext build context
+     * @param view view component
+     * @param value value
+     */
+    private fun setBackgroundImage(buildContext: ComponentBuildContext, view: Button, value: String?) {
+        val resource = getResourceData(buildContext, value)
+        val url = getUrl(resource ?: value)
+        url ?: return
+        val bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+        view.background = BitmapDrawable(Resources.getSystem(), bitmap)
     }
 
     /**
