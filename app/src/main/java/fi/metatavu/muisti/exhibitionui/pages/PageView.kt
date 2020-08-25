@@ -2,6 +2,7 @@ package fi.metatavu.muisti.exhibitionui.pages
 
 import android.os.Bundle
 import android.view.View
+import fi.metatavu.muisti.api.client.models.VisitorSession
 import fi.metatavu.muisti.exhibitionui.persistence.model.Page
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
@@ -63,6 +64,33 @@ interface PageViewLifecycleListener {
     fun onDestroy ()
 }
 
+
+/**
+ * Interface that describes a page view session listener
+ */
+interface PageViewVisitorSessionListener {
+
+    /**
+     * Method to be invoked when preparing visitor session changes.
+     *
+     * This method is invoked in global scope, so network requests are allowed on this method
+     *
+     * @param pageActivity page activity instance
+     * @param visitorSession visitor session
+     */
+    suspend fun prepareVisitorSessionChange (pageActivity: PageActivity, visitorSession: VisitorSession)
+
+    /**
+     * Method to be invoked when performing visitor session changes.
+     *
+     * This method is invoked in ui thread, so network request are not permitted
+     *
+     * @param pageActivity page activity instance
+     * @param visitorSession visitor session
+     */
+    fun performVisitorSessionChange (pageActivity: PageActivity, visitorSession: VisitorSession)
+}
+
 /**
  * Data class for storing generated page views
  *
@@ -79,7 +107,9 @@ data class PageView (
 
     val page: Page,
 
-    val lifecycleListeners: List<PageViewLifecycleListener>
+    val lifecycleListeners: List<PageViewLifecycleListener>,
+
+    val visitorSessionListeners: List<PageViewVisitorSessionListener>
 ) {
 
     override fun toString(): String {

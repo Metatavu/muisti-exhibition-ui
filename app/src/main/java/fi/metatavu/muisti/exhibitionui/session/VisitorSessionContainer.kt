@@ -2,6 +2,7 @@ package fi.metatavu.muisti.exhibitionui.session
 
 import fi.metatavu.muisti.api.client.models.Visitor
 import fi.metatavu.muisti.api.client.models.VisitorSession
+import fi.metatavu.muisti.api.client.models.VisitorSessionVariable
 import java.util.*
 
 /**
@@ -12,7 +13,6 @@ class VisitorSessionContainer {
     companion object {
 
         private var visitorSession: VisitorSession? = null
-
         private val currentVisitors: MutableList<Visitor> = mutableListOf()
 
         /**
@@ -76,6 +76,28 @@ class VisitorSessionContainer {
         fun setVisitorSession(visitorSession: VisitorSession?) {
             this.visitorSession = visitorSession
         }
+
+        /**
+         * Updates visitor session variable into existing session.
+         *
+         * This method updates only local visitor session and DOES NOT save variable into the server
+         *
+         * @param name name of the variable
+         * @param value new value
+         */
+        fun setVisitorSessionUserVariable(name: String, value: String?) {
+            val visitorSession = this.visitorSession
+            if (visitorSession != null) {
+                var variables = (visitorSession.variables ?: emptyArray()).filter { it.name != name }.toTypedArray()
+
+                if (value != null) {
+                    variables = variables.plus(VisitorSessionVariable(name = name, value = value))
+                }
+
+                setVisitorSession(visitorSession.copy(variables = variables))
+            }
+        }
+
     }
 
 }

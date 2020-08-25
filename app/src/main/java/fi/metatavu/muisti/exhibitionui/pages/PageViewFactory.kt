@@ -40,10 +40,11 @@ class PageViewFactory {
          */
         fun buildPageView(context: Context, page: Page, layout: Layout) : PageView? {
             val lifecycleListeners = mutableListOf<PageViewLifecycleListener>()
-            val buildContext = ComponentBuildContext(context = context, parents = arrayOf(), page = page, pageLayoutView = layout.data, lifecycleListeners = lifecycleListeners)
+            val visitorSessionListeners = mutableListOf<PageViewVisitorSessionListener>()
+            val buildContext = ComponentBuildContext(context = context, parents = arrayOf(), page = page, pageLayoutView = layout.data, lifecycleListeners = lifecycleListeners, visitorSessionListeners = visitorSessionListeners)
             val view = buildViewGroup(buildContext)
             view ?: return null
-            return PageView(page = page, view = view, lifecycleListeners = lifecycleListeners, orientation = layout.orientation)
+            return PageView(page = page, view = view, lifecycleListeners = lifecycleListeners, visitorSessionListeners = visitorSessionListeners, orientation = layout.orientation)
         }
 
         /**
@@ -61,7 +62,15 @@ class PageViewFactory {
 
             if (root is ViewGroup) {
                 buildContext.pageLayoutView.children.forEach {
-                    val child = buildViewGroup(ComponentBuildContext(context = buildContext.context, parents = buildContext.parents.plus(root), page = buildContext.page, pageLayoutView = it, lifecycleListeners = buildContext.lifecycleListeners))
+                    val child = buildViewGroup(ComponentBuildContext(
+                        context = buildContext.context,
+                        parents = buildContext.parents.plus(root),
+                        page = buildContext.page,
+                        pageLayoutView = it,
+                        lifecycleListeners = buildContext.lifecycleListeners,
+                        visitorSessionListeners = buildContext.visitorSessionListeners)
+                    )
+
                     if (child != null) {
                         root.addView(child)
                     }

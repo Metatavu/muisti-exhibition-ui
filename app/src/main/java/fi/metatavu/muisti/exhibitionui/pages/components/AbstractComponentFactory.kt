@@ -19,7 +19,10 @@ import android.widget.RelativeLayout
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import fi.metatavu.muisti.api.client.models.VisitorSession
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
+import fi.metatavu.muisti.exhibitionui.script.ScriptController
+import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import uk.co.deanwild.flowtextview.FlowTextView
 import java.io.File
 import java.io.FileOutputStream
@@ -131,6 +134,18 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     /**
      * Returns resource for given property
      *
+     * @param buildContext build context
+     * @param value property value
+     * @return resource value for given property
+     */
+    protected fun getResource(buildContext: ComponentBuildContext, value: String?): ExhibitionPageResource? {
+        return getResource(resources = buildContext.page.resources, value = value)
+    }
+
+    /**
+     * Returns resource for given property
+     *
+     * @param resources resources
      * @param value property value
      * @return resource value for given property
      */
@@ -162,7 +177,9 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @return resource value for given property
      */
     protected fun getResourceData(resources: Array<ExhibitionPageResource>, value: String?): String? {
-        return getResource(resources, value)?.data
+        val resource = getResource(resources, value)
+        resource ?: return null
+        return resource.data
     }
 
     /**
@@ -175,6 +192,17 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     protected fun getResourceOfflineFile(buildContext: ComponentBuildContext, propertyName: String): File? {
         val srcValue = buildContext.pageLayoutView.properties.firstOrNull { it.name == propertyName }?.value
         return getResourceOfflineFile(buildContext.page.resources, srcValue)
+    }
+
+    /**
+     * Downloads a resource into offline storage and returns a file
+     *
+     * @param buildContext build context
+     * @param url URL of the file
+     * @return offlined file or null if not found
+     */
+    protected fun getResourceOfflineFile(buildContext: ComponentBuildContext, url: URL?): File? {
+        return getResourceOfflineFile(resources = buildContext.page.resources, url = url)
     }
 
     /**
@@ -207,6 +235,53 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         }
 
         return null
+    }
+
+    /**
+     * Returns scripted resource evaluated value
+     *
+     * @param buildContext build context
+     * @param visitorSession logged visitor session
+     * @param propertyName property name
+     * @param returnNotScripted whether to return result of non-scripted resources
+     * @return scripted resource evaluated value
+     */
+    protected fun getScriptedResource(buildContext: ComponentBuildContext, visitorSession: VisitorSession, propertyName: String, returnNotScripted: Boolean): String? {
+        val propertyValue = buildContext.pageLayoutView.properties.firstOrNull { it.name == propertyName }?.value ?: return null
+        val resource = getResource(buildContext.page.resources, propertyValue) ?: return null
+        val scripted = resource.scripted ?: false
+
+        if (!scripted) {
+            if (returnNotScripted) {
+                return resource.data
+            } else {
+                return null
+            }
+        }
+
+        return evaluateResourceScript(resource = resource, visitorSession = visitorSession)
+    }
+
+    /**
+     * Evaluates scripted resource value
+     *
+     * @param resource scripted resource
+     * @param visitorSession visitor session
+     * @return Evaluated resource value
+     */
+    private fun evaluateResourceScript(resource: ExhibitionPageResource?, visitorSession: VisitorSession): String? {
+        resource ?: return null
+        val scripted = resource.scripted ?: false
+        val data = resource.data
+
+        if (!scripted) {
+            return data
+        }
+
+        val userValues = visitorSession.variables?.map { it.name to it.value }?.toMap() ?: emptyMap()
+        val result = ScriptController.executeInlineFunction("function m(uv) { const userValues = {}; uv.forEach((k, v) => { userValues[k] = v }); return ${data} }", "m", arrayOf(userValues))
+
+        return org.mozilla.javascript.Context.toString(result)
     }
 
     /**
@@ -253,6 +328,19 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         val url = getUrl(resource ?: value)
         url ?: return null
 
+        return getResourceOfflineFile(resources = resources, url = url)
+    }
+
+    /**
+     * Downloads a resource into offline storage and returns a file
+     *
+     * @param resources resources
+     * @param url URL of the resource
+     * @return offlined file
+     */
+    private fun getResourceOfflineFile(resources: Array<ExhibitionPageResource>, url: URL?): File? {
+        url ?: return null
+
         val downloadsDir = ExhibitionUIApplication.instance.applicationContext.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
 
         val urlExternal = url.toExternalForm()
@@ -262,15 +350,21 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         val offlineFile = File(downloadsDir, "$urlHash$extension")
         if (!offlineFile.exists()) {
             Log.d(this.javaClass.name, "Downloading ${url.toExternalForm()} into local file ${offlineFile.absolutePath}")
+            offlineFile.parentFile.mkdirs()
             offlineFile.createNewFile()
 
-            val outputStream  = FileOutputStream(offlineFile)
-            val inputStream = url.openConnection().getInputStream()
+            try {
+                val outputStream = FileOutputStream(offlineFile)
+                val inputStream = url.openConnection().getInputStream()
 
-            inputStream.use{
-                outputStream.use {
-                    inputStream.copyTo(outputStream)
+                inputStream.use {
+                    outputStream.use {
+                        inputStream.copyTo(outputStream)
+                    }
                 }
+            } catch (e: Exception) {
+                offlineFile.delete()
+                Log.d(this.javaClass.name, "Failed to download $url", e)
             }
         }
 
