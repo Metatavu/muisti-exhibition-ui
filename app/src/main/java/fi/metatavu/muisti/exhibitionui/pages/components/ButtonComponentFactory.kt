@@ -4,10 +4,16 @@ import android.content.res.Resources
 import android.graphics.BitmapFactory
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
+import android.net.Uri
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import fi.metatavu.muisti.api.client.models.VisitorSession
+import fi.metatavu.muisti.exhibitionui.pages.PageViewVisitorSessionListener
+import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
+import fi.metatavu.muisti.exhibitionui.views.PageActivity
+import java.net.URL
 
 /**
  * Component factory for buttons
@@ -27,6 +33,38 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
         buildContext.pageLayoutView.properties.forEach {
             this.setProperty(buildContext, parent, button, it )
         }
+
+        buildContext.addVisitorSessionListener(object : PageViewVisitorSessionListener {
+
+            override suspend fun prepareVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
+                prepareBackgroundImage(visitorSession)
+            }
+
+            override fun performVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
+                updateBackgroundImage(visitorSession)
+            }
+
+            /**
+             * Prepares background image for scripted resources
+             */
+            private fun prepareBackgroundImage(visitorSession: VisitorSession) {
+                val url = getUrl(getScriptedResource(buildContext,  visitorSession, "backgroundImage", false))
+                if (url != null) {
+                    getResourceOfflineFile(buildContext, url)
+                }
+            }
+
+            /**
+             * Updates background image for scripted resources
+             */
+            private fun updateBackgroundImage(visitorSession: VisitorSession) {
+                val url = getUrl(getScriptedResource(buildContext, visitorSession,"backgroundImage", false))
+                if (url != null) {
+                    setBackgroundImage(buildContext, button, url)
+                }
+            }
+
+        })
 
         return button
     }
@@ -64,18 +102,46 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
     }
 
     /**
-     * Sets background image
+     * Sets background image.
+     *
+     * On scripted resources this method is does not do anything because scripted resources are
+     * handled by visitor session change events
      *
      * @param buildContext build context
      * @param view view component
      * @param value value
      */
     private fun setBackgroundImage(buildContext: ComponentBuildContext, view: Button, value: String?) {
-        val resource = getResourceData(buildContext, value)
-        val url = getUrl(resource ?: value)
+        val resource = getResource(buildContext, value)
+        val scripted = resource?.scripted ?: false
+
+        if (scripted) {
+            return
+        }
+
+        val resourceData = resource?.data
+
+        val url = getUrl(resourceData ?: value)
         url ?: return
-        val bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
-        view.background = BitmapDrawable(Resources.getSystem(), bitmap)
+
+        setBackgroundImage(buildContext = buildContext, view = view, url = url)
+    }
+
+    /**
+     * Sets background image
+     *
+     * @param buildContext build context
+     * @param view view component
+     * @param url url
+     */
+    private fun setBackgroundImage(buildContext: ComponentBuildContext, view: Button, url: URL?) {
+        val offlineFile = getResourceOfflineFile(buildContext = buildContext, url = url)
+        offlineFile ?: return
+
+        val bitmap = BitmapFactory.decodeFile(offlineFile.absolutePath)
+        if (bitmap != null) {
+            view.background = BitmapDrawable(Resources.getSystem(), bitmap)
+        }
     }
 
     /**

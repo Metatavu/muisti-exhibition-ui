@@ -25,7 +25,9 @@ import android.view.animation.*
 import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.api.client.models.Animation
 import fi.metatavu.muisti.exhibitionui.R
-
+import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
  * Activity for displaying pages from API
@@ -36,7 +38,6 @@ class PageActivity : MuistiActivity() {
     private val deviceGroupEvents = mutableMapOf<String, Array<ExhibitionPageEvent>>()
     private val keyDownListeners = mutableListOf<KeyCodeListener>()
     private val keyUpListeners = mutableListOf<KeyCodeListener>()
-
 
     // TODO: Listen only device group messages
     private val mqttTriggerDeviceGroupEventListener = MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/deviceGroupId", MqttTriggerDeviceGroupEvent::class.java) {
@@ -139,6 +140,16 @@ class PageActivity : MuistiActivity() {
     }
 
     /**
+     * Manually triggers a visitor session change
+     */
+    fun triggerVisitorSessionChange() {
+        val pageView = currentPageView
+        if (pageView != null) {
+            triggerVisitorSessionChange(pageView = pageView)
+        }
+    }
+
+    /**
      * Checks keycode listeners list and triggers the listeners with matching keyCode
      *
      * @param keyCode keycode of the button pressed
@@ -177,6 +188,7 @@ class PageActivity : MuistiActivity() {
         requestedOrientation = pageView.orientation
         MqttClientController.addListener(mqttTriggerDeviceGroupEventListener)
         pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
+        triggerVisitorSessionChange(pageView)
         applyEventTriggers(pageView.page.eventTriggers)
     }
 
@@ -267,10 +279,11 @@ class PageActivity : MuistiActivity() {
         val keyCodeUp = eventTrigger.keyUp
         val keyCodeDown = eventTrigger.keyDown
 
-        if(keyCodeDown != null) {
+        if (keyCodeDown != null) {
             bindKeyCodeEventListener(keyCodeDown, events, true)
         }
-        if(keyCodeUp != null) {
+
+        if (keyCodeUp != null) {
             bindKeyCodeEventListener(keyCodeUp, events, false)
         }
     }
@@ -280,7 +293,7 @@ class PageActivity : MuistiActivity() {
      *
      * @param eventTriggers event triggers to disable click views from
      */
-    fun disableClickEvents(eventTriggers: Array<ExhibitionPageEventTrigger>?) {
+    private fun disableClickEvents(eventTriggers: Array<ExhibitionPageEventTrigger>?) {
         eventTriggers?.forEach {
             val clickViewId = it.clickViewId
             if (clickViewId != null) {
@@ -409,6 +422,57 @@ class PageActivity : MuistiActivity() {
                 or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_FULLSCREEN
                 or View.SYSTEM_UI_FLAG_IMMERSIVE)
+    }
+
+    /**
+     * Triggers a visitor session change
+     *
+     * @param pageView page view
+     */
+    private fun triggerVisitorSessionChange(pageView: PageView) {
+        GlobalScope.launch {
+            prepareVisitorSessionChange(pageView)
+
+            runOnUiThread {
+                performVisitorSessionChange(pageView)
+            }
+        }
+    }
+
+    /**
+     * Executes prepare for visitor session change listeners
+     *
+     * @param pageView page view
+     */
+    private suspend fun prepareVisitorSessionChange(pageView: PageView) {
+        val pageActivity = this
+        val visitorSession = VisitorSessionContainer.getVisitorSession()
+        if (visitorSession != null) {
+            pageView.visitorSessionListeners.forEach {
+                it.prepareVisitorSessionChange(
+                    pageActivity = pageActivity,
+                    visitorSession = visitorSession
+                )
+            }
+        }
+    }
+
+    /**
+     * Executes perform for visitor session change listeners
+     *
+     * @param pageView page view
+     */
+    private fun performVisitorSessionChange(pageView: PageView) {
+        val pageActivity = this
+        val visitorSession = VisitorSessionContainer.getVisitorSession()
+        if (visitorSession != null) {
+            pageView.visitorSessionListeners.forEach {
+                it.performVisitorSessionChange(
+                    pageActivity = pageActivity,
+                    visitorSession = visitorSession
+                )
+            }
+        }
     }
 }
 

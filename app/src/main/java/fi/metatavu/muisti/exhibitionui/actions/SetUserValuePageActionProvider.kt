@@ -44,6 +44,9 @@ class SetUserValuePageActionProvider(properties: Array<ExhibitionPageEventProper
         val time = System.currentTimeMillis()
         val priority = 0L
 
+        VisitorSessionContainer.setVisitorSessionUserVariable(name = name, value = value)
+        pageActivity.triggerVisitorSessionChange()
+
         updateUserValueTaskRepository.insert(UpdateUserValueTask(
             sessionId = sessionId,
             time = time,
