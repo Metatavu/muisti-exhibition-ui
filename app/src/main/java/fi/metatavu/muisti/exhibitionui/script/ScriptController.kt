@@ -34,7 +34,6 @@ class ScriptController {
                         scope,
                         params.map { Context.javaToJS(it, scope) }.toTypedArray()
                     )
-                    // return Context.toString(jsResult)
                 }
             } finally {
                 Context.exit()

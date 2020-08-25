@@ -62,7 +62,15 @@ class PageViewFactory {
 
             if (root is ViewGroup) {
                 buildContext.pageLayoutView.children.forEach {
-                    val child = buildViewGroup(ComponentBuildContext(context = buildContext.context, parents = buildContext.parents.plus(root), page = buildContext.page, pageLayoutView = it, lifecycleListeners = buildContext.lifecycleListeners, visitorSessionListeners = buildContext.visitorSessionListeners))
+                    val child = buildViewGroup(ComponentBuildContext(
+                        context = buildContext.context,
+                        parents = buildContext.parents.plus(root),
+                        page = buildContext.page,
+                        pageLayoutView = it,
+                        lifecycleListeners = buildContext.lifecycleListeners,
+                        visitorSessionListeners = buildContext.visitorSessionListeners)
+                    )
+
                     if (child != null) {
                         root.addView(child)
                     }
