@@ -28,6 +28,7 @@ class PageViewFactory {
             componentFactories.add(RelativeLayoutComponentFactory())
             componentFactories.add(MapViewComponentFactory())
             componentFactories.add(MaterialTabLayoutComponentFactory())
+            componentFactories.add(WebViewComponentFactory())
         }
 
         /**

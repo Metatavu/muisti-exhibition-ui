@@ -263,7 +263,7 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
                 tab.text = tabData.label
                 view.addTab(tab)
 
-                val tabContentComponent = ImageViewComponentFactory().buildComponent(
+                val tabContentComponent = MediaViewComponentFactory().buildComponent(
                     ComponentBuildContext(
                         context = buildContext.context,
                         parents = buildContext.parents.plus(view),
