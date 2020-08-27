@@ -93,8 +93,19 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             "layout_toRightOf" -> setLayoutOf(view, property)
             "layout_gravity" -> setLayoutGravity(view, property.value)
             "background" -> setBackground(view, property.value)
+            "elevation" -> setElevation(view, property)
             else -> Log.d(ImageViewComponentFactory::javaClass.name, "Property ${property.name} not supported on ${view.javaClass.name} view")
         }
+    }
+
+    /**
+     * Returns color property value
+     *
+     * @param property property
+     * @return color property value
+     */
+    protected fun getColor(property: PageLayoutViewProperty): Int? {
+        return this.getColor(property.value)
     }
 
     /**
@@ -294,6 +305,18 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         val color = getColor(value)
         color ?: return
         view.setBackgroundColor(color)
+    }
+
+    /**
+     * Sets elevation
+     *
+     * @param view view
+     * @param property property
+     */
+    private fun setElevation(view: T, property: PageLayoutViewProperty) {
+        val px = stringToPx(property.value)
+        px ?: return
+        view.elevation = px
     }
 
     /**
