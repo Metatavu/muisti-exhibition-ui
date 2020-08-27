@@ -37,6 +37,8 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
                 "selectedTabIndicatorGravity" -> setSelectedTabIndicatorGravity(view, property)
                 "tabTextColorNormal" -> setTabTextColorNormal(view, property)
                 "tabTextColorSelected" -> setTabTextColorSelected(view, property)
+                "unboundedRipple" -> setUnboundedRipple(view, property)
+                "tabIndicatorFullWidth" -> setTabIndicatorFullWidth(view, property)
                 else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
@@ -126,6 +128,26 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
         if (color != null) {
             view.setTabTextColorSelected(color)
         }
+    }
+
+    /**
+     * Sets unbounded ripple
+     *
+     * @param view view
+     * @param property property
+     */
+    private fun setUnboundedRipple(view: MuistiTabLayout, property: PageLayoutViewProperty) {
+       view.setUnboundedRipple(property.value == "true")
+    }
+
+    /**
+     * Sets tab indicator full width
+     *
+     * @param view view
+     * @param property property
+     */
+    private fun setTabIndicatorFullWidth(view: MuistiTabLayout, property: PageLayoutViewProperty) {
+        view.isTabIndicatorFullWidth = property.value == "true"
     }
 
 }

@@ -14,6 +14,9 @@ class MaterialTabItemComponentFactory : AbstractComponentFactory<TabItem>() {
         get() = "MaterialTabItem"
 
     override fun buildComponent(buildContext: ComponentBuildContext): TabItem {
+        // TODO: Component's construction should be handled by the tab layout component but that
+        // TODO: would require bigger refactoring of the code, so for now we create the item manually
+
         val tabItem = TabItem(buildContext.context)
         setId(tabItem, buildContext.pageLayoutView)
 
