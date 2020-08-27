@@ -4,6 +4,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.JobIntentService
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
+import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import fi.metatavu.muisti.exhibitionui.pages.PageViewFactory
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
@@ -46,6 +47,7 @@ class ConstructPagesService : JobIntentService() {
 
             if (layout != null) {
                 val context = ExhibitionUIApplication.instance.applicationContext
+                context.setTheme(R.style.AppTheme)
                 val pageView = PageViewFactory.buildPageView(context, page, layout)
                 if (pageView != null) {
                     PageViewContainer.setPageView(pageId, pageView)
