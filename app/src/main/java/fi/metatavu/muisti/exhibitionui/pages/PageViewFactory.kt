@@ -1,7 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.pages
 
 import android.content.Context
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import fi.metatavu.muisti.exhibitionui.pages.components.*
@@ -28,6 +27,7 @@ class PageViewFactory {
             componentFactories.add(FrameLayoutComponentFactory())
             componentFactories.add(RelativeLayoutComponentFactory())
             componentFactories.add(MapViewComponentFactory())
+            componentFactories.add(MaterialTabLayoutComponentFactory())
         }
 
         /**

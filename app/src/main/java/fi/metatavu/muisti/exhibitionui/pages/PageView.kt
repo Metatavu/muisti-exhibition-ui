@@ -64,6 +64,37 @@ interface PageViewLifecycleListener {
     fun onDestroy ()
 }
 
+/**
+ * Adapter class for PageViewLifecycleListener interface
+ */
+open class PageViewLifecycleAdapter: PageViewLifecycleListener {
+
+    override fun onPageActivate(pageActivity: PageActivity) {
+    }
+
+    override fun onPageDeactivate(pageActivity: PageActivity) {
+    }
+
+    override fun onLowMemory() {
+    }
+
+    override fun onResume() {
+    }
+
+    override fun onPause() {
+    }
+
+    override fun onStop() {
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+    }
+
+    override fun onDestroy() {
+    }
+
+}
+
 
 /**
  * Interface that describes a page view session listener
