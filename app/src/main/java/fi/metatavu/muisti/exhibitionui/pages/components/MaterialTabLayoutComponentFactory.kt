@@ -4,8 +4,13 @@ import android.content.Context
 import android.graphics.Color
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import com.google.android.material.tabs.TabLayout
-import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import fi.metatavu.muisti.api.client.models.*
+import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleAdapter
+import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
 /**
  * Tab layout component factory
@@ -16,7 +21,9 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
 
     override fun buildComponent(buildContext: ComponentBuildContext): MuistiTabLayout {
         val tabLayout = MuistiTabLayout(buildContext.context)
-        setId(tabLayout, buildContext.pageLayoutView)
+        val pageLayoutView = buildContext.pageLayoutView
+
+        setId(tabLayout, pageLayoutView)
 
         val parent = buildContext.parents.last()
         tabLayout.layoutParams = getInitialLayoutParams(parent)
@@ -24,6 +31,8 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
         buildContext.pageLayoutView.properties.forEach {
             setProperty(buildContext, parent, tabLayout, it)
         }
+
+        initializeTabs(buildContext = buildContext, view = tabLayout, parent = parent)
 
         return tabLayout
     }
@@ -39,6 +48,7 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
                 "tabTextColorSelected" -> setTabTextColorSelected(view, property)
                 "unboundedRipple" -> setUnboundedRipple(view, property)
                 "tabIndicatorFullWidth" -> setTabIndicatorFullWidth(view, property)
+                "data" -> {}
                 else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
@@ -150,6 +160,157 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
         view.isTabIndicatorFullWidth = property.value == "true"
     }
 
+    /**
+     * Reads tab data
+     *
+     * @param buildContext build context
+     * @param property data property
+     * @return read data or null if reading fails
+     */
+    private fun readData(buildContext: ComponentBuildContext, property: PageLayoutViewProperty?): TabData? {
+        property ?: return null
+        val data = getResourceData(buildContext, property.value)
+
+        if (data.isNullOrEmpty()) {
+            return null
+        }
+
+        val moshi: Moshi = Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+
+        val jsonAdapter = moshi.adapter(TabData::class.java)
+
+        return jsonAdapter.fromJson(data)
+    }
+
+    /**
+     * Initializes tabs
+     *
+     * @param buildContext build context
+     * @param parent view parent
+     * @param view view
+     */
+    private fun initializeTabs(buildContext: ComponentBuildContext, parent: View, view: MuistiTabLayout) {
+        val data = readData(buildContext, buildContext.pageLayoutView.properties.find { it.name == "data" })
+
+        if (data != null) {
+            val tabContentComponents = constructTabContentComponents(
+                buildContext = buildContext,
+                data = data,
+                view = view
+            )
+
+            addTabChangeListener(
+                view = view,
+                tabContentComponents = tabContentComponents
+            )
+
+            initializeTabContentComponents(
+                buildContext = buildContext,
+                parent = parent,
+                data = data,
+                tabContentComponents = tabContentComponents
+            )
+        }
+
+    }
+
+    /**
+     * Adds listener for tab changes
+     *
+     * @param view view
+     * @param tabContentComponents tab content components
+     */
+    private fun addTabChangeListener(view: MuistiTabLayout, tabContentComponents: List<View>) {
+        view.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+            }
+
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                val position = tab?.position ?: 0
+                tabContentComponents.forEachIndexed { index, tabContentComponent ->
+                    run {
+                        if (index == position) {
+                            tabContentComponent.visibility = View.VISIBLE
+                        } else {
+                            tabContentComponent.visibility = View.GONE
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    /**
+     * Constructs tab content components
+     *
+     * @param buildContext build context
+     * @param view view
+     * @param data tabs data
+     * @return tab content components
+     */
+    private fun constructTabContentComponents(buildContext: ComponentBuildContext, view: MuistiTabLayout, data: TabData): List<View> {
+        val pageLayoutView = buildContext.pageLayoutView
+
+        return data.tabs.mapIndexed { index, tabData ->
+            run {
+                val tab = view.newTab()
+                tab.text = tabData.label
+                view.addTab(tab)
+
+                val tabContentComponent = ImageViewComponentFactory().buildComponent(
+                    ComponentBuildContext(
+                        context = buildContext.context,
+                        parents = buildContext.parents.plus(view),
+                        pageLayoutView = PageLayoutView(
+                            id = "${pageLayoutView.id}/$index",
+                            children = emptyArray(),
+                            properties = tabData.properties,
+                            name = "${pageLayoutView.name}/$index",
+                            widget = PageLayoutWidgetType.mediaView
+                        ),
+                        page = buildContext.page.copy(
+                            resources = tabData.resources
+                        ),
+                        lifecycleListeners = buildContext.lifecycleListeners,
+                        visitorSessionListeners = buildContext.visitorSessionListeners
+                    )
+                )
+
+                tabContentComponent
+            }
+        }
+    }
+
+    /**
+     * Initializes tab content components
+     *
+     * @param buildContext build context
+     * @param parent view parent
+     * @param data tabs data
+     * @param tabContentComponents tab content components
+     */
+    private fun initializeTabContentComponents(buildContext: ComponentBuildContext, parent: View, data: TabData, tabContentComponents: List<View>) {
+        buildContext.addLifecycleListener(object: PageViewLifecycleAdapter() {
+            override fun onPageActivate(pageActivity: PageActivity) {
+                val target = parent.findViewWithTag<ViewGroup>(data.contentContainerId)
+                if (target != null) {
+                    tabContentComponents.forEach {
+                        target.addView(it)
+                        it.visibility = View.GONE
+                    }
+
+                    tabContentComponents.first().visibility = View.VISIBLE
+                }
+            }
+        })
+    }
+
 }
 
 /**
@@ -199,4 +360,68 @@ class MuistiTabLayout(context: Context): TabLayout(context) {
         return colors.getColorForState(View.SELECTED_STATE_SET, Color.BLACK)
     }
 
+}
+
+/**
+ * Moshi data class for reading serialized tab data
+ *
+ * @property contentContainerId content container layout element id
+ * @property tabs tab data items
+ */
+data class TabData (
+
+    val contentContainerId: String,
+    val tabs: Array<TabDataTab>
+
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as TabData
+
+        if (contentContainerId != other.contentContainerId) return false
+        if (!tabs.contentEquals(other.tabs)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = contentContainerId.hashCode()
+        result = 31 * result + tabs.contentHashCode()
+        return result
+    }
+}
+
+/**
+ * Moshi data class for reading serialized tab item data
+ *
+ * @property label tab label
+ * @property properties tab properties
+ * @property resources tab resources
+ */
+data class TabDataTab (
+    val label: String,
+    val properties: Array<PageLayoutViewProperty>,
+    val resources: Array<ExhibitionPageResource>
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as TabDataTab
+
+        if (label != other.label) return false
+        if (!properties.contentEquals(other.properties)) return false
+        if (!resources.contentEquals(other.resources)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = label.hashCode()
+        result = 31 * result + properties.contentHashCode()
+        result = 31 * result + resources.contentHashCode()
+        return result
+    }
 }
