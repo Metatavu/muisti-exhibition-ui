@@ -16,7 +16,7 @@ import fi.metatavu.muisti.exhibitionui.views.PageActivity
 class WebViewContainer(buildContext: ComponentBuildContext): FrameLayout(buildContext.context)
 
 /**
- * Component factory for image components
+ * Component factory for web view components
  */
 class WebViewComponentFactory : AbstractComponentFactory<WebViewContainer>() {
     override val name: String
