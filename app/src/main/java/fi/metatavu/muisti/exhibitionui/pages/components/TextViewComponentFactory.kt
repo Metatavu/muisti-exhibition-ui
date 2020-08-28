@@ -17,7 +17,7 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
 
     override fun buildComponent(buildContext: ComponentBuildContext): TextView {
         val textView = TextView(buildContext.context)
-        setId(textView, buildContext.pageLayoutView)
+        setupView(buildContext, textView)
 
         val parent = buildContext.parents.lastOrNull()
         textView.layoutParams = getInitialLayoutParams(parent)

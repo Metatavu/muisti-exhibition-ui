@@ -18,7 +18,8 @@ class FlowTextViewComponentFactory : AbstractComponentFactory<MuistiFlowTextView
 
     override fun buildComponent(buildContext: ComponentBuildContext): MuistiFlowTextView {
         val flowTextView = MuistiFlowTextView(buildContext.context)
-        setId(flowTextView, buildContext.pageLayoutView)
+        setupView(buildContext, flowTextView)
+
         flowTextView.setSpacingMultiplier(1f)
 
         val parent = buildContext.parents.lastOrNull()

@@ -15,7 +15,7 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
 
     override fun buildComponent(buildContext: ComponentBuildContext): ImageView {
         val imageView = ImageView(buildContext.context)
-        setId(imageView, buildContext.pageLayoutView)
+        setupView(buildContext, imageView)
 
         val parent = buildContext.parents.lastOrNull()
         imageView.layoutParams = getInitialLayoutParams(parent)

@@ -37,7 +37,7 @@ class MapViewComponentFactory: AbstractComponentFactory<MapComponentContainer>()
 
     override fun buildComponent(buildContext: ComponentBuildContext): MapComponentContainer {
         val componentContainer = MapComponentContainer(buildContext)
-        setId(componentContainer, buildContext.pageLayoutView)
+        setupView(buildContext, componentContainer)
 
         val parent = buildContext.parents.lastOrNull()
         componentContainer.layoutParams = getInitialLayoutParams(parent)
