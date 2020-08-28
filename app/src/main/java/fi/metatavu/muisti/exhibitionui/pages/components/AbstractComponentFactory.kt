@@ -174,6 +174,34 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * Returns resource data for given property
      *
      * @param buildContext build context
+     * @param propertyName property's name
+     * @return resource value for given property
+     */
+    protected fun getPropertyResourceData(buildContext: ComponentBuildContext, propertyName: String): String? {
+        val property = buildContext.pageLayoutView.properties.find { it.name == propertyName } ?: return null
+
+        if (property.value.startsWith("@resources/")) {
+            return getResourceData(buildContext, property)
+        }
+
+        return property.value
+    }
+
+    /**
+     * Returns resource data for given property
+     *
+     * @param buildContext build context
+     * @param property property
+     * @return resource value for given property
+     */
+    protected fun getResourceData(buildContext: ComponentBuildContext, property: PageLayoutViewProperty): String? {
+        return getResourceData(buildContext.page.resources, property?.value)
+    }
+
+    /**
+     * Returns resource data for given property
+     *
+     * @param buildContext build context
      * @param value property value
      * @return resource value for given property
      */
