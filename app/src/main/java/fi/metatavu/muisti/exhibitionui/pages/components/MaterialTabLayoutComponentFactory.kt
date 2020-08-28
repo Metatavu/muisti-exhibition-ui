@@ -42,6 +42,7 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
                 "tabGravity" -> setTabGravity(view, property)
                 "selectedTabIndicatorColor" -> setSelectedTabIndicatorColor(view, property)
                 "selectedTabIndicatorGravity" -> setSelectedTabIndicatorGravity(view, property)
+                "selectedTabIndicatorHeight" -> setSelectedTabIndicatorHeight(view, property)
                 "tabTextColorNormal" -> setTabTextColorNormal(view, property)
                 "tabTextColorSelected" -> setTabTextColorSelected(view, property)
                 "unboundedRipple" -> setUnboundedRipple(view, property)
@@ -110,6 +111,18 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
             "stretch" -> view.setSelectedTabIndicatorGravity(TabLayout.INDICATOR_GRAVITY_STRETCH)
             else -> Log.d(this.javaClass.name, "Unknown tab gravity ${property.value}")
         }
+    }
+
+    /**
+     * Sets selected tab indicator height
+     *
+     * @param view view
+     * @param property property
+     */
+    private fun setSelectedTabIndicatorHeight(view: MuistiTabLayout, property: PageLayoutViewProperty) {
+        val px = stringToPx(property.value)
+        px ?: return
+        view.setSelectedTabIndicatorHeight(px.toInt())
     }
 
     /**
