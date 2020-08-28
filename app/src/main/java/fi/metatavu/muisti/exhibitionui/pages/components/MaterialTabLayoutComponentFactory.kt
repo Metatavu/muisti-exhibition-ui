@@ -163,14 +163,10 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
     /**
      * Reads tab data
      *
-     * @param buildContext build context
-     * @param property data property
+     * @param data data
      * @return read data or null if reading fails
      */
-    private fun readData(buildContext: ComponentBuildContext, property: PageLayoutViewProperty?): TabData? {
-        property ?: return null
-        val data = getResourceData(buildContext, property.value)
-
+    private fun readData(data: String?): TabData? {
         if (data.isNullOrEmpty()) {
             return null
         }
@@ -192,28 +188,26 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
      * @param view view
      */
     private fun initializeTabs(buildContext: ComponentBuildContext, parent: View, view: MuistiTabLayout) {
-        val data = readData(buildContext, buildContext.pageLayoutView.properties.find { it.name == "data" })
+        val data = readData(getPropertyResourceData(buildContext, "data")) ?: return
+        val contentContainerId = getPropertyResourceData(buildContext, "contentContainerId") ?: return
 
-        if (data != null) {
-            val tabContentComponents = constructTabContentComponents(
-                buildContext = buildContext,
-                data = data,
-                view = view
-            )
+        val tabContentComponents = constructTabContentComponents(
+            buildContext = buildContext,
+            data = data,
+            view = view
+        )
 
-            addTabChangeListener(
-                view = view,
-                tabContentComponents = tabContentComponents
-            )
+        addTabChangeListener(
+            view = view,
+            tabContentComponents = tabContentComponents
+        )
 
-            initializeTabContentComponents(
-                buildContext = buildContext,
-                parent = parent,
-                data = data,
-                tabContentComponents = tabContentComponents
-            )
-        }
-
+        initializeTabContentComponents(
+            buildContext = buildContext,
+            parent = parent,
+            contentContainerId = contentContainerId,
+            tabContentComponents = tabContentComponents
+        )
     }
 
     /**
@@ -292,13 +286,12 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
      *
      * @param buildContext build context
      * @param parent view parent
-     * @param data tabs data
      * @param tabContentComponents tab content components
      */
-    private fun initializeTabContentComponents(buildContext: ComponentBuildContext, parent: View, data: TabData, tabContentComponents: List<View>) {
+    private fun initializeTabContentComponents(buildContext: ComponentBuildContext, parent: View, contentContainerId: String, tabContentComponents: List<View>) {
         buildContext.addLifecycleListener(object: PageViewLifecycleAdapter() {
             override fun onPageActivate(pageActivity: PageActivity) {
-                val target = parent.findViewWithTag<ViewGroup>(data.contentContainerId)
+                val target = parent.findViewWithTag<ViewGroup>(contentContainerId)
                 if (target != null) {
                     tabContentComponents.forEach {
                         target.addView(it)
@@ -365,12 +358,10 @@ class MuistiTabLayout(context: Context): TabLayout(context) {
 /**
  * Moshi data class for reading serialized tab data
  *
- * @property contentContainerId content container layout element id
  * @property tabs tab data items
  */
 data class TabData (
 
-    val contentContainerId: String,
     val tabs: Array<TabDataTab>
 
 ) {
@@ -380,16 +371,13 @@ data class TabData (
 
         other as TabData
 
-        if (contentContainerId != other.contentContainerId) return false
         if (!tabs.contentEquals(other.tabs)) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = contentContainerId.hashCode()
-        result = 31 * result + tabs.contentHashCode()
-        return result
+        return tabs.contentHashCode()
     }
 }
 
