@@ -15,7 +15,7 @@ class FrameLayoutComponentFactory : AbstractComponentFactory<FrameLayout>() {
 
     override fun buildComponent(buildContext: ComponentBuildContext): FrameLayout {
         val frameLayout = FrameLayout(buildContext.context)
-        setId(frameLayout, buildContext.pageLayoutView)
+        setupView(buildContext, frameLayout)
 
         val parent = buildContext.parents.lastOrNull()
         frameLayout.layoutParams = getInitialLayoutParams(parent)

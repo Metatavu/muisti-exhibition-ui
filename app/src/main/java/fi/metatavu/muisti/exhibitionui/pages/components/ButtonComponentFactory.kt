@@ -25,7 +25,7 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
 
     override fun buildComponent(buildContext: ComponentBuildContext): Button {
         val button = Button(buildContext.context)
-        setId(button, buildContext.pageLayoutView)
+        setupView(buildContext, button)
 
         val parent = buildContext.parents.lastOrNull()
         button.layoutParams = getInitialLayoutParams(parent)
@@ -33,38 +33,6 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
         buildContext.pageLayoutView.properties.forEach {
             this.setProperty(buildContext, parent, button, it )
         }
-
-        buildContext.addVisitorSessionListener(object : PageViewVisitorSessionListener {
-
-            override suspend fun prepareVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
-                prepareBackgroundImage(visitorSession)
-            }
-
-            override fun performVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
-                updateBackgroundImage(visitorSession)
-            }
-
-            /**
-             * Prepares background image for scripted resources
-             */
-            private fun prepareBackgroundImage(visitorSession: VisitorSession) {
-                val url = getUrl(getScriptedResource(buildContext,  visitorSession, "backgroundImage", false))
-                if (url != null) {
-                    getResourceOfflineFile(buildContext, url)
-                }
-            }
-
-            /**
-             * Updates background image for scripted resources
-             */
-            private fun updateBackgroundImage(visitorSession: VisitorSession) {
-                val url = getUrl(getScriptedResource(buildContext, visitorSession,"backgroundImage", false))
-                if (url != null) {
-                    setBackgroundImage(buildContext, button, url)
-                }
-            }
-
-        })
 
         return button
     }
@@ -80,7 +48,6 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
                 "textStyle" -> setTextStyle(view, property)
                 "allCaps" -> setAllCaps(view, property.value)
                 "gravity" -> setGravity(view, property.value)
-                "backgroundImage" -> setBackgroundImage(buildContext, view, property.value)
                 else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
@@ -99,49 +66,6 @@ class ButtonComponentFactory : AbstractComponentFactory<Button>() {
         val color = getColor(value)
         color ?: return
         view.setTextColor(color)
-    }
-
-    /**
-     * Sets background image.
-     *
-     * On scripted resources this method is does not do anything because scripted resources are
-     * handled by visitor session change events
-     *
-     * @param buildContext build context
-     * @param view view component
-     * @param value value
-     */
-    private fun setBackgroundImage(buildContext: ComponentBuildContext, view: Button, value: String?) {
-        val resource = getResource(buildContext, value)
-        val scripted = resource?.scripted ?: false
-
-        if (scripted) {
-            return
-        }
-
-        val resourceData = resource?.data
-
-        val url = getUrl(resourceData ?: value)
-        url ?: return
-
-        setBackgroundImage(buildContext = buildContext, view = view, url = url)
-    }
-
-    /**
-     * Sets background image
-     *
-     * @param buildContext build context
-     * @param view view component
-     * @param url url
-     */
-    private fun setBackgroundImage(buildContext: ComponentBuildContext, view: Button, url: URL?) {
-        val offlineFile = getResourceOfflineFile(buildContext = buildContext, url = url)
-        offlineFile ?: return
-
-        val bitmap = BitmapFactory.decodeFile(offlineFile.absolutePath)
-        if (bitmap != null) {
-            view.background = BitmapDrawable(Resources.getSystem(), bitmap)
-        }
     }
 
     /**

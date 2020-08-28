@@ -24,7 +24,7 @@ class WebViewComponentFactory : AbstractComponentFactory<WebViewContainer>() {
 
     override fun buildComponent(buildContext: ComponentBuildContext): WebViewContainer {
         val container = WebViewContainer(buildContext)
-        setId(container, buildContext.pageLayoutView)
+        setupView(buildContext, container)
         val parent = buildContext.parents.lastOrNull()
         val html = readHtml(buildContext, buildContext.pageLayoutView.properties.find { it.name == "src" })
 

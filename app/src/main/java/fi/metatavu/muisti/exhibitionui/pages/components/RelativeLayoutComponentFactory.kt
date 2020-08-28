@@ -15,7 +15,7 @@ class RelativeLayoutComponentFactory : AbstractComponentFactory<RelativeLayout>(
 
     override fun buildComponent(buildContext: ComponentBuildContext): RelativeLayout {
         val frameLayout = RelativeLayout(buildContext.context)
-        setId(frameLayout, buildContext.pageLayoutView)
+        setupView(buildContext, frameLayout)
 
         val parent = buildContext.parents.lastOrNull()
         frameLayout.layoutParams = getInitialLayoutParams(parent)

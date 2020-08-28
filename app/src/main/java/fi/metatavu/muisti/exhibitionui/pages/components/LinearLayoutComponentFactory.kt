@@ -15,7 +15,7 @@ class LinearLayoutComponentFactory : AbstractComponentFactory<LinearLayout>() {
 
     override fun buildComponent(buildContext: ComponentBuildContext): LinearLayout {
         val linearLayout = LinearLayout(buildContext.context)
-        setId(linearLayout, buildContext.pageLayoutView)
+        setupView(buildContext, linearLayout)
 
         val parent = buildContext.parents.last()
         linearLayout.layoutParams = getInitialLayoutParams(parent)

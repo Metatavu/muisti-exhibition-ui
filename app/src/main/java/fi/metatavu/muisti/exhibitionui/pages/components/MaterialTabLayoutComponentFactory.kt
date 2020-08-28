@@ -21,9 +21,7 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
 
     override fun buildComponent(buildContext: ComponentBuildContext): MuistiTabLayout {
         val tabLayout = MuistiTabLayout(buildContext.context)
-        val pageLayoutView = buildContext.pageLayoutView
-
-        setId(tabLayout, pageLayoutView)
+        setupView(buildContext, tabLayout)
 
         val parent = buildContext.parents.last()
         tabLayout.layoutParams = getInitialLayoutParams(parent)

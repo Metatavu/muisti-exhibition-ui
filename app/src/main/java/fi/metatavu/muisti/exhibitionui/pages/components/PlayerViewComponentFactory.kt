@@ -27,7 +27,7 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerView>() {
 
     override fun buildComponent(buildContext: ComponentBuildContext): PlayerView {
         val playerView = PlayerView(buildContext.context)
-        setId(playerView, buildContext.pageLayoutView)
+        setupView(buildContext, playerView)
 
         val parent = buildContext.parents.lastOrNull()
         playerView.layoutParams = getInitialLayoutParams(parent)
