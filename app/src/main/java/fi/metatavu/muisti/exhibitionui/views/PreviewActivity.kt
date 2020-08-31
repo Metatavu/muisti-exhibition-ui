@@ -27,7 +27,6 @@ class PreviewActivity : MuistiActivity() {
         mViewModel = ViewModelProvider(this).get(PreviewViewModel::class.java)
 
         setContentView(R.layout.activity_preview)
-        setSupportActionBar(toolbar)
 
         previewPageButton.setOnClickListener(onPreviewPageButtonClick)
         settingsPageButton.setOnClickListener(onSettingsPageButtonClick)
