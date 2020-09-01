@@ -19,10 +19,7 @@ import android.view.ViewGroup.MarginLayoutParams
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
-import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
-import fi.metatavu.muisti.api.client.models.PageLayoutView
-import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
-import fi.metatavu.muisti.api.client.models.VisitorSession
+import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.pages.PageViewVisitorSessionListener
 import fi.metatavu.muisti.exhibitionui.script.ScriptController
@@ -187,11 +184,39 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * Returns resource data for given property
      *
      * @param buildContext build context
+     * @param propertyName property's name
+     * @return resource value for given property
+     */
+    protected fun getPropertyResourceType(buildContext: ComponentBuildContext, propertyName: String): String? {
+        val property = buildContext.pageLayoutView.properties.find { it.name == propertyName } ?: return null
+
+        if (property.value.startsWith("@resources/")) {
+            return getResourceData(buildContext, property)
+        }
+
+        return property.value
+    }
+
+    /**
+     * Returns resource data for given property
+     *
+     * @param buildContext build context
      * @param property property
      * @return resource value for given property
      */
     protected fun getResourceData(buildContext: ComponentBuildContext, property: PageLayoutViewProperty): String? {
         return getResourceData(buildContext.page.resources, property?.value)
+    }
+
+    /**
+     * Returns resource type for given property
+     *
+     * @param buildContext build context
+     * @param property property
+     * @return resource type for given property
+     */
+    protected fun getResourceType(buildContext: ComponentBuildContext, property: PageLayoutViewProperty): ExhibitionPageResourceType? {
+        return getResourceType(buildContext.page.resources, property?.value)
     }
 
     /**
@@ -215,6 +240,18 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         val resource = getResource(resources, value)
         resource ?: return null
         return resource.data
+    }
+
+    /**
+     * Returns resource type for given property
+     *
+     * @param value property value
+     * @return resource type for given property
+     */
+    protected fun getResourceType(resources: Array<ExhibitionPageResource>, value: String?): ExhibitionPageResourceType? {
+        val resource = getResource(resources, value)
+        resource ?: return null
+        return resource.type
     }
 
     /**
@@ -284,7 +321,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     protected fun getScriptedResource(buildContext: ComponentBuildContext, visitorSession: VisitorSession, propertyName: String, returnNotScripted: Boolean): String? {
         val propertyValue = buildContext.pageLayoutView.properties.firstOrNull { it.name == propertyName }?.value ?: return null
         val resource = getResource(buildContext.page.resources, propertyValue) ?: return null
-        val scripted = resource.scripted ?: false
+        val scripted = isScriptedResource(resource)
 
         if (!scripted) {
             if (returnNotScripted) {
@@ -295,6 +332,32 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         }
 
         return evaluateResourceScript(resource = resource, visitorSession = visitorSession)
+    }
+
+    /**
+     * Returns whether resource is considered to be scripted
+     *
+     * @param resource resource
+     * @return whether resource is considered to be scripted
+     */
+    private fun isScriptedResource(resource: ExhibitionPageResource?): Boolean {
+        resource ?: return false
+        return isScriptedResourceMode(resource.mode)
+    }
+
+    /**
+     * Returns whether resource mode is considered to be scripted
+     *
+     * @param mode resource mode
+     * @return whether resource mode is considered to be scripted
+     */
+    private fun isScriptedResourceMode(mode: PageResourceMode?): Boolean {
+        mode ?: return false
+        return when (mode) {
+            PageResourceMode.dynamic -> true
+            PageResourceMode.scripted -> true
+            else -> false
+        }
     }
 
     /**
@@ -366,7 +429,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      */
     private fun evaluateResourceScript(resource: ExhibitionPageResource?, visitorSession: VisitorSession): String? {
         resource ?: return null
-        val scripted = resource.scripted ?: false
+        val scripted = isScriptedResource(resource)
         val data = resource.data
 
         if (!scripted) {
@@ -403,7 +466,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      */
     private fun setBackgroundImage(buildContext: ComponentBuildContext, view: View, value: String?) {
         val resource = getResource(buildContext, value)
-        val scripted = resource?.scripted ?: false
+        val scripted = isScriptedResource(resource)
 
         if (scripted) {
             return

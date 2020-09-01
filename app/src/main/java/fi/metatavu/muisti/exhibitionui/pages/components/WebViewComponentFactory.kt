@@ -6,6 +6,7 @@ import android.widget.FrameLayout
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleAdapter
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
+import fi.metatavu.muisti.api.client.models.ExhibitionPageResourceType
 
 /**
  * Component container Web View
@@ -26,13 +27,20 @@ class WebViewComponentFactory : AbstractComponentFactory<WebViewContainer>() {
         val container = WebViewContainer(buildContext)
         setupView(buildContext, container)
         val parent = buildContext.parents.lastOrNull()
-        val html = readHtml(buildContext, buildContext.pageLayoutView.properties.find { it.name == "src" })
+
+        val srcProperty = buildContext.pageLayoutView.properties.firstOrNull { it.name == "src" }
+
+        val data = readData(buildContext = buildContext, property = srcProperty)
+        val type = readType(buildContext = buildContext, property = srcProperty)
 
         buildContext.addLifecycleListener(object: PageViewLifecycleAdapter() {
+            @SuppressLint("SetJavaScriptEnabled")
             override fun onPageActivate(pageActivity: PageActivity) {
                 val view = WebView(buildContext.context)
-                if (html != null) {
-                    view.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
+                if (data != null) {
+                    val contentType = getContentType(type)
+                    view.loadDataWithBaseURL(null, data, contentType, "UTF-8", null)
+                    view.settings.javaScriptEnabled = true
                 }
 
                 container.addView(view)
@@ -49,13 +57,13 @@ class WebViewComponentFactory : AbstractComponentFactory<WebViewContainer>() {
     }
 
     /**
-     * Reads HTML data
+     * Reads view data
      *
      * @param buildContext build context
      * @param property data property
      * @return read data or null if reading fails
      */
-    private fun readHtml(buildContext: ComponentBuildContext, property: PageLayoutViewProperty?): String? {
+    private fun readData(buildContext: ComponentBuildContext, property: PageLayoutViewProperty?): String? {
         property ?: return null
         val data = getResourceData(buildContext, property.value)
 
@@ -64,6 +72,32 @@ class WebViewComponentFactory : AbstractComponentFactory<WebViewContainer>() {
         }
 
         return data
+    }
+
+    /**
+     * Reads view data type
+     *
+     * @param buildContext build context
+     * @param property data property
+     * @return read data type or null if reading fails
+     */
+    private fun readType(buildContext: ComponentBuildContext, property: PageLayoutViewProperty?): ExhibitionPageResourceType? {
+        property ?: return null
+        return getResourceType(buildContext, property)
+    }
+
+    /**
+     * Returns content type for given resource type
+     *
+     * @param resourceType resource type
+     * @return content type
+     */
+    private fun getContentType(resourceType: ExhibitionPageResourceType?): String {
+        if (resourceType == ExhibitionPageResourceType.svg) {
+            return "image/svg+xml"
+        }
+
+        return "text/html"
     }
 
 }
