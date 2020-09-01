@@ -4,6 +4,7 @@ import android.util.Log
 import android.webkit.WebView
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventActionType
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventProperty
+import fi.metatavu.muisti.exhibitionui.pages.components.WebViewContainer
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
 /**
@@ -35,7 +36,7 @@ class ExecuteWebScriptPageActionProvider(properties: Array<ExhibitionPageEventPr
             return
         }
 
-        if (webView !is WebView) {
+        if (webView !is WebViewContainer) {
             Log.d( javaClass.name,"webView $webViewId is not a WebView")
             return
         }
