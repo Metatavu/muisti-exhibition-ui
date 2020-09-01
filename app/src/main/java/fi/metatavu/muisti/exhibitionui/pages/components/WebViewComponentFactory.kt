@@ -13,6 +13,8 @@ import fi.metatavu.muisti.api.client.models.ExhibitionPageResourceType
  * Component container Web View
  *
  * @param buildContext Component build context
+ * @param data view data
+ * @param contentType content type
  */
 @SuppressLint("ViewConstructor")
 class WebViewContainer(buildContext: ComponentBuildContext, val data: String?, val contentType: String): FrameLayout(buildContext.context) {
@@ -25,7 +27,6 @@ class WebViewContainer(buildContext: ComponentBuildContext, val data: String?, v
             override fun onPageActivate(pageActivity: PageActivity) {
                 val view = WebView(buildContext.context)
                 if (data != null) {
-                    // val contentType = getContentType(type)
                     view.loadDataWithBaseURL(null, data, contentType, "UTF-8", null)
                     view.settings.javaScriptEnabled = true
                 }
