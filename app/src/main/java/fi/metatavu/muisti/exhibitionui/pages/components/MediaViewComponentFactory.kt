@@ -16,11 +16,11 @@ class MediaViewComponentFactory : AbstractComponentFactory<View>() {
         val srcProperty = buildContext.pageLayoutView.properties.firstOrNull { it.name == "src" }
         val srcResource = getResource(buildContext.page.resources, srcProperty?.value)
 
-        when (srcResource?.type) {
+        return when (srcResource?.type) {
             ExhibitionPageResourceType.svg,
-            ExhibitionPageResourceType.html -> return WebViewComponentFactory().buildComponent(buildContext)
-            ExhibitionPageResourceType.video -> return PlayerViewComponentFactory().buildComponent(buildContext)
-            else -> return ImageViewComponentFactory().buildComponent(buildContext)
+            ExhibitionPageResourceType.html -> WebViewComponentFactory().buildComponent(buildContext)
+            ExhibitionPageResourceType.video -> PlayerViewComponentFactory().buildComponent(buildContext)
+            else -> ImageViewComponentFactory().buildComponent(buildContext)
         }
     }
 
