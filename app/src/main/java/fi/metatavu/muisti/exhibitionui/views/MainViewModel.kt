@@ -4,6 +4,9 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
+import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
+import fi.metatavu.muisti.exhibitionui.persistence.dao.PageDao
+import fi.metatavu.muisti.exhibitionui.persistence.repository.PageRepository
 import java.lang.Exception
 import java.util.*
 
@@ -16,6 +19,8 @@ import java.util.*
  * @param application application instance
  */
 class MainViewModel(application: Application): AndroidViewModel(application) {
+
+    private val pageRepository: PageRepository = PageRepository(ExhibitionUIDatabase.getDatabase().pageDao())
 
     /**
      * Logs the visitor in
@@ -49,12 +54,18 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
      *
      * @return Id of the page that has been set as the front page for the device
      */
-    suspend fun getFrontPage(exhibitionId: UUID, deviceId: UUID) : UUID?{
+    suspend fun getFrontPage(exhibitionId: UUID, deviceId: UUID) : UUID? {
+        // TODO: Resolve locale
+        return pageRepository.findIndexPage(locale = "fi")?.pageId
+
+        /**
         return try {
             MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId).indexPageId
         } catch (e: Exception) {
             Log.e(javaClass.name, "Failed to get front page or device: $deviceId")
             null
         }
+        return null
+         **/
     }
 }

@@ -29,6 +29,12 @@ data class Page (
     val name: String,
 
     @NonNull
+    val locale: String,
+
+    @NonNull
+    var orderNumber: Int,
+
+    @NonNull
     @TypeConverters(UUIDConverter::class)
     val layoutId: UUID,
 

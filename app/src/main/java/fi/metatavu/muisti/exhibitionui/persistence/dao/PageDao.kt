@@ -28,6 +28,16 @@ interface PageDao {
     suspend fun findByPageId(pageId: UUID): Page?
 
     /**
+     * Finds a page by order number and locale
+     *
+     * @param locale locale
+     * @param orderNumber order number
+     * @return found page or null if not found
+     */
+    @Query("SELECT * FROM Page WHERE orderNumber = :orderNumber AND locale = :locale")
+    suspend fun findByOrderNumberAndLocale(orderNumber: Int, locale: String): Page?
+
+    /**
      * Lists all pages
      *
      * @return list of all pages from the database

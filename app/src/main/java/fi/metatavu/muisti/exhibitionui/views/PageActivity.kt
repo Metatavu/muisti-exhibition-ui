@@ -150,6 +150,16 @@ class PageActivity : MuistiActivity() {
     }
 
     /**
+     * Finds a view with tag
+     *
+     * @param tag tag
+     * @return view or null if not found
+     */
+    fun findView(tag: String?): View? {
+        return super.findViewWithTag(tag)
+    }
+
+    /**
      * Checks keycode listeners list and triggers the listeners with matching keyCode
      *
      * @param keyCode keycode of the button pressed
