@@ -13,6 +13,7 @@ import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import fi.metatavu.muisti.exhibitionui.services.*
 import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
+import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.lang.Exception
@@ -50,11 +51,7 @@ class ExhibitionUIApplication : Application() {
             for (antenna in antennas) {
                 val topic = "${BuildConfig.MQTT_BASE_TOPIC}/${toAntennaPath(antenna)}"
                 MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
-                    if (it.strength > 35) {
-                        if (VisitorSessionContainer.getVisitorSessionId() == null) {
-                            visitorLogin(it.tag)
-                        }
-                    }
+                    handleProximityUpdate(it)
                 })
             }
         }
@@ -64,6 +61,20 @@ class ExhibitionUIApplication : Application() {
         super.onCreate()
         MuistiMqttService()
         startProximityListening()
+    }
+
+    private fun handleProximityUpdate(proximityUpdate: MqttProximityUpdate){
+        if (VisitorSessionContainer.getVisitorSessionId() == null && proximityUpdate.strength > 45) {
+            // TODO check login threshold from antenna
+            if (proximityUpdate.strength > 45) {
+                visitorLogin(proximityUpdate.tag)
+            }
+        } else {
+            // TODO check exit threshold from antenna
+            if (proximityUpdate.strength > 25) {
+                visitorTagDetection(proximityUpdate.tag)
+            }
+        }
     }
 
     /**
@@ -144,10 +155,64 @@ class ExhibitionUIApplication : Application() {
                     val visitor = findVisitorWithUserId(exhibitionId, visitorSession.visitorIds[0])
                     if(visitor != null){
                         VisitorSessionContainer.addCurrentVisitor(visitor)
+                        restartLogoutTimer()
                     }
                     VisitorSessionContainer.setVisitorSession(visitorSession)
                 }
             }
+        }
+    }
+
+    /**
+     * Checks if detected tag belongs to the current session and resets logout timer
+     *
+     * @param tagId tagId to check for
+     */
+    private fun visitorTagDetection(tagId: String) = GlobalScope.launch {
+        val exhibitionId = DeviceSettings.getExhibitionId()
+
+        if (exhibitionId != null) {
+            val existingSession = findExistingSession(exhibitionId, tagId)
+
+            if (existingSession != null && existingSession.id == VisitorSessionContainer.getVisitorSession()?.id) {
+                restartLogoutTimer()
+            }
+        }
+    }
+
+    /**
+     * Resets logout timer
+     */
+    private fun restartLogoutTimer() {
+        handler.removeCallbacksAndMessages("logout")
+
+        // TODO use logout timing from API
+        handler.postDelayed({
+            logout()
+        },"logout", 20000)
+        handler.postDelayed({
+            logoutWarning()
+        },"logout", 10000)
+    }
+
+    /**
+     * Logs out the current visitor session
+     */
+    private fun logout() {
+        VisitorSessionContainer.setVisitorSession(null)
+        val activity = getCurrentActivity()
+        if (activity is MuistiActivity) {
+            activity.startMainActivity()
+        }
+    }
+
+    /**
+     * Logs out the current visitor session
+     */
+    private fun logoutWarning() {
+        val activity = getCurrentActivity()
+        if (activity is MuistiActivity) {
+            activity.logoutWarning(20000 - 10000)
         }
     }
 

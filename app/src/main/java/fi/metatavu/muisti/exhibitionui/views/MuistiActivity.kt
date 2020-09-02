@@ -7,22 +7,32 @@ import android.os.Handler
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Pair
+import android.widget.Toast
 import fi.metatavu.muisti.exhibitionui.BuildConfig
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.pages.PageView
 import kotlinx.android.synthetic.main.activity_page.*
 import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import java.util.*
+import kotlin.math.max
+import android.os.CountDownTimer
+import androidx.core.app.ComponentActivity.ExtraData
+import androidx.core.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+
+
 
 /**
  * Muisti activity abstract class
  */
 abstract class MuistiActivity : AppCompatActivity() {
 
-    private var settingsClickCOunter = 0
+    private var settingsClickCounter = 0
+    private var logoutWarningToast: Toast? = null
     private val clickCounterHandler = Handler()
     protected var currentPageView: PageView? = null
     val transitionElements: MutableList<View> = mutableListOf()
+
 
     /**
      * Starts listening for index button click
@@ -85,7 +95,9 @@ abstract class MuistiActivity : AppCompatActivity() {
         } else {
             startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle())
         }
-        finish()
+
+        val x = max(window.exitTransition?.duration ?: 0, window.enterTransition?.duration  ?: 0)
+        clickCounterHandler.postDelayed({finish()}, x)
     }
 
     /**
@@ -120,10 +132,29 @@ abstract class MuistiActivity : AppCompatActivity() {
     /**
      * Starts Main Activity
      */
-    private fun startMainActivity(){
+    fun startMainActivity() {
         val intent = Intent(this, MainActivity::class.java)
         VisitorSessionContainer.setVisitorSession(null)
         this.startActivity(intent)
+    }
+
+    /**
+     * Displays logout warning with a running timer
+     */
+    fun logoutWarning(timeUntilLogout: Long) {
+        val logoutWarningText = "Olet kirjautumassa ulos "
+        logoutWarningToast = Toast.makeText(this, logoutWarningText ,Toast.LENGTH_LONG)
+        logoutWarningToast?.show()
+        object : CountDownTimer(timeUntilLogout, 1000) {
+
+            override fun onTick(millisUntilFinished: Long) {
+                logoutWarningToast?.setText(logoutWarningText + millisUntilFinished / 1000)
+            }
+
+            override fun onFinish() {
+                logoutWarningToast?.cancel()
+            }
+        }.start()
     }
 
     /**
@@ -141,12 +172,12 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     private fun settingsButtonClick() {
         clickCounterHandler.removeCallbacksAndMessages("settings")
-        settingsClickCOunter += 1
-        if (settingsClickCOunter > 4) {
+        settingsClickCounter += 1
+        if (settingsClickCounter > 4) {
             startSettingsActivity()
         } else {
             clickCounterHandler.postDelayed({
-                settingsClickCOunter = 0
+                settingsClickCounter = 0
             }, "settings", 1000)
         }
     }
@@ -159,12 +190,12 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     private fun indexButtonClick() {
         clickCounterHandler.removeCallbacksAndMessages("index")
-        settingsClickCOunter += 1
-        if (settingsClickCOunter > 4) {
+        settingsClickCounter += 1
+        if (settingsClickCounter > 4) {
             startMainActivity()
         } else {
             clickCounterHandler.postDelayed( {
-                settingsClickCOunter = 0
+                settingsClickCounter = 0
             }, "index", 1000)
         }
     }
@@ -177,12 +208,12 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     private fun loginButtonClick() {
         clickCounterHandler.removeCallbacksAndMessages("login")
-        settingsClickCOunter += 1
-        if (settingsClickCOunter > 4) {
+        settingsClickCounter += 1
+        if (settingsClickCounter > 4) {
             debugLogin()
         } else {
             clickCounterHandler.postDelayed( {
-                settingsClickCOunter = 0
+                settingsClickCounter = 0
             }, "login", 1000)
         }
     }

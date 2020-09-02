@@ -74,7 +74,7 @@ class PageActivity : MuistiActivity() {
             } else {
                 null
             }
-            exitTransition = if(pageExitTransitions.isNotEmpty()){
+            returnTransition  = if(pageExitTransitions.isNotEmpty()){
                 pageExitTransitions[0]
             } else {
                 null
