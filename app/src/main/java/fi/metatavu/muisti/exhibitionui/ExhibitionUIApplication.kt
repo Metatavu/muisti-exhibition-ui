@@ -149,22 +149,23 @@ class ExhibitionUIApplication : Application() {
 
             if (existingSession != null) {
                 VisitorSessionContainer.setVisitorSession(existingSession)
+                restartLogoutTimer()
             } else {
                 val visitorSession = createNewVisitorSession(exhibitionId, tagId)
                 if (visitorSession != null) {
                     val visitor = findVisitorWithUserId(exhibitionId, visitorSession.visitorIds[0])
                     if(visitor != null){
                         VisitorSessionContainer.addCurrentVisitor(visitor)
-                        restartLogoutTimer()
                     }
                     VisitorSessionContainer.setVisitorSession(visitorSession)
+                    restartLogoutTimer()
                 }
             }
         }
     }
 
     /**
-     * Checks if detected tag belongs to the current session and resets logout timer
+     * Checks if detected tag belongs to the current session and triggers interaction.
      *
      * @param tagId tagId to check for
      */
@@ -175,7 +176,7 @@ class ExhibitionUIApplication : Application() {
             val existingSession = findExistingSession(exhibitionId, tagId)
 
             if (existingSession != null && existingSession.id == VisitorSessionContainer.getVisitorSession()?.id) {
-                restartLogoutTimer()
+                onInteraction()
             }
         }
     }
@@ -184,26 +185,40 @@ class ExhibitionUIApplication : Application() {
      * Resets logout timer
      */
     private fun restartLogoutTimer() {
-        handler.removeCallbacksAndMessages("logout")
+        handler.removeCallbacksAndMessages(null)
 
         // TODO use logout timing from API
         handler.postDelayed({
             logout()
-        },"logout", 20000)
+        },null, 6000)
         handler.postDelayed({
             logoutWarning()
-        },"logout", 10000)
+        },null, 3000)
+    }
+
+    /**
+     * Resets the Logout timers and hides the Logout warning toast.
+     */
+    fun onInteraction() {
+        val activity = getCurrentActivity()
+        if (activity is MuistiActivity) {
+            activity.cancelLogoutWarning()
+        }
+        restartLogoutTimer()
     }
 
     /**
      * Logs out the current visitor session
      */
     private fun logout() {
+        handler.removeCallbacksAndMessages(null)
         VisitorSessionContainer.setVisitorSession(null)
+        VisitorSessionContainer.clearCurrentVisitors()
         val activity = getCurrentActivity()
         if (activity is MuistiActivity) {
             activity.startMainActivity()
         }
+        currentActivity = null
     }
 
     /**
@@ -212,7 +227,7 @@ class ExhibitionUIApplication : Application() {
     private fun logoutWarning() {
         val activity = getCurrentActivity()
         if (activity is MuistiActivity) {
-            activity.logoutWarning(20000 - 10000)
+            activity.logoutWarning(6000 - 3000)
         }
     }
 

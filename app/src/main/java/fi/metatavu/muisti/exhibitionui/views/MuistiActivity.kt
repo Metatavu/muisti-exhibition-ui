@@ -1,5 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.views
 
+import android.app.Activity
 import android.app.ActivityOptions
 import android.content.Intent
 import android.view.View
@@ -16,10 +17,7 @@ import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import java.util.*
 import kotlin.math.max
 import android.os.CountDownTimer
-import androidx.core.app.ComponentActivity.ExtraData
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-
+import android.view.MotionEvent
 
 
 /**
@@ -32,6 +30,7 @@ abstract class MuistiActivity : AppCompatActivity() {
     private val clickCounterHandler = Handler()
     protected var currentPageView: PageView? = null
     val transitionElements: MutableList<View> = mutableListOf()
+    var countDownTimer: CountDownTimer? = null
 
 
     /**
@@ -97,7 +96,9 @@ abstract class MuistiActivity : AppCompatActivity() {
         }
 
         val x = max(window.exitTransition?.duration ?: 0, window.enterTransition?.duration  ?: 0)
-        clickCounterHandler.postDelayed({finish()}, x)
+        clickCounterHandler.postDelayed({
+            finish()
+        }, x)
     }
 
     /**
@@ -117,8 +118,16 @@ abstract class MuistiActivity : AppCompatActivity() {
      * @param activity activity
      */
     protected fun setCurrentActivity(activity: PageActivity?) {
-        val application: ExhibitionUIApplication = this.applicationContext as ExhibitionUIApplication
-        application.setCurrentActivity(activity)
+        ExhibitionUIApplication.instance.setCurrentActivity(activity)
+    }
+
+    /**
+     * Gets the current activity
+     *
+     * @return activity or null
+     */
+    protected fun getCurrentActivity() : Activity? {
+        return ExhibitionUIApplication.instance.getCurrentActivity()
     }
 
     /**
@@ -130,12 +139,25 @@ abstract class MuistiActivity : AppCompatActivity() {
     }
 
     /**
+     * Triggers on interaction in the ExhibitionUIApplication
+     */
+    protected fun onInteraction() {
+        ExhibitionUIApplication.instance.onInteraction()
+    }
+
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        onInteraction()
+        return super.onTouchEvent(event)
+    }
+
+    /**
      * Starts Main Activity
      */
     fun startMainActivity() {
         val intent = Intent(this, MainActivity::class.java)
         VisitorSessionContainer.setVisitorSession(null)
         this.startActivity(intent)
+        finish()
     }
 
     /**
@@ -143,18 +165,26 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     fun logoutWarning(timeUntilLogout: Long) {
         val logoutWarningText = "Olet kirjautumassa ulos "
-        logoutWarningToast = Toast.makeText(this, logoutWarningText ,Toast.LENGTH_LONG)
-        logoutWarningToast?.show()
-        object : CountDownTimer(timeUntilLogout, 1000) {
-
+        val context = this
+        countDownTimer = object : CountDownTimer(timeUntilLogout, 1000) {
             override fun onTick(millisUntilFinished: Long) {
-                logoutWarningToast?.setText(logoutWarningText + millisUntilFinished / 1000)
+                logoutWarningToast?.cancel()
+                logoutWarningToast = Toast.makeText(context, logoutWarningText + millisUntilFinished / 1000, Toast.LENGTH_SHORT)
+                logoutWarningToast?.show()
             }
 
             override fun onFinish() {
                 logoutWarningToast?.cancel()
             }
         }.start()
+    }
+
+    /**
+     * Cancels current logout warning
+     */
+    fun cancelLogoutWarning(){
+        countDownTimer?.cancel()
+        logoutWarningToast?.cancel()
     }
 
     /**
@@ -194,7 +224,7 @@ abstract class MuistiActivity : AppCompatActivity() {
         if (settingsClickCounter > 4) {
             startMainActivity()
         } else {
-            clickCounterHandler.postDelayed( {
+            clickCounterHandler.postDelayed({
                 settingsClickCounter = 0
             }, "index", 1000)
         }
