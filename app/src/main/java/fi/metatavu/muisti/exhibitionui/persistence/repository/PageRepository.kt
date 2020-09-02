@@ -27,6 +27,10 @@ class PageRepository(private val pageDao: PageDao) {
         return pageDao.findByPageId(pageId)
     }
 
+    suspend fun findIndexPage(locale: String): Page? {
+        return pageDao.findByOrderNumberAndLocale(orderNumber = 0, locale = locale)
+    }
+
     /**
      * Returns all pages from Database
      *
@@ -97,6 +101,8 @@ class PageRepository(private val pageDao: PageDao) {
             val page = Page(
                 name = it.name,
                 pageId = id,
+                locale = "fi", // TODO: This should come from content version
+                orderNumber = it.orderNumber,
                 exhibitionId = exhibitionId,
                 modifiedAt = it.modifiedAt!!,
                 resources = it.resources,
