@@ -28,8 +28,7 @@ class ExhibitionUIApplication : Application() {
 
     private var currentActivity: Activity? = null
     private val handler = Handler()
-
-    private val logoutT = 2000
+    private var visitorSessionEndTimeout: Long = 5000
 
     /**
      * Constructor
@@ -41,6 +40,32 @@ class ExhibitionUIApplication : Application() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 1, 1, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 1, 4, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueConstructPagesServiceTask() }, 1, 15, TimeUnit.SECONDS)
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        MuistiMqttService()
+
+        startProximityListening()
+        readVisitorSessionEndTimeout()
+    }
+
+    /**
+     * Returns currently active activity
+     *
+     * @return currently active activity
+     */
+    fun getCurrentActivity(): Activity? {
+        return currentActivity
+    }
+
+    /**
+     * Sets currently active activity
+     *
+     * @param activity activity
+     */
+    fun setCurrentActivity(activity: Activity?) {
+        currentActivity = activity
     }
 
     /**
@@ -61,22 +86,35 @@ class ExhibitionUIApplication : Application() {
             Log.d(javaClass.name, "Proximity listeners starting...")
 
             antennas.forEach {
-                antenna -> run {
-                    val topic = "${BuildConfig.MQTT_BASE_TOPIC}/${toAntennaPath(antenna)}"
-                    Log.d(javaClass.name, "Proximity start listener started for topic $topic")
+                    antenna -> run {
+                val topic = "${BuildConfig.MQTT_BASE_TOPIC}/${toAntennaPath(antenna)}"
+                Log.d(javaClass.name, "Proximity start listener started for topic $topic")
 
-                    MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
+                MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
                         proximityUpdate -> handleProximityUpdate(antenna = antenna, proximityUpdate = proximityUpdate)
-                    })
-                }
+                })
+            }
             }
         }
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        MuistiMqttService()
-        startProximityListening()
+    /**
+     * Reads visitors session end timeout from API
+     */
+    private fun readVisitorSessionEndTimeout() = GlobalScope.launch {
+        val exhibitionId = DeviceSettings.getExhibitionId()
+        val deviceId = DeviceSettings.getExhibitionDeviceId()
+
+        if (exhibitionId == null) {
+            Log.e(javaClass.name, "Exhibition not configured. Using default visitor session end timeout")
+        } else if (deviceId == null) {
+            Log.e(javaClass.name, "Device not configured. Using default visitor session end timeout")
+        } else {
+            val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
+            val group = MuistiApiFactory.getExhibitionDeviceGroupsApi().findExhibitionDeviceGroup(exhibitionId = exhibitionId, deviceGroupId = device.groupId)
+            visitorSessionEndTimeout = group.visitorSessionEndTimeout
+            Log.d(javaClass.name, "Visitor session end timeout set to $visitorSessionEndTimeout")
+        }
     }
 
     /**
@@ -86,35 +124,15 @@ class ExhibitionUIApplication : Application() {
      * @param proximityUpdate proximity update message
      */
     private fun handleProximityUpdate(antenna: RfidAntenna, proximityUpdate: MqttProximityUpdate) {
-        if (VisitorSessionContainer.getVisitorSessionId() == null && proximityUpdate.strength > 45) {
-            // TODO check login threshold from antenna
-            if (proximityUpdate.strength > 35) {
+        if (VisitorSessionContainer.getVisitorSessionId() == null) {
+            if (proximityUpdate.strength > antenna.visitorSessionStartThreshold) {
                 visitorLogin(proximityUpdate.tag)
             }
         } else {
-            // TODO check exit threshold from antenna
-            if (proximityUpdate.strength > 25) {
+            if (proximityUpdate.strength > antenna.visitorSessionEndThreshold) {
                 visitorTagDetection(proximityUpdate.tag)
             }
         }
-    }
-
-    /**
-     * Returns currently active activity
-     *
-     * @return currently active activity
-     */
-    fun getCurrentActivity(): Activity? {
-        return currentActivity
-    }
-
-    /**
-     * Sets currently active activity
-     *
-     * @param activity activity
-     */
-    fun setCurrentActivity(activity: Activity?) {
-        currentActivity = activity
     }
 
     /**
@@ -210,13 +228,13 @@ class ExhibitionUIApplication : Application() {
     private fun restartLogoutTimer() {
         handler.removeCallbacksAndMessages(null)
 
-        // TODO use logout timing from API
         handler.postDelayed({
             logout()
-        },null, logoutT.toLong())
+        },null, visitorSessionEndTimeout)
+
         handler.postDelayed({
             logoutWarning()
-        },null, (logoutT / 2).toLong())
+        },null, visitorSessionEndTimeout / 2)
     }
 
     /**
@@ -227,6 +245,7 @@ class ExhibitionUIApplication : Application() {
         if (activity is MuistiActivity) {
             activity.cancelLogoutWarning()
         }
+
         restartLogoutTimer()
     }
 
@@ -250,7 +269,7 @@ class ExhibitionUIApplication : Application() {
     private fun logoutWarning() {
         val activity = getCurrentActivity()
         if (activity is MuistiActivity) {
-            activity.logoutWarning((logoutT / 2).toLong())
+            activity.logoutWarning(visitorSessionEndTimeout / 2)
         }
     }
 
