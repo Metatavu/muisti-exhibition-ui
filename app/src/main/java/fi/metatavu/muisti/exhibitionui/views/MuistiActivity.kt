@@ -145,9 +145,9 @@ abstract class MuistiActivity : AppCompatActivity() {
         ExhibitionUIApplication.instance.onInteraction()
     }
 
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
         onInteraction()
-        return super.onTouchEvent(event)
+        return super.dispatchTouchEvent(ev)
     }
 
     /**
