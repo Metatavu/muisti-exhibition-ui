@@ -133,6 +133,7 @@ dependencies {
     // Exo player
 
     implementation 'com.google.android.exoplayer:exoplayer:2.11.3'
+    implementation 'rongi.rotate-layout:rotate-layout:3.0.0'
 
     // Room components
 
