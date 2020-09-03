@@ -1,10 +1,11 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
 import android.content.Context
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.util.AttributeSet
 import android.util.Log
+import android.util.Xml
 import android.view.View
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.MediaSource
@@ -14,8 +15,11 @@ import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
+import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleListener
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
+import org.xmlpull.v1.XmlPullParser
 import java.io.File
 
 /**
@@ -26,7 +30,17 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerView>() {
         get() = "PlayerView"
 
     override fun buildComponent(buildContext: ComponentBuildContext): PlayerView {
-        val playerView = PlayerView(buildContext.context)
+        val parser: XmlPullParser = ExhibitionUIApplication.instance.resources.getXml(R.xml.video_rotate)
+        try {
+            parser.next()
+            parser.nextTag()
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
+
+        val attr: AttributeSet = Xml.asAttributeSet(parser)
+        val playerView = PlayerView(buildContext.context, attr)
+        setId(playerView, buildContext.pageLayoutView)
         setupView(buildContext, playerView)
 
         val parent = buildContext.parents.lastOrNull()
