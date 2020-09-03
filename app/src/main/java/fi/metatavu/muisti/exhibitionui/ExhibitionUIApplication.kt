@@ -3,7 +3,6 @@ package fi.metatavu.muisti.exhibitionui
 import android.app.Activity
 import android.app.Application
 import android.content.Intent
-import android.os.Handler
 import android.util.Log
 import androidx.core.app.JobIntentService
 import fi.metatavu.muisti.api.client.models.*
@@ -27,7 +26,6 @@ import java.util.concurrent.TimeUnit
 class ExhibitionUIApplication : Application() {
 
     private var currentActivity: Activity? = null
-    private var handler: Handler = Handler()
 
     /**
      * Constructor
@@ -151,7 +149,8 @@ class ExhibitionUIApplication : Application() {
                 VisitorSessionContainer.setVisitorSession(existingSession)
                 restartLogoutTimer()
             } else {
-                val visitorSession = createNewVisitorSession(exhibitionId, tagId)
+                // TODO: Resolve language
+                val visitorSession = createNewVisitorSession(exhibitionId = exhibitionId, tagId = tagId, language = "FI")
                 if (visitorSession != null) {
                     val visitor = findVisitorWithUserId(exhibitionId, visitorSession.visitorIds[0])
                     if(visitor != null){
@@ -256,12 +255,19 @@ class ExhibitionUIApplication : Application() {
      *
      * @param exhibitionId exhibition to create the session in
      * @param tagId tag to add into the session
+     * @param language language
      * @return Visitor Session or null if creation fails
      */
-    private suspend fun createNewVisitorSession(exhibitionId: UUID, tagId: String): VisitorSession? {
+    private suspend fun createNewVisitorSession(exhibitionId: UUID, tagId: String, language: String): VisitorSession? {
         val visitor = findExistingVisitor(exhibitionId = exhibitionId, tagId = tagId) ?: return null
         val visitorSessionApi = MuistiApiFactory.getVisitorSessionsApi()
-        val session = VisitorSession(VisitorSessionState.aCTIVE, arrayOf(visitor.id ?: return null))
+
+        val session = VisitorSession(
+            state = VisitorSessionState.aCTIVE,
+            language = language,
+            visitorIds = arrayOf(visitor.id ?: return null)
+        )
+
         return visitorSessionApi.createVisitorSession(exhibitionId, session)
     }
 
@@ -293,7 +299,6 @@ class ExhibitionUIApplication : Application() {
      */
     private suspend fun findVisitorWithUserId(exhibitionId: UUID, userId: UUID): Visitor? {
         val visitorsApi = MuistiApiFactory.getVisitorsApi()
-
         return visitorsApi.findVisitor(exhibitionId = exhibitionId, visitorId = userId)
     }
 
