@@ -130,9 +130,10 @@ object UpdatePages : MqttActionInterface {
     }
 
     /**
-     * Updates pages to database
+     * Sets an array of pages into the database and removes all other pages
      *
-     * @param pages an array of pages
+     * @param pages an array of pages to insert into the database if page with same id exists it will be updated
+     * @param contentVersions an array of content versions related to pages
      */
     private suspend fun setPages(pages: Array<ExhibitionPage>, contentVersions: Array<ContentVersion>) {
         pageRepository.setPages(
