@@ -47,15 +47,28 @@ class ExhibitionUIApplication : Application() {
      * Starts mqtt proximity listening
      */
     private fun startProximityListening() = GlobalScope.launch {
-        val antennas =  DeviceSettings.getRfidAntennas()
-        Log.d(javaClass.name, "Proximity start")
-        if (!antennas.isNullOrEmpty()) {
-            for (antenna in antennas) {
-                val topic = "${BuildConfig.MQTT_BASE_TOPIC}/${toAntennaPath(antenna)}"
-                Log.d(javaClass.name, "Topic path: " + topic)
-                MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
-                    handleProximityUpdate(it)
-                })
+        val exhibitionId = DeviceSettings.getExhibitionId()
+        val deviceId = DeviceSettings.getExhibitionDeviceId()
+
+        if (exhibitionId == null) {
+            Log.e(javaClass.name, "Exhibition not configured. Cannot start proximity updates")
+        } else if (deviceId == null) {
+            Log.e(javaClass.name, "Device not configured. Cannot start proximity updates")
+        } else {
+            val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
+            val antennas = MuistiApiFactory.getRfidAntennaApi().listRfidAntennas(exhibitionId = exhibitionId, deviceGroupId = device.groupId, roomId = null)
+
+            Log.d(javaClass.name, "Proximity listeners starting...")
+
+            antennas.forEach {
+                antenna -> run {
+                    val topic = "${BuildConfig.MQTT_BASE_TOPIC}/${toAntennaPath(antenna)}"
+                    Log.d(javaClass.name, "Proximity start listener started for topic $topic")
+
+                    MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
+                        proximityUpdate -> handleProximityUpdate(antenna = antenna, proximityUpdate = proximityUpdate)
+                    })
+                }
             }
         }
     }
@@ -66,7 +79,13 @@ class ExhibitionUIApplication : Application() {
         startProximityListening()
     }
 
-    private fun handleProximityUpdate(proximityUpdate: MqttProximityUpdate){
+    /**
+     * Handles a proximity update message
+     *
+     * @param antenna antenna that reported the proximity update
+     * @param proximityUpdate proximity update message
+     */
+    private fun handleProximityUpdate(antenna: RfidAntenna, proximityUpdate: MqttProximityUpdate) {
         if (VisitorSessionContainer.getVisitorSessionId() == null && proximityUpdate.strength > 45) {
             // TODO check login threshold from antenna
             if (proximityUpdate.strength > 35) {

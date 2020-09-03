@@ -53,6 +53,16 @@ class MuistiApiFactory {
         }
 
         /**
+         * Returns initialized device groups API
+         *
+         * @return initialized device groups API
+         */
+        suspend fun getExhibitionDeviceGroupsApi(): ExhibitionDeviceGroupsApi {
+            waitForToken()
+            return ExhibitionDeviceGroupsApi(BuildConfig.MUISTI_API_BASE_URL)
+        }
+
+        /**
          * Returns initialized page layouts API
          *
          * @return initialized page layouts API
