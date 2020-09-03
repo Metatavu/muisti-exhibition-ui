@@ -90,6 +90,7 @@ class PageActivity : MuistiActivity() {
 
         pageView.view.layoutParams.height = ConstraintLayout.LayoutParams.MATCH_PARENT
         pageView.view.layoutParams.width = ConstraintLayout.LayoutParams.MATCH_PARENT
+        this.openView(pageView)
     }
 
     override fun onResume() {

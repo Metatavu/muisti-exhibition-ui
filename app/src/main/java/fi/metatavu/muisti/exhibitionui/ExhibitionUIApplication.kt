@@ -3,6 +3,7 @@ package fi.metatavu.muisti.exhibitionui
 import android.app.Activity
 import android.app.Application
 import android.content.Intent
+import android.os.Handler
 import android.util.Log
 import androidx.core.app.JobIntentService
 import fi.metatavu.muisti.api.client.models.*
@@ -26,6 +27,9 @@ import java.util.concurrent.TimeUnit
 class ExhibitionUIApplication : Application() {
 
     private var currentActivity: Activity? = null
+    private val handler = Handler()
+
+    private val logoutT = 2000
 
     /**
      * Constructor
@@ -48,6 +52,7 @@ class ExhibitionUIApplication : Application() {
         if (!antennas.isNullOrEmpty()) {
             for (antenna in antennas) {
                 val topic = "${BuildConfig.MQTT_BASE_TOPIC}/${toAntennaPath(antenna)}"
+                Log.d(javaClass.name, "Topic path: " + topic)
                 MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
                     handleProximityUpdate(it)
                 })
@@ -64,7 +69,7 @@ class ExhibitionUIApplication : Application() {
     private fun handleProximityUpdate(proximityUpdate: MqttProximityUpdate){
         if (VisitorSessionContainer.getVisitorSessionId() == null && proximityUpdate.strength > 45) {
             // TODO check login threshold from antenna
-            if (proximityUpdate.strength > 45) {
+            if (proximityUpdate.strength > 35) {
                 visitorLogin(proximityUpdate.tag)
             }
         } else {
@@ -189,10 +194,10 @@ class ExhibitionUIApplication : Application() {
         // TODO use logout timing from API
         handler.postDelayed({
             logout()
-        },null, 6000)
+        },null, logoutT.toLong())
         handler.postDelayed({
             logoutWarning()
-        },null, 3000)
+        },null, (logoutT / 2).toLong())
     }
 
     /**
@@ -226,7 +231,7 @@ class ExhibitionUIApplication : Application() {
     private fun logoutWarning() {
         val activity = getCurrentActivity()
         if (activity is MuistiActivity) {
-            activity.logoutWarning(6000 - 3000)
+            activity.logoutWarning((logoutT / 2).toLong())
         }
     }
 
