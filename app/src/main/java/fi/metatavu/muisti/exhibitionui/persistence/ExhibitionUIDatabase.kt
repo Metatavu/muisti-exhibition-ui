@@ -122,7 +122,7 @@ abstract class ExhibitionUIDatabase : RoomDatabase() {
 
             val MIGRATION_8_9 = object : Migration(8, 9) {
                 override fun migrate(database: SupportSQLiteDatabase) {
-                    database.execSQL("ALTER TABLE `Page` ADD COLUMN `locale` TEXT NOT NULL default 'fi'")
+                    database.execSQL("ALTER TABLE `Page` ADD COLUMN `language` TEXT NOT NULL default 'fi'")
                     database.execSQL("ALTER TABLE `Page` ADD COLUMN `orderNumber` INTEGER NOT NULL default 0")
                 }
             }

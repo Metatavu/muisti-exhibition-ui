@@ -1,6 +1,5 @@
 package fi.metatavu.muisti.exhibitionui.api
 
-import android.util.Log
 import fi.metatavu.muisti.api.client.apis.*
 import fi.metatavu.muisti.api.client.infrastructure.ApiClient
 import fi.metatavu.muisti.api.client.infrastructure.ClientException
@@ -74,6 +73,16 @@ class MuistiApiFactory {
         }
 
         /**
+         * Returns initialized content versions API
+         *
+         * @return initialized content versions API
+         */
+        suspend fun getContentVersionsApi(): ContentVersionsApi {
+            waitForToken()
+            return ContentVersionsApi(BuildConfig.MUISTI_API_BASE_URL)
+        }
+
+        /**
          * Returns initialized exhibition pages API
          *
          * @return initialized exhibition pages API
@@ -88,6 +97,7 @@ class MuistiApiFactory {
          *
          * @throws ClientException when access token waiting times out
          */
+        @Throws(ClientException::class)
         private suspend fun waitForToken() {
             val timeout = System.currentTimeMillis() + (1000 * 60 * 5)
 

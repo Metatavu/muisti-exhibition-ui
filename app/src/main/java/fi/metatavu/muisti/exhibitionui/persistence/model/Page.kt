@@ -29,7 +29,7 @@ data class Page (
     val name: String,
 
     @NonNull
-    val locale: String,
+    val language: String,
 
     @NonNull
     var orderNumber: Int,

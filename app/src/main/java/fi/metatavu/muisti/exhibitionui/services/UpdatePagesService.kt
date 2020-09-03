@@ -3,11 +3,7 @@ package fi.metatavu.muisti.exhibitionui.services
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.JobIntentService
-import fi.metatavu.muisti.api.client.models.ExhibitionPage
-import fi.metatavu.muisti.api.client.models.MqttExhibitionPageCreate
-import fi.metatavu.muisti.api.client.models.MqttExhibitionPageDelete
-import fi.metatavu.muisti.api.client.models.MqttExhibitionPageUpdate
-import fi.metatavu.muisti.exhibitionui.BuildConfig
+import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttActionInterface
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
@@ -67,14 +63,22 @@ object UpdatePages : MqttActionInterface {
         GlobalScope.launch {
             try {
                 val exhibitionId = DeviceSettings.getExhibitionId()
+                val deviceId = DeviceSettings.getExhibitionDeviceId()
+
                 if (exhibitionId != null) {
                     val pages = MuistiApiFactory.getExhibitionPagesApi().listExhibitionPages(
                         exhibitionId = exhibitionId,
                         contentVersionId = null,
-                        exhibitionDeviceId = null
+                        exhibitionDeviceId = deviceId
                     )
 
-                    addPages(pages)
+                    val contentVersions = pages
+                        .map { page -> page.contentVersionId }
+                        .distinct()
+                        .map { MuistiApiFactory.getContentVersionsApi().findContentVersion(exhibitionId = exhibitionId, contentVersionId = it )  }
+                        .toTypedArray()
+
+                    setPages(pages, contentVersions)
                 }
             } catch (e: Exception) {
                 Log.e(javaClass.name, "Updating all pages failed", e)
@@ -92,8 +96,17 @@ object UpdatePages : MqttActionInterface {
             try {
                 val exhibitionId = DeviceSettings.getExhibitionId()
                 if (exhibitionId != null) {
-                    val pages = MuistiApiFactory.getExhibitionPagesApi().findExhibitionPage(exhibitionId, pageId)
-                    addPages(arrayOf(pages))
+                    val page = MuistiApiFactory.getExhibitionPagesApi().findExhibitionPage(
+                        exhibitionId = exhibitionId,
+                        pageId = pageId
+                    )
+
+                    val contentVersion = MuistiApiFactory.getContentVersionsApi().findContentVersion(
+                        exhibitionId = exhibitionId,
+                        contentVersionId = page.contentVersionId
+                    )
+
+                    updatePage(page, contentVersion)
                 }
             } catch (e: Exception) {
                 Log.e(javaClass.name, "Single page update failed", e)
@@ -117,12 +130,27 @@ object UpdatePages : MqttActionInterface {
     }
 
     /**
-     * Adds a list of pages to Database
+     * Updates pages to database
      *
-     * @param pages an array of pages to add to the database
+     * @param pages an array of pages
      */
-    private suspend fun addPages(pages: Array<ExhibitionPage>) {
-        pageRepository.setPages(pages)
+    private suspend fun setPages(pages: Array<ExhibitionPage>, contentVersions: Array<ContentVersion>) {
+        pageRepository.setPages(
+            pages = pages,
+            contentVersions = contentVersions
+        )
+    }
+
+    /**
+     * Updates a page to database
+     *
+     * @param page a page
+     */
+    private suspend fun updatePage(page: ExhibitionPage, contentVersion: ContentVersion) {
+        pageRepository.updatePage(
+            page = page,
+            contentVersion = contentVersion
+        )
     }
 
     /**
