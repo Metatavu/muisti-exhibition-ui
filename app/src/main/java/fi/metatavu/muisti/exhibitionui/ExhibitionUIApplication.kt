@@ -195,7 +195,7 @@ class ExhibitionUIApplication : Application() {
                 val visitorSession = createNewVisitorSession(exhibitionId = exhibitionId, tagId = tagId, language = "FI")
                 if (visitorSession != null) {
                     val visitor = findVisitorWithUserId(exhibitionId, visitorSession.visitorIds[0])
-                    if(visitor != null){
+                    if (visitor != null) {
                         VisitorSessionContainer.addCurrentVisitor(visitor)
                     }
                     VisitorSessionContainer.setVisitorSession(visitorSession)

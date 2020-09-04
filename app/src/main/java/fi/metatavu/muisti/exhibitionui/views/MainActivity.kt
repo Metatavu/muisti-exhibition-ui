@@ -68,7 +68,7 @@ class MainActivity : MuistiActivity() {
                     if (frontPage != null) {
                         val visitor = VisitorSessionContainer.getCurrentVisitors().getOrNull(0)?.email ?: "vieras"
                         runOnUiThread {
-                            Toast.makeText(this@MainActivity, "Hei $visitor", Toast.LENGTH_LONG).show()
+                           // Toast.makeText(this@MainActivity, "Hei $visitor", Toast.LENGTH_LONG).show()
                         }
                         waitForPage(frontPage)
                     } else {

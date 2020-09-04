@@ -7,6 +7,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.util.Xml
 import android.view.View
+import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
@@ -40,9 +41,7 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerView>() {
 
         val attr: AttributeSet = Xml.asAttributeSet(parser)
         val playerView = PlayerView(buildContext.context, attr)
-        setId(playerView, buildContext.pageLayoutView)
         setupView(buildContext, playerView)
-
         val parent = buildContext.parents.lastOrNull()
         playerView.layoutParams = getInitialLayoutParams(parent)
 
@@ -91,6 +90,7 @@ private class PlayerPageViewLifecycleListener(val offlineFile: File, val playerV
         val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(context, Util.getUserAgent(context, "ExhibitionUIApplication"))
         val videoSource: MediaSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.fromFile(offlineFile))
         player.prepare(videoSource)
+        player.repeatMode = Player.REPEAT_MODE_ALL
     }
 
     override fun onPageDeactivate(pageActivity: PageActivity) {
