@@ -2,6 +2,7 @@ package fi.metatavu.muisti.exhibitionui.views
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.ViewModelProvider
@@ -15,11 +16,14 @@ import fi.metatavu.muisti.api.client.models.Exhibition
 import fi.metatavu.muisti.api.client.models.ExhibitionDevice
 import fi.metatavu.muisti.api.client.models.RfidAntenna
 import kotlinx.coroutines.launch
-import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.services.UpdateRfidAntenna
+import kotlinx.android.synthetic.main.settings_activity.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.*
+import android.widget.ArrayAdapter
+import fi.metatavu.muisti.exhibitionui.R
+
 
 /**
  * Settings activity
@@ -33,6 +37,22 @@ class SettingsActivity : MuistiActivity() {
         mViewModel = ViewModelProvider(this).get(SettingsViewModel::class.java)
 
         setContentView(R.layout.settings_activity)
+        val display = DisplayMetrics()
+
+        windowManager.defaultDisplay.getRealMetrics(display)
+
+        val list = mutableListOf(
+            "density: " + display.density,
+            "densityDpi: " + display.densityDpi,
+            "heightPixels: " + display.heightPixels,
+            "widthPixels: " + display.widthPixels,
+            "scaledDensity: " + display.scaledDensity,
+            "xdpi: " + display.xdpi,
+            "ydpi: " + display.ydpi
+        )
+
+        val adapter = ArrayAdapter<String>(applicationContext, R.layout.display_metric, list)
+        display_metrics.adapter = adapter
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.settings, SettingsFragment())

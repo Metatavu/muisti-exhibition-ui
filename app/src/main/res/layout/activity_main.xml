@@ -44,16 +44,17 @@
     <TextView
         android:layout_marginTop="20dp"
         android:layout_below="@id/image"
-        android:textSize="24dp"
+        android:textSize="24sp"
         android:fontFamily=""
         android:textAllCaps="true"
         android:layout_centerHorizontal="true"
         android:layout_width="300dp"
         android:textFontWeight="600"
         android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
         android:textAlignment="center"
         android:gravity="center"
-        android:text="Tule ja tutustu näyttelypisteeseen" />
+        android:text="@string/intro_text" />
 </RelativeLayout>
     <!--</com.github.rongi.rotate_layout.layout.RotateLayout>-->
 
