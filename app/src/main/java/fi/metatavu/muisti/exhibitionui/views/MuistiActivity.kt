@@ -34,7 +34,6 @@ abstract class MuistiActivity : AppCompatActivity() {
     val transitionElements: MutableList<View> = mutableListOf()
     var countDownTimer: CountDownTimer? = null
 
-
     override fun onResume() {
         super.onResume()
         if(ExhibitionUIApplication.instance.forcedPortraitMode == true){
