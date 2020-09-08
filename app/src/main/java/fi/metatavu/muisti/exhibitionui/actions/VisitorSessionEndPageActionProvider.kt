@@ -17,7 +17,7 @@ import fi.metatavu.muisti.exhibitionui.views.PageActivity
 class VisitorSessionEndPageActionProvider(properties: Array<ExhibitionPageEventProperty>): AbstractPageActionProvider(properties) {
 
     override fun performAction(pageActivity: PageActivity) {
-        //VisitorSessionContainer.endVisitorSession()
+        VisitorSessionContainer.endVisitorSession()
     }
 
     override val action: ExhibitionPageEventActionType get() = ExhibitionPageEventActionType.visitorSessionEnd

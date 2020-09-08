@@ -78,6 +78,14 @@ class VisitorSessionContainer {
         }
 
         /**
+         * Ends visitor session
+         */
+        fun endVisitorSession(){
+            this.visitorSession = null
+            clearCurrentVisitors()
+        }
+
+        /**
          * Updates visitor session variable into existing session.
          *
          * This method updates only local visitor session and DOES NOT save variable into the server
@@ -97,7 +105,5 @@ class VisitorSessionContainer {
                 setVisitorSession(visitorSession.copy(variables = variables))
             }
         }
-
     }
-
 }

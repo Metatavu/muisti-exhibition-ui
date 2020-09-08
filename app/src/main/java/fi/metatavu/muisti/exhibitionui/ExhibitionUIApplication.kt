@@ -48,7 +48,6 @@ class ExhibitionUIApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         MuistiMqttService()
-
         readForcedPortraitMode()
         startProximityListening()
         readVisitorSessionEndTimeout()
