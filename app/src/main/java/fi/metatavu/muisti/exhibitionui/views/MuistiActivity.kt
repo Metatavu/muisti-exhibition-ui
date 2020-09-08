@@ -199,7 +199,7 @@ abstract class MuistiActivity : AppCompatActivity() {
     /**
      * Cancels current logout warning
      */
-    fun cancelLogoutWarning(){
+    fun cancelLogoutWarning() {
         countDownTimer?.cancel()
         logoutWarningToast?.cancel()
     }
