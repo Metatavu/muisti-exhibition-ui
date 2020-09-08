@@ -16,6 +16,7 @@ import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.lang.Exception
 import java.util.*
 import java.util.concurrent.Executors
@@ -29,6 +30,8 @@ class ExhibitionUIApplication : Application() {
     private var currentActivity: Activity? = null
     private val handler = Handler()
     private var visitorSessionEndTimeout: Long = 5000
+    var forcedPortraitMode: Boolean = false
+        private set
 
     /**
      * Constructor
@@ -46,6 +49,7 @@ class ExhibitionUIApplication : Application() {
         super.onCreate()
         MuistiMqttService()
 
+        readForcedPortraitMode()
         startProximityListening()
         readVisitorSessionEndTimeout()
     }
@@ -114,6 +118,27 @@ class ExhibitionUIApplication : Application() {
             val group = MuistiApiFactory.getExhibitionDeviceGroupsApi().findExhibitionDeviceGroup(exhibitionId = exhibitionId, deviceGroupId = device.groupId)
             visitorSessionEndTimeout = group.visitorSessionEndTimeout
             Log.d(javaClass.name, "Visitor session end timeout set to $visitorSessionEndTimeout")
+        }
+    }
+
+    /**
+     * Reads forced portraitMode from API
+     */
+    private fun readForcedPortraitMode() = GlobalScope.launch {
+        val exhibitionId = DeviceSettings.getExhibitionId()
+        val deviceId = DeviceSettings.getExhibitionDeviceId()
+
+        if (exhibitionId == null) {
+            Log.e(javaClass.name, "Exhibition not configured. Not using forced portrait mode")
+        } else if (deviceId == null) {
+            Log.e(javaClass.name, "Device not configured. Not using forced portrait mode")
+        } else {
+            val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
+            forcedPortraitMode = true //device.forcedPortraitMode
+            if(forcedPortraitMode){
+                val cur = currentActivity as MuistiActivity
+                cur.setForcedPortraitMode()
+            }
         }
     }
 
@@ -256,6 +281,7 @@ class ExhibitionUIApplication : Application() {
         handler.removeCallbacksAndMessages(null)
         VisitorSessionContainer.setVisitorSession(null)
         VisitorSessionContainer.clearCurrentVisitors()
+        readForcedPortraitMode()
         val activity = getCurrentActivity()
         if (activity is MuistiActivity) {
             activity.startMainActivity()

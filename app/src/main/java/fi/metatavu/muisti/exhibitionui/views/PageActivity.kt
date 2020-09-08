@@ -28,7 +28,7 @@ import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import com.github.rongi.rotate_layout.layout.RotateLayout
+import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 
 /**
  * Activity for displaying pages from API
@@ -199,12 +199,10 @@ class PageActivity : MuistiActivity() {
         setSharedElementTransitions(pageView.page.enterTransitions)
         setSharedElementTransitions(pageView.page.exitTransitions)
 
-        requestedOrientation = pageView.orientation
-/*
-        val x = root.parent
-        if(x is RotateLayout){
-            x.angle = 90
-        } */
+        if (!ExhibitionUIApplication.instance.forcedPortraitMode) {
+            requestedOrientation = pageView.orientation
+        }
+
         MqttClientController.addListener(mqttTriggerDeviceGroupEventListener)
         pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
         triggerVisitorSessionChange(pageView)
@@ -291,7 +289,7 @@ class PageActivity : MuistiActivity() {
         val deviceGroupEvent = eventTrigger.deviceGroupEvent
 
         if (deviceGroupEvent != null) {
-            val deviceGroupEventList = deviceGroupEvents.get(deviceGroupEvent) ?: arrayOf<ExhibitionPageEvent>()
+            val deviceGroupEventList = deviceGroupEvents.get(deviceGroupEvent) ?: arrayOf()
             deviceGroupEvents[deviceGroupEvent] = deviceGroupEventList.plus(events)
         }
 

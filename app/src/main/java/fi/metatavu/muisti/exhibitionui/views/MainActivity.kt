@@ -6,6 +6,7 @@ import android.os.Handler
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import fi.metatavu.muisti.api.client.models.VisitorSession
+import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
@@ -32,6 +33,9 @@ class MainActivity : MuistiActivity() {
         supportActionBar?.hide()
         listenSettingsButton(settings_button)
         listenLoginButton(login_button)
+        if (ExhibitionUIApplication.instance.forcedPortraitMode) {
+            setForcedPortraitMode()
+        }
     }
 
     override fun onDestroy() {

@@ -18,6 +18,8 @@ import java.util.*
 import kotlin.math.max
 import android.os.CountDownTimer
 import android.view.MotionEvent
+import com.github.rongi.rotate_layout.layout.RotateLayout
+import fi.metatavu.muisti.exhibitionui.R
 
 
 /**
@@ -32,6 +34,13 @@ abstract class MuistiActivity : AppCompatActivity() {
     val transitionElements: MutableList<View> = mutableListOf()
     var countDownTimer: CountDownTimer? = null
 
+
+    override fun onResume() {
+        super.onResume()
+        if(ExhibitionUIApplication.instance.forcedPortraitMode){
+            setForcedPortraitMode()
+        }
+    }
 
     /**
      * Starts listening for index button click
@@ -143,6 +152,16 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     protected fun onInteraction() {
         ExhibitionUIApplication.instance.onInteraction()
+    }
+
+    /**
+     * Sets forced portrait mode
+     */
+    fun setForcedPortraitMode() {
+        runOnUiThread {
+            findViewById<RotateLayout>(R.id.main_screen_rotate)?.angle = 90
+            findViewById<RotateLayout>(R.id.root)?.angle = 90
+        }
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
