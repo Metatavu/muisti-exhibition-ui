@@ -104,10 +104,10 @@ abstract class MuistiActivity : AppCompatActivity() {
             startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle())
         }
 
-        val x = max(window.exitTransition?.duration ?: 0, window.enterTransition?.duration  ?: 0)
+        val finishTimeout = max(window.exitTransition?.duration ?: 0, window.enterTransition?.duration  ?: 0)
         clickCounterHandler.postDelayed({
             finish()
-        }, x)
+        }, max(finishTimeout, 2000))
     }
 
     /**

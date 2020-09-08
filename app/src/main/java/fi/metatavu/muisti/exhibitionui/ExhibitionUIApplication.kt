@@ -286,7 +286,7 @@ class ExhibitionUIApplication : Application() {
     }
 
     /**
-     * Logs out the current visitor session
+     * Sends a logout warning to the current activity.
      */
     private fun logoutWarning() {
         val activity = getCurrentActivity()
