@@ -16,9 +16,7 @@ import android.view.View
 import android.view.View.*
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
-import android.widget.FrameLayout
-import android.widget.LinearLayout
-import android.widget.RelativeLayout
+import android.widget.*
 import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.pages.PageViewVisitorSessionListener
@@ -84,6 +82,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             "layout_marginLeft" -> setLayoutMargin(view, property)
             "layout_toRightOf" -> setLayoutOf(view, property)
             "layout_gravity" -> setLayoutGravity(view, property.value)
+            "gravity" -> setGravity(view, property.value)
             "background" -> setBackground(view, property.value)
             "backgroundImage" -> setBackgroundImage(buildContext, view, property.value)
             "elevation" -> setElevation(view, property)
@@ -615,6 +614,28 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             (view.layoutParams as LinearLayout.LayoutParams).gravity = gravity
         } else {
             Log.d(this.javaClass.name, "Unsupported layout ${view.layoutParams.javaClass.name} for gravity")
+        }
+    }
+
+    /**
+     * Updates component gravity value
+     *
+     * @param view view component
+     * @param value value
+     */
+    protected fun setGravity(view: View, value: String?) {
+        val gravity = parseGravity(value)
+        gravity ?: return
+        if(view is TextView){
+            view.gravity = gravity
+        } else if (view is LinearLayout) {
+            view.gravity = gravity
+        } else if (view is RelativeLayout) {
+            view.gravity = gravity
+        } else if (view is Button) {
+            view.gravity = gravity
+        } else if (view is FlowTextView) {
+            view.gravity = gravity
         }
     }
 
