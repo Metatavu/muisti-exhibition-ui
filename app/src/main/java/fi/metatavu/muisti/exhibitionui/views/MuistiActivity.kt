@@ -37,7 +37,7 @@ abstract class MuistiActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if(ExhibitionUIApplication.instance.forcedPortraitMode){
+        if(ExhibitionUIApplication.instance.forcedPortraitMode == true){
             setForcedPortraitMode()
         }
     }

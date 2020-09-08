@@ -30,7 +30,7 @@ class ExhibitionUIApplication : Application() {
     private var currentActivity: Activity? = null
     private val handler = Handler()
     private var visitorSessionEndTimeout: Long = 5000
-    var forcedPortraitMode: Boolean = false
+    var forcedPortraitMode: Boolean? = null
         private set
 
     /**
@@ -128,16 +128,13 @@ class ExhibitionUIApplication : Application() {
         val exhibitionId = DeviceSettings.getExhibitionId()
         val deviceId = DeviceSettings.getExhibitionDeviceId()
 
-        if (exhibitionId == null) {
-            Log.e(javaClass.name, "Exhibition not configured. Not using forced portrait mode")
-        } else if (deviceId == null) {
-            Log.e(javaClass.name, "Device not configured. Not using forced portrait mode")
-        } else {
-            val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
-            forcedPortraitMode = true //device.forcedPortraitMode
-            if(forcedPortraitMode){
-                val cur = currentActivity as MuistiActivity
-                cur.setForcedPortraitMode()
+        when {
+            exhibitionId == null -> Log.e(javaClass.name, "Exhibition not configured. Not using forced portrait mode")
+            deviceId == null -> Log.e(javaClass.name, "Device not configured. Not using forced portrait mode")
+            else -> {
+                val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
+                //TODO use portrait mode from API once its implemented.
+                forcedPortraitMode = false
             }
         }
     }

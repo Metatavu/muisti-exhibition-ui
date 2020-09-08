@@ -199,7 +199,7 @@ class PageActivity : MuistiActivity() {
         setSharedElementTransitions(pageView.page.enterTransitions)
         setSharedElementTransitions(pageView.page.exitTransitions)
 
-        if (!ExhibitionUIApplication.instance.forcedPortraitMode) {
+        if (ExhibitionUIApplication.instance.forcedPortraitMode != true) {
             requestedOrientation = pageView.orientation
         }
 

@@ -33,9 +33,7 @@ class MainActivity : MuistiActivity() {
         supportActionBar?.hide()
         listenSettingsButton(settings_button)
         listenLoginButton(login_button)
-        if (ExhibitionUIApplication.instance.forcedPortraitMode) {
-            setForcedPortraitMode()
-        }
+        waitForForcedPortraitMode()
     }
 
     override fun onDestroy() {
@@ -71,9 +69,7 @@ class MainActivity : MuistiActivity() {
 
                     if (frontPage != null) {
                         val visitor = VisitorSessionContainer.getCurrentVisitors().getOrNull(0)?.email ?: "vieras"
-                        runOnUiThread {
-                           // Toast.makeText(this@MainActivity, "Hei $visitor", Toast.LENGTH_LONG).show()
-                        }
+
                         waitForPage(frontPage)
                     } else {
                         startPreviewActivity()
@@ -114,6 +110,23 @@ class MainActivity : MuistiActivity() {
                 waitForPage(pageId)
             }
         }, "visitorLogin", 500)
+    }
+
+    /**
+     * Checks if page is constructed in the PageViewContainer and either navigates to it or keeps waiting
+     *
+     * @param pageId page id to navigate to once it is ready
+     */
+    private fun waitForForcedPortraitMode() {
+        handler.postDelayed({
+            if (ExhibitionUIApplication.instance.forcedPortraitMode == null) {
+                waitForForcedPortraitMode()
+            } else {
+                if(ExhibitionUIApplication.instance.forcedPortraitMode == true) {
+                    setForcedPortraitMode()
+                }
+            }
+        }, "waitForForcedPortrait", 500)
     }
 
     /**
