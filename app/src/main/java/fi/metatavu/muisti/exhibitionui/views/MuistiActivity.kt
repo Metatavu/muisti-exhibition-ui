@@ -107,7 +107,7 @@ abstract class MuistiActivity : AppCompatActivity() {
         val finishTimeout = max(window.exitTransition?.duration ?: 0, window.enterTransition?.duration  ?: 0)
         clickCounterHandler.postDelayed({
             finish()
-        }, max(finishTimeout, 2000))
+        }, max(finishTimeout, 300))
     }
 
     /**
@@ -160,7 +160,6 @@ abstract class MuistiActivity : AppCompatActivity() {
     fun setForcedPortraitMode() {
         runOnUiThread {
             findViewById<RotateLayout>(R.id.main_screen_rotate)?.angle = 90
-            findViewById<RotateLayout>(R.id.root)?.angle = 90
         }
     }
 
