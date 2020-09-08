@@ -112,7 +112,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         }
 
         try {
-            if (value.length === 4 && value.startsWith("#")) {
+            if (value.length == 4 && value.startsWith("#")) {
                 return Color.parseColor("#" + value.substring(1).map { "$it$it" }.joinToString (""))
             } else {
                 return Color.parseColor(value)

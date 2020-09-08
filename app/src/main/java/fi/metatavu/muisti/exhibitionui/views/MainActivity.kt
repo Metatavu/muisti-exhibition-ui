@@ -1,10 +1,8 @@
 package fi.metatavu.muisti.exhibitionui.views
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
-import android.provider.Settings
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import fi.metatavu.muisti.api.client.models.VisitorSession
@@ -16,7 +14,6 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_page.settings_button
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.lang.Exception
 import java.util.*
 
 /**
@@ -63,19 +60,20 @@ class MainActivity : MuistiActivity() {
         val deviceId = DeviceSettings.getExhibitionDeviceId()
 
         if (exhibitionId != null && deviceId != null) {
-            val frontPage = mViewModel?.getFrontPage(exhibitionId, deviceId)
-            val tagId = getDeviceId()
-            mViewModel?.visitorLogin(exhibitionId, tagId)
-
             waitForVisitor {
-                if (frontPage != null) {
-                    val visitor = VisitorSessionContainer.getCurrentVisitors().getOrNull(0)?.email ?: "vieras"
-                    runOnUiThread {
-                        Toast.makeText(this@MainActivity, "Hei $visitor", Toast.LENGTH_LONG).show()
+                visitorSession -> GlobalScope.launch {
+                    val language = visitorSession.language
+                    val frontPage = mViewModel?.getFrontPage(language = language)
+
+                    if (frontPage != null) {
+                        val visitor = VisitorSessionContainer.getCurrentVisitors().getOrNull(0)?.email ?: "vieras"
+                        runOnUiThread {
+                            Toast.makeText(this@MainActivity, "Hei $visitor", Toast.LENGTH_LONG).show()
+                        }
+                        waitForPage(frontPage)
+                    } else {
+                        startPreviewActivity()
                     }
-                    waitForPage(frontPage)
-                } else {
-                    startPreviewActivity()
                 }
             }
         } else {
@@ -88,13 +86,13 @@ class MainActivity : MuistiActivity() {
      *
      * @param callback callback to trigger on visitor login
      */
-    private fun waitForVisitor(callback: (visitor: VisitorSession) -> Unit) {
+    private fun waitForVisitor(callback: (visitorSession: VisitorSession) -> Unit) {
         handler.postDelayed({
-            val visitor = VisitorSessionContainer.getVisitorSession()
-            if (visitor == null) {
+            val visitorSession = VisitorSessionContainer.getVisitorSession()
+            if (visitorSession == null) {
                 waitForVisitor(callback)
             } else {
-                callback(visitor)
+                callback(visitorSession)
             }
         }, "waitForVisitor", 500)
     }
@@ -112,20 +110,6 @@ class MainActivity : MuistiActivity() {
                 waitForPage(pageId)
             }
         }, "visitorLogin", 500)
-    }
-
-    /**
-     * Returns a device id
-     *
-     * @return device id
-     */
-    @SuppressLint("HardwareIds")
-    private fun getDeviceId(): String {
-        try {
-            return Settings.Secure.getString(applicationContext.contentResolver, Settings.Secure.ANDROID_ID)
-        } catch (e: Exception) {
-            return "unknown"
-        }
     }
 
     /**
