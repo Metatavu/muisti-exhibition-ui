@@ -1,11 +1,13 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
 import android.content.Context
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.util.AttributeSet
 import android.util.Log
+import android.util.Xml
 import android.view.View
+import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
@@ -14,8 +16,11 @@ import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
+import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleListener
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
+import org.xmlpull.v1.XmlPullParser
 import java.io.File
 
 /**
@@ -26,9 +31,17 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerView>() {
         get() = "PlayerView"
 
     override fun buildComponent(buildContext: ComponentBuildContext): PlayerView {
-        val playerView = PlayerView(buildContext.context)
-        setupView(buildContext, playerView)
+        val parser: XmlPullParser = ExhibitionUIApplication.instance.resources.getXml(R.xml.video_rotate)
+        try {
+            parser.next()
+            parser.nextTag()
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
 
+        val attr: AttributeSet = Xml.asAttributeSet(parser)
+        val playerView = PlayerView(buildContext.context, attr)
+        setupView(buildContext, playerView)
         val parent = buildContext.parents.lastOrNull()
         playerView.layoutParams = getInitialLayoutParams(parent)
 
@@ -77,6 +90,7 @@ private class PlayerPageViewLifecycleListener(val offlineFile: File, val playerV
         val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(context, Util.getUserAgent(context, "ExhibitionUIApplication"))
         val videoSource: MediaSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.fromFile(offlineFile))
         player.prepare(videoSource)
+        player.repeatMode = Player.REPEAT_MODE_ALL
     }
 
     override fun onPageDeactivate(pageActivity: PageActivity) {

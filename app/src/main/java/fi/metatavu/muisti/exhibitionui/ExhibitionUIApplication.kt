@@ -3,6 +3,7 @@ package fi.metatavu.muisti.exhibitionui
 import android.app.Activity
 import android.app.Application
 import android.content.Intent
+import android.os.Handler
 import android.util.Log
 import androidx.core.app.JobIntentService
 import fi.metatavu.muisti.api.client.models.*
@@ -12,8 +13,10 @@ import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import fi.metatavu.muisti.exhibitionui.services.*
 import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
+import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.lang.Exception
 import java.util.*
 import java.util.concurrent.Executors
@@ -25,6 +28,10 @@ import java.util.concurrent.TimeUnit
 class ExhibitionUIApplication : Application() {
 
     private var currentActivity: Activity? = null
+    private val handler = Handler()
+    private var visitorSessionEndTimeout: Long = 5000
+    var forcedPortraitMode: Boolean? = null
+        private set
 
     /**
      * Constructor
@@ -38,30 +45,12 @@ class ExhibitionUIApplication : Application() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueConstructPagesServiceTask() }, 1, 15, TimeUnit.SECONDS)
     }
 
-    /**
-     * Starts mqtt proximity listening
-     */
-    private fun startProximityListening() = GlobalScope.launch {
-        val antennas =  DeviceSettings.getRfidAntennas()
-        Log.d(javaClass.name, "Proximity start")
-        if (!antennas.isNullOrEmpty()) {
-            for (antenna in antennas) {
-                val topic = "${BuildConfig.MQTT_BASE_TOPIC}/${toAntennaPath(antenna)}"
-                MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
-                    if (it.strength > 35) {
-                        if (VisitorSessionContainer.getVisitorSessionId() == null) {
-                            visitorLogin(it.tag)
-                        }
-                    }
-                })
-            }
-        }
-    }
-
     override fun onCreate() {
         super.onCreate()
         MuistiMqttService()
+        readForcedPortraitMode()
         startProximityListening()
+        readVisitorSessionEndTimeout()
     }
 
     /**
@@ -80,6 +69,91 @@ class ExhibitionUIApplication : Application() {
      */
     fun setCurrentActivity(activity: Activity?) {
         currentActivity = activity
+    }
+
+    /**
+     * Starts mqtt proximity listening
+     */
+    private fun startProximityListening() = GlobalScope.launch {
+        val exhibitionId = DeviceSettings.getExhibitionId()
+        val deviceId = DeviceSettings.getExhibitionDeviceId()
+
+        if (exhibitionId == null) {
+            Log.e(javaClass.name, "Exhibition not configured. Cannot start proximity updates")
+        } else if (deviceId == null) {
+            Log.e(javaClass.name, "Device not configured. Cannot start proximity updates")
+        } else {
+            val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
+            val antennas = MuistiApiFactory.getRfidAntennaApi().listRfidAntennas(exhibitionId = exhibitionId, deviceGroupId = device.groupId, roomId = null)
+
+            Log.d(javaClass.name, "Proximity listeners starting...")
+
+            antennas.forEach {
+                    antenna -> run {
+                val topic = "${BuildConfig.MQTT_BASE_TOPIC}/${toAntennaPath(antenna)}"
+                Log.d(javaClass.name, "Proximity start listener started for topic $topic")
+
+                MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
+                        proximityUpdate -> handleProximityUpdate(antenna = antenna, proximityUpdate = proximityUpdate)
+                })
+            }
+            }
+        }
+    }
+
+    /**
+     * Reads visitors session end timeout from API
+     */
+    private fun readVisitorSessionEndTimeout() = GlobalScope.launch {
+        val exhibitionId = DeviceSettings.getExhibitionId()
+        val deviceId = DeviceSettings.getExhibitionDeviceId()
+
+        if (exhibitionId == null) {
+            Log.e(javaClass.name, "Exhibition not configured. Using default visitor session end timeout")
+        } else if (deviceId == null) {
+            Log.e(javaClass.name, "Device not configured. Using default visitor session end timeout")
+        } else {
+            val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
+            val group = MuistiApiFactory.getExhibitionDeviceGroupsApi().findExhibitionDeviceGroup(exhibitionId = exhibitionId, deviceGroupId = device.groupId)
+            visitorSessionEndTimeout = group.visitorSessionEndTimeout
+            Log.d(javaClass.name, "Visitor session end timeout set to $visitorSessionEndTimeout")
+        }
+    }
+
+    /**
+     * Reads forced portraitMode from API
+     */
+    private fun readForcedPortraitMode() = GlobalScope.launch {
+        val exhibitionId = DeviceSettings.getExhibitionId()
+        val deviceId = DeviceSettings.getExhibitionDeviceId()
+
+        when {
+            exhibitionId == null -> Log.e(javaClass.name, "Exhibition not configured. Not using forced portrait mode")
+            deviceId == null -> Log.e(javaClass.name, "Device not configured. Not using forced portrait mode")
+            else -> {
+                val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
+                //TODO use portrait mode from API once its implemented.
+                forcedPortraitMode = false
+            }
+        }
+    }
+
+    /**
+     * Handles a proximity update message
+     *
+     * @param antenna antenna that reported the proximity update
+     * @param proximityUpdate proximity update message
+     */
+    private fun handleProximityUpdate(antenna: RfidAntenna, proximityUpdate: MqttProximityUpdate) {
+        if (VisitorSessionContainer.getVisitorSessionId() == null) {
+            if (proximityUpdate.strength > antenna.visitorSessionStartThreshold) {
+                visitorLogin(proximityUpdate.tag)
+            }
+        } else {
+            if (proximityUpdate.strength > antenna.visitorSessionEndThreshold) {
+                visitorTagDetection(proximityUpdate.tag)
+            }
+        }
     }
 
     /**
@@ -136,17 +210,88 @@ class ExhibitionUIApplication : Application() {
 
             if (existingSession != null) {
                 VisitorSessionContainer.setVisitorSession(existingSession)
+                restartLogoutTimer()
             } else {
                 // TODO: Resolve language
                 val visitorSession = createNewVisitorSession(exhibitionId = exhibitionId, tagId = tagId, language = "FI")
                 if (visitorSession != null) {
                     val visitor = findVisitorWithUserId(exhibitionId, visitorSession.visitorIds[0])
-                    if(visitor != null){
+                    if (visitor != null) {
                         VisitorSessionContainer.addCurrentVisitor(visitor)
                     }
                     VisitorSessionContainer.setVisitorSession(visitorSession)
+                    restartLogoutTimer()
                 }
             }
+        }
+    }
+
+    /**
+     * Checks if detected tag belongs to the current session and triggers interaction.
+     *
+     * @param tagId tagId to check for
+     */
+    private fun visitorTagDetection(tagId: String) = GlobalScope.launch {
+        val exhibitionId = DeviceSettings.getExhibitionId()
+
+        if (exhibitionId != null) {
+            val existingSession = findExistingSession(exhibitionId, tagId)
+
+            if (existingSession != null && existingSession.id == VisitorSessionContainer.getVisitorSession()?.id) {
+                onInteraction()
+            }
+        }
+    }
+
+    /**
+     * Resets logout timer
+     */
+    private fun restartLogoutTimer() {
+        handler.removeCallbacksAndMessages(null)
+
+        handler.postDelayed({
+            logout()
+        },null, visitorSessionEndTimeout)
+
+        handler.postDelayed({
+            logoutWarning()
+        },null, visitorSessionEndTimeout / 2)
+    }
+
+    /**
+     * Resets the Logout timers and hides the Logout warning toast.
+     */
+    fun onInteraction() {
+        val activity = getCurrentActivity()
+        if (activity is MuistiActivity) {
+            activity.cancelLogoutWarning()
+        }
+
+        restartLogoutTimer()
+    }
+
+    /**
+     * Logs out the current visitor session
+     */
+    private fun logout() {
+        handler.removeCallbacksAndMessages(null)
+        VisitorSessionContainer.setVisitorSession(null)
+        VisitorSessionContainer.clearCurrentVisitors()
+        readForcedPortraitMode()
+        val activity = getCurrentActivity()
+        if (activity is MuistiActivity) {
+            activity.startMainActivity()
+        }
+        currentActivity = null
+    }
+
+    /**
+     * Sends a logout warning to the current activity.
+     */
+    private fun logoutWarning() {
+        val activity = getCurrentActivity()
+        if (activity is MuistiActivity) {
+            activity.logoutWarning(visitorSessionEndTimeout / 2)
         }
     }
 

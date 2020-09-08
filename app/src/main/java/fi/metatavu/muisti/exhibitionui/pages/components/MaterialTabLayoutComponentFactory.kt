@@ -312,6 +312,16 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
                     tabContentComponents.first().visibility = View.VISIBLE
                 }
             }
+
+            override fun onPageDeactivate(pageActivity: PageActivity) {
+                super.onPageDeactivate(pageActivity)
+                val target = parent.findViewWithTag<ViewGroup>(contentContainerId)
+                if (target != null) {
+                    tabContentComponents.forEachIndexed { index, it ->
+                        target.removeView(it)
+                    }
+                }
+            }
         })
     }
 

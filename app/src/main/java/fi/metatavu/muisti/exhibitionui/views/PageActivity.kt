@@ -28,6 +28,7 @@ import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 
 /**
  * Activity for displaying pages from API
@@ -74,7 +75,7 @@ class PageActivity : MuistiActivity() {
             } else {
                 null
             }
-            exitTransition = if(pageExitTransitions.isNotEmpty()){
+            exitTransition  = if(pageExitTransitions.isNotEmpty()){
                 pageExitTransitions[0]
             } else {
                 null
@@ -88,8 +89,8 @@ class PageActivity : MuistiActivity() {
         listenSettingsButton(settings_button)
         listenIndexButton(index_page_button)
 
-        pageView.view.layoutParams.height = ConstraintLayout.LayoutParams.MATCH_PARENT
-        pageView.view.layoutParams.width = ConstraintLayout.LayoutParams.MATCH_PARENT
+        pageView.view.layoutParams?.height = ConstraintLayout.LayoutParams.MATCH_PARENT
+        pageView.view.layoutParams?.width = ConstraintLayout.LayoutParams.MATCH_PARENT
         this.openView(pageView)
     }
 
@@ -100,7 +101,9 @@ class PageActivity : MuistiActivity() {
     }
 
     override fun onPause() {
-        setCurrentActivity(null)
+        if(getCurrentActivity() == this){
+            setCurrentActivity(null)
+        }
         this.closeView()
         super.onPause()
         currentPageView?.lifecycleListeners?.forEach { it.onPause() }
@@ -195,7 +198,11 @@ class PageActivity : MuistiActivity() {
         this.root.addView(pageView.view)
         setSharedElementTransitions(pageView.page.enterTransitions)
         setSharedElementTransitions(pageView.page.exitTransitions)
-        requestedOrientation = pageView.orientation
+
+        if (ExhibitionUIApplication.instance.forcedPortraitMode != true) {
+            requestedOrientation = pageView.orientation
+        }
+
         MqttClientController.addListener(mqttTriggerDeviceGroupEventListener)
         pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
         triggerVisitorSessionChange(pageView)
@@ -282,7 +289,7 @@ class PageActivity : MuistiActivity() {
         val deviceGroupEvent = eventTrigger.deviceGroupEvent
 
         if (deviceGroupEvent != null) {
-            val deviceGroupEventList = deviceGroupEvents.get(deviceGroupEvent) ?: arrayOf<ExhibitionPageEvent>()
+            val deviceGroupEventList = deviceGroupEvents.get(deviceGroupEvent) ?: arrayOf()
             deviceGroupEvents[deviceGroupEvent] = deviceGroupEventList.plus(events)
         }
 
