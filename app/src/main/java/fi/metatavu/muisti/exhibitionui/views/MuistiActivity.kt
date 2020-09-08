@@ -179,6 +179,7 @@ abstract class MuistiActivity : AppCompatActivity() {
 
     /**
      * Displays logout warning with a running timer
+     * @param timeUntilLogout time left until logout
      */
     fun logoutWarning(timeUntilLogout: Long) {
         val logoutWarningText = "Olet kirjautumassa ulos "
