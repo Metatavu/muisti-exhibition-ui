@@ -20,7 +20,9 @@ class MediaViewComponentFactory : AbstractComponentFactory<View>() {
             ExhibitionPageResourceType.svg,
             ExhibitionPageResourceType.html -> WebViewComponentFactory().buildComponent(buildContext)
             ExhibitionPageResourceType.video -> PlayerViewComponentFactory().buildComponent(buildContext)
-            else -> ImageViewComponentFactory().buildComponent(buildContext)
+            ExhibitionPageResourceType.text -> WebViewComponentFactory().buildComponent(buildContext)
+            ExhibitionPageResourceType.image -> ImageViewComponentFactory().buildComponent(buildContext)
+            else -> WebViewComponentFactory().buildComponent(buildContext)
         }
     }
 
