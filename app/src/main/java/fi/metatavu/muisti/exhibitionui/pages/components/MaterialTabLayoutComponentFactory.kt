@@ -200,7 +200,7 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
      */
     private fun initializeTabs(buildContext: ComponentBuildContext, parent: View, view: MuistiTabLayout) {
         val data = readData(getPropertyResourceData(buildContext, "data")) ?: return
-        val contentContainerId = getPropertyResourceData(buildContext, "contentContainerId") ?: return
+        val contentContainerId = buildContext.pageLayoutView.contentContainerId.toString() ?: return
 
         val tabContentComponents = constructTabContentComponents(
             buildContext = buildContext,
