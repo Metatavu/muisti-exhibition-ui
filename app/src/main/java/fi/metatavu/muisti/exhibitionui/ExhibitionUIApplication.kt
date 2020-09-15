@@ -83,20 +83,23 @@ class ExhibitionUIApplication : Application() {
         } else if (deviceId == null) {
             Log.e(javaClass.name, "Device not configured. Cannot start proximity updates")
         } else {
-            val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
-            val antennas = MuistiApiFactory.getRfidAntennaApi().listRfidAntennas(exhibitionId = exhibitionId, deviceGroupId = device.groupId, roomId = null)
+            try {
+                Log.d(javaClass.name, "Proximity listeners starting...")
+                val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
+                val antennas = MuistiApiFactory.getRfidAntennaApi().listRfidAntennas(exhibitionId = exhibitionId, deviceGroupId = device.groupId, roomId = null)
 
-            Log.d(javaClass.name, "Proximity listeners starting...")
-
-            antennas.forEach {
+                antennas.forEach {
                     antenna -> run {
-                val topic = "${BuildConfig.MQTT_BASE_TOPIC}/${toAntennaPath(antenna)}"
-                Log.d(javaClass.name, "Proximity start listener started for topic $topic")
+                        val topic = "${BuildConfig.MQTT_BASE_TOPIC}/${toAntennaPath(antenna)}"
+                        Log.d(javaClass.name, "Proximity start listener started for topic $topic")
 
-                MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
-                        proximityUpdate -> handleProximityUpdate(antenna = antenna, proximityUpdate = proximityUpdate)
-                })
-            }
+                        MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
+                                proximityUpdate -> handleProximityUpdate(antenna = antenna, proximityUpdate = proximityUpdate)
+                        })
+                    }
+                }
+            } catch (e: Exception){
+                Log.e(javaClass.name, "Could not start proximity listening: ${e.message}")
             }
         }
     }
@@ -113,10 +116,14 @@ class ExhibitionUIApplication : Application() {
         } else if (deviceId == null) {
             Log.e(javaClass.name, "Device not configured. Using default visitor session end timeout")
         } else {
-            val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
-            val group = MuistiApiFactory.getExhibitionDeviceGroupsApi().findExhibitionDeviceGroup(exhibitionId = exhibitionId, deviceGroupId = device.groupId)
-            visitorSessionEndTimeout = group.visitorSessionEndTimeout
-            Log.d(javaClass.name, "Visitor session end timeout set to $visitorSessionEndTimeout")
+            try {
+                val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
+                val group = MuistiApiFactory.getExhibitionDeviceGroupsApi().findExhibitionDeviceGroup(exhibitionId = exhibitionId, deviceGroupId = device.groupId)
+                visitorSessionEndTimeout = group.visitorSessionEndTimeout
+                Log.d(javaClass.name, "Visitor session end timeout set to $visitorSessionEndTimeout")
+            } catch (e: Exception) {
+                Log.e(javaClass.name, "Could not get visitor session timeout: ${e.message}")
+            }
         }
     }
 
@@ -131,7 +138,11 @@ class ExhibitionUIApplication : Application() {
             exhibitionId == null -> Log.e(javaClass.name, "Exhibition not configured. Not using forced portrait mode")
             deviceId == null -> Log.e(javaClass.name, "Device not configured. Not using forced portrait mode")
             else -> {
-                val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
+                try {
+                    val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
+                } catch (e : Exception) {
+                    Log.e(javaClass.name, "Could not get exhibition device from API: $e")
+                }
                 //TODO use portrait mode from API once its implemented.
                 forcedPortraitMode = false
             }
