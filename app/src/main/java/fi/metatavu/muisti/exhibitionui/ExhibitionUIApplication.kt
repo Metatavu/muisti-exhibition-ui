@@ -144,7 +144,7 @@ class ExhibitionUIApplication : Application() {
                     Log.e(javaClass.name, "Could not get exhibition device from API: $e")
                 }
                 //TODO use portrait mode from API once its implemented.
-                forcedPortraitMode = true
+                forcedPortraitMode = false
             }
         }
     }
