@@ -12,7 +12,7 @@ class PageViewContainer {
     companion object {
 
         private val pageViews= mutableMapOf<UUID, PageView>()
-        private val livePages = MutableLiveData<List<PageView>>()
+        private var livePages = MutableLiveData<List<PageView>>()
 
         /**
          * Returns generated page view by id
@@ -22,6 +22,11 @@ class PageViewContainer {
          */
         fun getPageView(id: UUID): PageView? {
             return pageViews[id]
+        }
+
+        fun clear(){
+            pageViews.clear()
+            livePages = MutableLiveData()
         }
 
         /**
