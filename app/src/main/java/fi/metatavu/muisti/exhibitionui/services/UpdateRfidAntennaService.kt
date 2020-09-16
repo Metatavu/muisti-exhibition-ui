@@ -111,13 +111,18 @@ object UpdateRfidAntenna : MqttActionInterface {
     fun updateDeviceAntennas() {
         GlobalScope.launch {
             try {
-                val exhibitionId = DeviceSettings.getExhibitionId() ?: return@launch
-                val exhibitionDeviceId = DeviceSettings.getExhibitionDeviceId() ?: return@launch
-                val exhibitionDevice = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = exhibitionDeviceId)
-                val antennas = MuistiApiFactory.getRfidAntennaApi().listRfidAntennas(exhibitionId = exhibitionId, deviceGroupId = exhibitionDevice.groupId, roomId = null)
-                val list: List<RfidAntenna> = antennas.toList()
+                val exhibitionId = DeviceSettings.getExhibitionId()
+                val exhibitionDeviceId = DeviceSettings.getExhibitionDeviceId()
+                if (exhibitionDeviceId != null && exhibitionId != null){
+                    val exhibitionDevice = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = exhibitionDeviceId)
+                    val antennas = MuistiApiFactory.getRfidAntennaApi().listRfidAntennas(exhibitionId = exhibitionId, deviceGroupId = exhibitionDevice.groupId, roomId = null)
+                    val list: List<RfidAntenna> = antennas.toList()
 
-                DeviceSettings.setExhibitionAntennaList(list)
+                    DeviceSettings.setExhibitionAntennaList(list)
+                } else {
+                    DeviceSettings.setExhibitionAntennaList(emptyList())
+                }
+
                 antennaUpdateListener.forEach { it.invoke() }
             } catch (e: Exception) {
                 Log.e(javaClass.name, "Updating antenna failed", e)

@@ -1,9 +1,9 @@
 package fi.metatavu.muisti.exhibitionui.views
 
+import android.app.ActivityManager
 import android.content.Intent
 import android.os.Bundle
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.View
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -15,14 +15,15 @@ import androidx.preference.PreferenceFragmentCompat
 import fi.metatavu.muisti.api.client.models.Exhibition
 import fi.metatavu.muisti.api.client.models.ExhibitionDevice
 import fi.metatavu.muisti.api.client.models.RfidAntenna
-import kotlinx.coroutines.launch
 import fi.metatavu.muisti.exhibitionui.services.UpdateRfidAntenna
 import kotlinx.android.synthetic.main.settings_activity.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.util.*
 import android.widget.ArrayAdapter
+import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
+import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
+import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
+import kotlinx.coroutines.*
 
 
 /**
@@ -59,10 +60,16 @@ class SettingsActivity : MuistiActivity() {
             .commit()
     }
 
+    /**
+     * Exits the settings activity
+     *
+     * @param view view that called the exit function
+     */
     fun exitSettings(view: View?) {
         val intent = Intent(this, MainActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         startActivity(intent)
+        finish()
     }
 
     override fun onBackPressed() {
@@ -119,6 +126,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
         UpdateRfidAntenna.addAntennaUpdateListener {
             reloadRfidSettings()
         }
+        GlobalScope.launch {
+            reloadExhibitionDevicesPreference(getExhibitionId())
+        }
     }
 
     override fun onPause() {
@@ -169,7 +179,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         val exhibitionDevice = exhibitionDevices?.find { it.id!!.equals(exhibitionDeviceId) }
-
         val exhibitionDevicesPreference: ListPreference = findPreference("exhibition_device")!!
         exhibitionDevicesPreference.entries = exhibitionDevices?.map { it.name }?.toTypedArray() ?: emptyArray()
         exhibitionDevicesPreference.entryValues = exhibitionDevices?.map { it.id.toString() }?.toTypedArray()  ?: emptyArray()
@@ -217,6 +226,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
      * Returns exhibition id from device setting
      *
      * @return exhibition id
+     * @return exhibition id
      */
     private suspend fun getExhibitionId(): UUID? = withContext(Dispatchers.Default) {
         mViewModel?.getExhibitionId()
@@ -249,11 +259,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private fun onExhibitionPreferenceChange(exhibitionPreference: ListPreference, newValue: String) {
         val exhibitionDevicePreference: ListPreference = findPreference("exhibition_device")!!
         exhibitionDevicePreference.summary = getString(R.string.exhibition_perference_loading)
-        mViewModel?.setExhibitionDeviceId(null)
-        mViewModel?.setExhibitionId(newValue)
         updateListPreferenceSummary(exhibitionPreference, newValue)
         updateListPreferenceSummary(exhibitionDevicePreference, null)
-        reloadExhibitionDevicesPreference(UUID.fromString(newValue))
+        resetDeviceDataAndSave(newValue, null)
     }
 
     /**
@@ -264,8 +272,35 @@ class SettingsFragment : PreferenceFragmentCompat() {
      */
     private fun onExhibitionDevicePreferenceChange(exhibitionDevicePreference: ListPreference, newValue: String) {
         updateListPreferenceSummary(exhibitionDevicePreference, newValue)
-        mViewModel?.setExhibitionDeviceId(newValue)
-        lifecycleScope.launch {
+        GlobalScope.launch {
+            val exhibitionUUID = mViewModel?.getExhibitionId()
+            val exhibitionId = when(exhibitionUUID != null) {
+                true -> exhibitionUUID.toString()
+                else -> null
+            }
+            resetDeviceDataAndSave(deviceId = newValue, exhibitionId = exhibitionId )
+        }
+    }
+
+    /**
+     * Deletes application data from the device and sets the new values for exhibitionId and deviceId
+     *
+     * @param exhibitionId exhibitionId to save after clearing application data
+     * @param deviceId deviceId to save after clearing application data
+     */
+    private fun resetDeviceDataAndSave(exhibitionId: String?, deviceId: String?) {
+        GlobalScope.launch {
+            val downloadsDir = ExhibitionUIApplication.instance.applicationContext.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
+            downloadsDir?.deleteRecursively()
+            PageViewContainer.clear()
+            ExhibitionUIDatabase.clearData()
+            mViewModel?.setExhibitionId(exhibitionId)?.join()
+            mViewModel?.setExhibitionDeviceId(deviceId)?.join()
+            if(exhibitionId != null) {
+                reloadExhibitionDevicesPreference(UUID.fromString(exhibitionId))
+            } else {
+                reloadExhibitionDevicesPreference(null)
+            }
             UpdateRfidAntenna.updateDeviceAntennas()
         }
     }

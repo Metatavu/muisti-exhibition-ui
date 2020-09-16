@@ -144,6 +144,7 @@ abstract class MuistiActivity : AppCompatActivity() {
     protected fun startSettingsActivity() {
         val intent = Intent(this, SettingsActivity::class.java)
         this.startActivity(intent)
+        finish()
     }
 
     /**

@@ -60,6 +60,13 @@ abstract class ExhibitionUIDatabase : RoomDatabase() {
         private var INSTANCE: ExhibitionUIDatabase? = null
 
         /**
+         * Clears all tables from the database
+         */
+        fun clearData() {
+            INSTANCE?.clearAllTables()
+        }
+
+        /**
          * Returns database instance
          *
          * @return database instance
