@@ -47,10 +47,9 @@ class ExhibitionUIApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        readApiValues()
         MuistiMqttService()
-        readForcedPortraitMode()
         startProximityListening()
-        readVisitorSessionEndTimeout()
     }
 
     /**
@@ -105,6 +104,14 @@ class ExhibitionUIApplication : Application() {
     }
 
     /**
+     *  Reads visitor session end time out and forced portrait mode values from API
+     */
+    fun readApiValues() {
+        readVisitorSessionEndTimeout()
+        readForcedPortraitMode()
+    }
+
+    /**
      * Reads visitors session end timeout from API
      */
     private fun readVisitorSessionEndTimeout() = GlobalScope.launch {
@@ -135,16 +142,17 @@ class ExhibitionUIApplication : Application() {
         val deviceId = DeviceSettings.getExhibitionDeviceId()
 
         when {
-            exhibitionId == null -> Log.e(javaClass.name, "Exhibition not configured. Not using forced portrait mode")
-            deviceId == null -> Log.e(javaClass.name, "Device not configured. Not using forced portrait mode")
+            exhibitionId == null || deviceId == null -> {
+                forcedPortraitMode = false
+                Log.e(javaClass.name, "Exhibition not configured. Not using forced portrait mode")
+            }
             else -> {
                 try {
                     val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
+                    forcedPortraitMode = device.screenOrientation == ScreenOrientation.forcedPortrait
                 } catch (e : Exception) {
                     Log.e(javaClass.name, "Could not get exhibition device from API: $e")
                 }
-                //TODO use portrait mode from API once its implemented.
-                forcedPortraitMode = false
             }
         }
     }

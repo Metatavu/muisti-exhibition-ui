@@ -51,6 +51,11 @@ class MainActivity : MuistiActivity() {
         handler.removeCallbacksAndMessages(null)
     }
 
+    override fun onResume() {
+        super.onResume()
+        ExhibitionUIApplication.instance.readApiValues()
+    }
+
     /**
      * Logs the visitor in to the system if visitor and redirects user forward
      *
