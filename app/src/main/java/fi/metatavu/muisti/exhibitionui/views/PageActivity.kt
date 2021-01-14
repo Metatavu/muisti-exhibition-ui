@@ -222,19 +222,6 @@ class PageActivity : MuistiActivity() {
     }
 
     /**
-     * Removes all children from the specified views parent
-     *
-     * @param view view from which parent all children will be removed
-     */
-    private fun releaseView(view: View?) {
-        view ?: return
-        val parent = view.parent
-        if (parent is ViewGroup){
-            parent.removeAllViews()
-        }
-    }
-
-    /**
      * Applies event triggers
      *
      * @param eventTriggers event triggers to be applied

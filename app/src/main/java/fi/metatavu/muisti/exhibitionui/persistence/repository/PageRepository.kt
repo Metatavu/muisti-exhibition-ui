@@ -56,16 +56,16 @@ class PageRepository(private val pageDao: PageDao) {
         val deleteIds = existingPageIds.minus(pages.map { it.id!! })
 
         deleteIds.forEach { pageId -> deletePage(pageId = pageId) }
-        pages.forEach { page -> updatePage(page = page, contentVersion = contentVersions.first { contentVersion -> contentVersion.id == page.contentVersionId }) }
+        pages.forEach { page -> updatePage(page = page, contentVersion = contentVersions.firstOrNull { contentVersion -> contentVersion.id == page.contentVersionId }) }
     }
 
     /**
      * Updates single page into the database
      *
      * @param page page
-     * @param contentVersion content version of the page
+     * @param contentVersion content version of the page or null
      */
-    suspend fun updatePage(page: ExhibitionPage, contentVersion: ContentVersion) {
+    suspend fun updatePage(page: ExhibitionPage, contentVersion: ContentVersion?) {
         val id = page.id
         if (id == null) {
             Log.d(PageRepository::javaClass.name, "id was null")
@@ -81,7 +81,7 @@ class PageRepository(private val pageDao: PageDao) {
         val updatePage = Page(
             name = page.name,
             pageId = id,
-            language = contentVersion.language,
+            language = contentVersion?.language ?: "",
             orderNumber = page.orderNumber,
             exhibitionId = exhibitionId,
             modifiedAt = page.modifiedAt!!,

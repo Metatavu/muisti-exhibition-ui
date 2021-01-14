@@ -18,6 +18,7 @@ import java.util.*
 import kotlin.math.max
 import android.os.CountDownTimer
 import android.view.MotionEvent
+import android.view.ViewGroup
 import com.github.rongi.rotate_layout.layout.RotateLayout
 import fi.metatavu.muisti.exhibitionui.R
 
@@ -38,6 +39,19 @@ abstract class MuistiActivity : AppCompatActivity() {
         super.onResume()
         if(ExhibitionUIApplication.instance.forcedPortraitMode == true){
             setForcedPortraitMode()
+        }
+    }
+
+    /**
+     * Removes all children from the specified views parent
+     *
+     * @param view view from which parent all children will be removed
+     */
+    protected fun releaseView(view: View?) {
+        view ?: return
+        val parent = view.parent
+        if (parent is ViewGroup){
+            parent.removeAllViews()
         }
     }
 
