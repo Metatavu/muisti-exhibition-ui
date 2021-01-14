@@ -70,6 +70,11 @@ class MainActivity : MuistiActivity() {
         ExhibitionUIApplication.instance.readApiValues()
     }
 
+    /**
+     * Makes sure the specified page is not reserved by another view and opens it
+     *
+     * @param idlePage page to open
+     */
     private fun openIdlePage(idlePage: PageView) {
         releaseView(idlePage.view)
         runOnUiThread {
