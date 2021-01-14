@@ -140,7 +140,7 @@ class MainActivity : MuistiActivity() {
     }
 
     /**
-     * Checks if forced portrait mode setting is loaded and modifies UI accordingly
+     * Checks if forced portrait mode setting is loaded and implements it
      */
     private fun waitForForcedPortraitMode() {
         handler.postDelayed({
