@@ -3,9 +3,7 @@ package fi.metatavu.muisti.exhibitionui.views
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
-import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import fi.metatavu.muisti.api.client.models.VisitorSession
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
@@ -13,7 +11,6 @@ import fi.metatavu.muisti.exhibitionui.pages.PageView
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_page.*
 import kotlinx.android.synthetic.main.activity_page.settings_button
 import kotlinx.coroutines.GlobalScope
@@ -48,7 +45,7 @@ class MainActivity : MuistiActivity() {
                 }
                 supportActionBar?.hide()
                 listenSettingsButton(settings_button)
-                listenLoginButton(login_button)
+                //listenLoginButton(login_button)
                 waitForForcedPortraitMode()
             }
         }
@@ -143,9 +140,7 @@ class MainActivity : MuistiActivity() {
     }
 
     /**
-     * Checks if page is constructed in the PageViewContainer and either navigates to it or keeps waiting
-     *
-     * @param pageId page id to navigate to once it is ready
+     * Checks if forced portrait mode setting is loaded and modifies UI accordingly
      */
     private fun waitForForcedPortraitMode() {
         handler.postDelayed({
