@@ -89,12 +89,13 @@ class ExhibitionUIApplication : Application() {
 
                 antennas.forEach {
                     antenna -> run {
-                        val topic = "${BuildConfig.MQTT_BASE_TOPIC}/${toAntennaPath(antenna)}"
-                        Log.d(javaClass.name, "Proximity start listener started for topic $topic")
+                        getAntennaTopics(antenna).forEach { topic ->
+                            Log.d(javaClass.name, "Proximity start listener started for topic $topic")
 
-                        MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
+                            MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
                                 proximityUpdate -> handleProximityUpdate(antenna = antenna, proximityUpdate = proximityUpdate)
-                        })
+                            })
+                        }
                     }
                 }
             } catch (e: Exception){
@@ -365,7 +366,11 @@ class ExhibitionUIApplication : Application() {
     private suspend fun findExistingVisitor(exhibitionId: UUID, tagId: String): Visitor? {
         val visitorsApi = MuistiApiFactory.getVisitorsApi()
 
-        val existingVisitors = visitorsApi.listVisitors(exhibitionId = exhibitionId, tagId = tagId)
+        val existingVisitors = visitorsApi.listVisitors(
+            exhibitionId = exhibitionId,
+            tagId = tagId,
+            email = null
+        )
 
         if (existingVisitors.isNotEmpty()) {
             return existingVisitors[0]
@@ -387,15 +392,15 @@ class ExhibitionUIApplication : Application() {
     }
 
     /**
-     * Returns rfidAntenna as an mqtt path.
+     * Returns topics for given antenna
      *
      * @param rfidAntenna rfidAntenna
-     * @return UUID or null if string is null
+     * @return topics
      */
-    private fun toAntennaPath(rfidAntenna: RfidAntenna): String {
-        return "${rfidAntenna.readerId}/${rfidAntenna.antennaNumber}/"
+    private fun getAntennaTopics(rfidAntenna: RfidAntenna): Array<String> {
+        val baseTopic = "${BuildConfig.MQTT_BASE_TOPIC}/${rfidAntenna.readerId}/${rfidAntenna.antennaNumber}";
+        return arrayOf(baseTopic, "$baseTopic/")
     }
-
 
     companion object {
         lateinit var instance: ExhibitionUIApplication
