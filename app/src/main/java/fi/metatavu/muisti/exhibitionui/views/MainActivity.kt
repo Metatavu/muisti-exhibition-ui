@@ -24,7 +24,6 @@ class MainActivity : MuistiActivity() {
 
     private var mViewModel: MainViewModel? = null
 
-
     private var handler: Handler = Handler()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,8 +44,8 @@ class MainActivity : MuistiActivity() {
                 }
                 supportActionBar?.hide()
                 listenSettingsButton(settings_button)
-                //listenLoginButton(login_button)
-                waitForForcedPortraitMode()
+                listenLoginButton(login_button)
+                waitForForcedPortraitMode(idlePage?.orientation)
             }
         }
     }
@@ -140,15 +139,20 @@ class MainActivity : MuistiActivity() {
     }
 
     /**
-     * Checks if forced portrait mode setting is loaded and modifies UI accordingly
+     * Checks if forced portrait mode setting is loaded,
+     * if true forcces portrait otherwise sets the specified orientation.
+     *
+     * @param orientation orientation to set if portrait mode is not forced.
      */
-    private fun waitForForcedPortraitMode() {
+    private fun waitForForcedPortraitMode(orientation: Int?) {
         handler.postDelayed({
             if (ExhibitionUIApplication.instance.forcedPortraitMode == null) {
-                waitForForcedPortraitMode()
+                waitForForcedPortraitMode(orientation)
             } else {
                 if(ExhibitionUIApplication.instance.forcedPortraitMode == true) {
                     setForcedPortraitMode()
+                } else {
+                    requestedOrientation = orientation ?: return@postDelayed
                 }
             }
         }, "waitForForcedPortrait", 500)
