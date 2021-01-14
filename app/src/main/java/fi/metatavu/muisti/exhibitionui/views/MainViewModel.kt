@@ -33,7 +33,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     }
 
     /**
-     * Returns the idle page Id for the current selected device
+     * Returns the idle page Id for the current device
      *
      * @return a front page id for given language or null if not found
      */
