@@ -66,11 +66,23 @@ object UpdatePages : MqttActionInterface {
                 val deviceId = DeviceSettings.getExhibitionDeviceId()
 
                 if (exhibitionId != null) {
-                    val pages = MuistiApiFactory.getExhibitionPagesApi().listExhibitionPages(
+                    var pages = MuistiApiFactory.getExhibitionPagesApi().listExhibitionPages(
                         exhibitionId = exhibitionId,
                         contentVersionId = null,
                         exhibitionDeviceId = deviceId
                     )
+
+                    if (deviceId != null) {
+                        val idlePageId = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(
+                                exhibitionId = exhibitionId,
+                                deviceId = deviceId
+                        ).idlePageId
+
+                        if (idlePageId != null) {
+                            val idlePage = MuistiApiFactory.getExhibitionPagesApi().findExhibitionPage(exhibitionId, idlePageId)
+                            pages = pages.plus(idlePage)
+                        }
+                    }
 
                     val contentVersions = pages
                         .map { page -> page.contentVersionId }

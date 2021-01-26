@@ -3,15 +3,15 @@ package fi.metatavu.muisti.exhibitionui.views
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
-import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import fi.metatavu.muisti.api.client.models.VisitorSession
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
+import fi.metatavu.muisti.exhibitionui.pages.PageView
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_page.*
 import kotlinx.android.synthetic.main.activity_page.settings_button
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -24,16 +24,30 @@ class MainActivity : MuistiActivity() {
 
     private var mViewModel: MainViewModel? = null
 
+
     private var handler: Handler = Handler()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-        setContentView(R.layout.activity_main)
-        supportActionBar?.hide()
-        listenSettingsButton(settings_button)
-        listenLoginButton(login_button)
-        waitForForcedPortraitMode()
+        GlobalScope.launch {
+            val idlePage = when (val pageId = mViewModel?.getIdlePageId()) {
+                null -> null
+                else -> PageViewContainer.getPageView(pageId)
+            }
+
+            runOnUiThread {
+                if (idlePage != null) {
+                    setContentView(R.layout.activity_page)
+                    openIdlePage(idlePage)
+                } else {
+                    setContentView(R.layout.activity_main)
+                }
+                supportActionBar?.hide()
+                listenSettingsButton(settings_button)
+                waitForForcedPortraitMode()
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -54,6 +68,18 @@ class MainActivity : MuistiActivity() {
     override fun onResume() {
         super.onResume()
         ExhibitionUIApplication.instance.readApiValues()
+    }
+
+    /**
+     * Opens the idle page
+     *
+     * @param idlePage idle page view
+     */
+    private fun openIdlePage(idlePage: PageView) {
+        releaseView(idlePage.view)
+        runOnUiThread {
+            this.root.addView(idlePage.view)
+        }
     }
 
     /**
@@ -118,9 +144,7 @@ class MainActivity : MuistiActivity() {
     }
 
     /**
-     * Checks if page is constructed in the PageViewContainer and either navigates to it or keeps waiting
-     *
-     * @param pageId page id to navigate to once it is ready
+     * Checks if forced portrait mode setting is loaded and implements it
      */
     private fun waitForForcedPortraitMode() {
         handler.postDelayed({

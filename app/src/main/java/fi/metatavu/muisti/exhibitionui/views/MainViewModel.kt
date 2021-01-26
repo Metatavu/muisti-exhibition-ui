@@ -2,8 +2,12 @@ package fi.metatavu.muisti.exhibitionui.views
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
+import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
+import fi.metatavu.muisti.exhibitionui.persistence.model.DeviceSettingName
 import fi.metatavu.muisti.exhibitionui.persistence.repository.PageRepository
+import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import java.util.*
 
 /**
@@ -26,5 +30,18 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
      */
     suspend fun getFrontPage(language: String) : UUID? {
         return pageRepository.findIndexPage(language = language)?.pageId
+    }
+
+    /**
+     * Returns idle page id for the current device
+     *
+     * @return a idle page id for the current device or null if not found
+     */
+    suspend fun getIdlePageId() : UUID? {
+        val deviceId = DeviceSettings.getExhibitionDeviceId()
+        val exhibitionId = DeviceSettings.getExhibitionId()
+        val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId ?: return null, deviceId ?: return null)
+
+        return device.idlePageId
     }
 }
