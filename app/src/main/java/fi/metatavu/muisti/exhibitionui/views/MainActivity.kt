@@ -45,7 +45,6 @@ class MainActivity : MuistiActivity() {
                 }
                 supportActionBar?.hide()
                 listenSettingsButton(settings_button)
-                //listenLoginButton(login_button)
                 waitForForcedPortraitMode()
             }
         }

@@ -33,9 +33,9 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     }
 
     /**
-     * Returns the idle page Id for the current device
+     * Returns idle page id for the current device
      *
-     * @return a front page id for given language or null if not found
+     * @return a idle page id for the current device or null if not found
      */
     suspend fun getIdlePageId() : UUID? {
         val deviceId = DeviceSettings.getExhibitionDeviceId()
