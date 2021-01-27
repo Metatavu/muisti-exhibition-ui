@@ -6,17 +6,20 @@ import android.content.Intent
 import android.os.Handler
 import android.util.Log
 import androidx.core.app.JobIntentService
+import androidx.lifecycle.Observer
 import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import fi.metatavu.muisti.exhibitionui.services.*
-import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
+import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
+import fi.metatavu.muisti.exhibitionui.visitors.VisibleVisitorsContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
+import fi.metatavu.muisti.exhibitionui.views.PageActivity
+import fi.metatavu.muisti.exhibitionui.visitors.VisibleTagsContainer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.lang.Exception
 import java.util.*
 import java.util.concurrent.Executors
@@ -30,6 +33,7 @@ class ExhibitionUIApplication : Application() {
     private var currentActivity: Activity? = null
     private val handler = Handler()
     private var visitorSessionEndTimeout: Long = 5000
+    private var allowVisitorSessionCreation = false
     var forcedPortraitMode: Boolean? = null
         private set
 
@@ -43,6 +47,14 @@ class ExhibitionUIApplication : Application() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 1, 1, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 1, 4, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueConstructPagesServiceTask() }, 1, 15, TimeUnit.SECONDS)
+
+        VisibleTagsContainer.getLiveVisibleTags().observeForever {
+            onVisibleTagsChange(it)
+        }
+
+        VisitorSessionContainer.getLiveVisitorSession().observeForever {
+            onVisitorSessionChange(it)
+        }
     }
 
     override fun onCreate() {
@@ -68,6 +80,21 @@ class ExhibitionUIApplication : Application() {
      */
     fun setCurrentActivity(activity: Activity?) {
         currentActivity = activity
+    }
+
+    /**
+     * Logs out the current visitor session
+     */
+    private fun endVisitorSession() {
+        handler.removeCallbacksAndMessages(VISITOR_SESSION_HANDLER_TOKEN)
+        VisitorSessionContainer.endVisitorSession()
+        readApiValues()
+
+        val activity = getCurrentActivity()
+        if (activity is MuistiActivity) {
+            activity.startMainActivity()
+        }
+        currentActivity = null
     }
 
     /**
@@ -98,6 +125,8 @@ class ExhibitionUIApplication : Application() {
                         }
                     }
                 }
+
+                pollUnseenTags()
             } catch (e: Exception){
                 Log.e(javaClass.name, "Could not start proximity listening: ${e.message}")
             }
@@ -105,17 +134,19 @@ class ExhibitionUIApplication : Application() {
     }
 
     /**
-     *  Reads visitor session end time out and forced portrait mode values from API
+     * Polls recently seen tags list and removes tags that have not been seen recently
      */
-    fun readApiValues() {
-        readVisitorSessionEndTimeout()
-        readForcedPortraitMode()
+    private fun pollUnseenTags() {
+        handler.postDelayed({
+            VisibleTagsContainer.removeUnseenTags()
+            pollUnseenTags()
+        }, UNSEEN_TAGS_HANDLER_TOKEN, visitorSessionEndTimeout / 2)
     }
 
     /**
-     * Reads visitors session end timeout from API
+     *  Reads visitor session end time out and forced portrait mode values from API
      */
-    private fun readVisitorSessionEndTimeout() = GlobalScope.launch {
+    fun readApiValues() = GlobalScope.launch {
         val exhibitionId = DeviceSettings.getExhibitionId()
         val deviceId = DeviceSettings.getExhibitionDeviceId()
 
@@ -127,33 +158,16 @@ class ExhibitionUIApplication : Application() {
             try {
                 val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
                 val group = MuistiApiFactory.getExhibitionDeviceGroupsApi().findExhibitionDeviceGroup(exhibitionId = exhibitionId, deviceGroupId = device.groupId)
+
+                forcedPortraitMode = device.screenOrientation == ScreenOrientation.forcedPortrait
                 visitorSessionEndTimeout = group.visitorSessionEndTimeout
-                Log.d(javaClass.name, "Visitor session end timeout set to $visitorSessionEndTimeout")
+                allowVisitorSessionCreation = group.allowVisitorSessionCreation
+
+                Log.d(javaClass.name, "Device orientation is set to: ${device.screenOrientation}")
+                Log.d(javaClass.name, "Visitor session end timeout set to: $visitorSessionEndTimeout")
+                Log.d(javaClass.name, "Allow visitor session creation is set to: $allowVisitorSessionCreation")
             } catch (e: Exception) {
-                Log.e(javaClass.name, "Could not get visitor session timeout: ${e.message}")
-            }
-        }
-    }
-
-    /**
-     * Reads forced portraitMode from API
-     */
-    private fun readForcedPortraitMode() = GlobalScope.launch {
-        val exhibitionId = DeviceSettings.getExhibitionId()
-        val deviceId = DeviceSettings.getExhibitionDeviceId()
-
-        when {
-            exhibitionId == null || deviceId == null -> {
-                forcedPortraitMode = false
-                Log.e(javaClass.name, "Exhibition not configured. Not using forced portrait mode")
-            }
-            else -> {
-                try {
-                    val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
-                    forcedPortraitMode = device.screenOrientation == ScreenOrientation.forcedPortrait
-                } catch (e : Exception) {
-                    Log.e(javaClass.name, "Could not get exhibition device from API: $e")
-                }
+                Log.e(javaClass.name, "Could not read device settings from API", e)
             }
         }
     }
@@ -165,14 +179,8 @@ class ExhibitionUIApplication : Application() {
      * @param proximityUpdate proximity update message
      */
     private fun handleProximityUpdate(antenna: RfidAntenna, proximityUpdate: MqttProximityUpdate) {
-        if (VisitorSessionContainer.getVisitorSessionId() == null) {
-            if (proximityUpdate.strength > antenna.visitorSessionStartThreshold) {
-                visitorLogin(proximityUpdate.tag)
-            }
-        } else {
-            if (proximityUpdate.strength > antenna.visitorSessionEndThreshold) {
-                visitorTagDetection(proximityUpdate.tag)
-            }
+        if (proximityUpdate.strength > antenna.visitorSessionStartThreshold) {
+            VisibleTagsContainer.tagSeen(tag = proximityUpdate.tag, visitorSessionEndTimeout = visitorSessionEndTimeout)
         }
     }
 
@@ -216,66 +224,53 @@ class ExhibitionUIApplication : Application() {
         JobIntentService.enqueueWork(this, ConstructPagesService::class.java, 5, serviceIntent)
     }
 
-
     /**
-     * Attempts to log the visitor in
-     *
-     * @param tagId tagId to attempt to log in with
+     * Resets visitor session end timer
      */
-    fun visitorLogin(tagId: String) = GlobalScope.launch {
-        val exhibitionId = DeviceSettings.getExhibitionId()
-
-        if (exhibitionId != null) {
-            val existingSession = findExistingSession(exhibitionId, tagId)
-
-            if (existingSession != null) {
-                VisitorSessionContainer.setVisitorSession(existingSession)
-                restartLogoutTimer()
-            } else {
-                // TODO: Resolve language
-                val visitorSession = createNewVisitorSession(exhibitionId = exhibitionId, tagId = tagId, language = "FI")
-                if (visitorSession != null) {
-                    val visitor = findVisitorWithUserId(exhibitionId, visitorSession.visitorIds[0])
-                    if (visitor != null) {
-                        VisitorSessionContainer.addCurrentVisitor(visitor)
-                    }
-                    VisitorSessionContainer.setVisitorSession(visitorSession)
-                    restartLogoutTimer()
-                }
-            }
-        }
-    }
-
-    /**
-     * Checks if detected tag belongs to the current session and triggers interaction.
-     *
-     * @param tagId tagId to check for
-     */
-    private fun visitorTagDetection(tagId: String) = GlobalScope.launch {
-        val exhibitionId = DeviceSettings.getExhibitionId()
-
-        if (exhibitionId != null) {
-            val existingSession = findExistingSession(exhibitionId, tagId)
-
-            if (existingSession != null && existingSession.id == VisitorSessionContainer.getVisitorSession()?.id) {
-                onInteraction()
-            }
-        }
-    }
-
-    /**
-     * Resets logout timer
-     */
-    private fun restartLogoutTimer() {
-        handler.removeCallbacksAndMessages(null)
+    private fun resetVisitorSessionEndTimer() {
+        handler.removeCallbacksAndMessages(VISITOR_SESSION_HANDLER_TOKEN)
 
         handler.postDelayed({
-            logout()
-        },null, visitorSessionEndTimeout)
+            endVisitorSession()
+        }, VISITOR_SESSION_HANDLER_TOKEN, visitorSessionEndTimeout)
 
         handler.postDelayed({
             logoutWarning()
-        },null, visitorSessionEndTimeout / 2)
+        }, VISITOR_SESSION_HANDLER_TOKEN, visitorSessionEndTimeout / 2)
+    }
+
+    /**
+     * Finds a visitor session by tag
+     *
+     * @param exhibitionId exhibition id
+     * @param tag tag
+     * @return visitor session or null if not found
+     */
+    private suspend fun findVisitorSessionByTag(exhibitionId: UUID, tag: String): VisitorSession? {
+        val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
+
+        return visitorSessionsApi.listVisitorSessions(
+            exhibitionId = exhibitionId,
+            tagId = tag
+        ).firstOrNull()
+    }
+
+    /**
+     * Finds a visitor session by tags
+     *
+     * @param exhibitionId exhibition id
+     * @param tags tags
+     * @return visitor session or null if not found
+     */
+    private suspend fun findVisitorSessionByTags(exhibitionId: UUID, tags: List<String>): VisitorSession? {
+        for (tag in tags) {
+            val result = findVisitorSessionByTag(exhibitionId, tag)
+            if (result != null) {
+                return result
+            }
+        }
+
+        return null
     }
 
     /**
@@ -283,26 +278,11 @@ class ExhibitionUIApplication : Application() {
      */
     fun onInteraction() {
         val activity = getCurrentActivity()
-        if (activity is MuistiActivity) {
+        if (activity is PageActivity) {
             activity.cancelLogoutWarning()
         }
 
-        restartLogoutTimer()
-    }
-
-    /**
-     * Logs out the current visitor session
-     */
-    private fun logout() {
-        handler.removeCallbacksAndMessages(null)
-        VisitorSessionContainer.setVisitorSession(null)
-        VisitorSessionContainer.clearCurrentVisitors()
-        readForcedPortraitMode()
-        val activity = getCurrentActivity()
-        if (activity is MuistiActivity) {
-            activity.startMainActivity()
-        }
-        currentActivity = null
+        resetVisitorSessionEndTimer()
     }
 
     /**
@@ -310,85 +290,46 @@ class ExhibitionUIApplication : Application() {
      */
     private fun logoutWarning() {
         val activity = getCurrentActivity()
-        if (activity is MuistiActivity) {
+        if (activity is PageActivity) {
             activity.logoutWarning(visitorSessionEndTimeout / 2)
         }
     }
 
     /**
-     * Attempts to find an existing visitor session in exhibition with users tag
+     * Finds visitor by id
      *
-     * @param exhibitionId ExhibitionId to find the session with
-     * @param tagId Tag to find the session with
-     * @return Visitor session or null if not found
+     * @param exhibitionId exhibition id
+     * @param visitorId visitor id
+     * @return visitor or null if not found
      */
-    private suspend fun findExistingSession(exhibitionId: UUID, tagId: String): VisitorSession? {
-        val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
+    private suspend fun findVisitorById(exhibitionId: UUID, visitorId: UUID): Visitor? {
         try {
-            val existingSessions = visitorSessionsApi.listVisitorSessions(exhibitionId = exhibitionId, tagId = tagId)
-            if (existingSessions.isNotEmpty()) {
-                return existingSessions[0]
-            }
-        } catch (e: Exception){
-            Log.e(javaClass.name, "Cannot get existing session response: $e")
-        }
-        return null
-    }
-
-    /**
-     * Creates a new visitor session
-     *
-     * @param exhibitionId exhibition to create the session in
-     * @param tagId tag to add into the session
-     * @param language language
-     * @return Visitor Session or null if creation fails
-     */
-    private suspend fun createNewVisitorSession(exhibitionId: UUID, tagId: String, language: String): VisitorSession? {
-        val visitor = findExistingVisitor(exhibitionId = exhibitionId, tagId = tagId) ?: return null
-        val visitorSessionApi = MuistiApiFactory.getVisitorSessionsApi()
-
-        val session = VisitorSession(
-            state = VisitorSessionState.aCTIVE,
-            language = language,
-            visitorIds = arrayOf(visitor.id ?: return null)
-        )
-
-        return visitorSessionApi.createVisitorSession(exhibitionId, session)
-    }
-
-    /**
-     * Finds existing visitor with tag
-     *
-     * @param exhibitionId exhibition to find the visitor in
-     * @param tagId tagId to find the visitor with
-     * @return Visitor or null if not found
-     */
-    private suspend fun findExistingVisitor(exhibitionId: UUID, tagId: String): Visitor? {
-        val visitorsApi = MuistiApiFactory.getVisitorsApi()
-
-        val existingVisitors = visitorsApi.listVisitors(
-            exhibitionId = exhibitionId,
-            tagId = tagId,
-            email = null
-        )
-
-        if (existingVisitors.isNotEmpty()) {
-            return existingVisitors[0]
+            val visitorsApi = MuistiApiFactory.getVisitorsApi()
+            return visitorsApi.findVisitor(exhibitionId = exhibitionId, visitorId =  visitorId)
+        } catch (e: Exception) {
+            Log.e(javaClass.name, "Failed to find visitor by id", e)
         }
 
         return null
     }
 
     /**
-     * Finds existing visitor with userId
+     * Finds visitor by tagId
      *
-     * @param exhibitionId exhibition to find the visitor in
-     * @param userId userId to find the visitor with
-     * @return Visitor or null if not found
+     * @param exhibitionId exhibition id
+     * @param tagId tag id
+     * @return visitor or null if not found
      */
-    private suspend fun findVisitorWithUserId(exhibitionId: UUID, userId: UUID): Visitor? {
-        val visitorsApi = MuistiApiFactory.getVisitorsApi()
-        return visitorsApi.findVisitor(exhibitionId = exhibitionId, visitorId = userId)
+    private suspend fun findVisitorByTag(exhibitionId: UUID, tagId: String): Visitor? {
+        try {
+            val visitorsApi = MuistiApiFactory.getVisitorsApi()
+            val visitors = visitorsApi.listVisitors(exhibitionId = exhibitionId, tagId = tagId, email = null)
+            return visitors.firstOrNull()
+        } catch (e: Exception) {
+            Log.e(javaClass.name, "Failed to find visitor by tag", e)
+        }
+
+        return null
     }
 
     /**
@@ -398,11 +339,81 @@ class ExhibitionUIApplication : Application() {
      * @return topics
      */
     private fun getAntennaTopics(rfidAntenna: RfidAntenna): Array<String> {
-        val baseTopic = "${BuildConfig.MQTT_BASE_TOPIC}/${rfidAntenna.readerId}/${rfidAntenna.antennaNumber}";
+        val baseTopic = "${BuildConfig.MQTT_BASE_TOPIC}/${rfidAntenna.readerId}/${rfidAntenna.antennaNumber}"
         return arrayOf(baseTopic, "$baseTopic/")
     }
 
+    /**
+     * Returns all tags associated with given visitor session
+     *
+     * @param exhibitionId exhibition id
+     * @param visitorSession visitor session
+     * @return tags associated with given visitor session
+     */
+    private suspend fun getVisitorSessionTags(exhibitionId: UUID, visitorSession: VisitorSession): List<String> {
+        return visitorSession.visitorIds
+            .mapNotNull { findVisitorById(exhibitionId, it) }
+            .map(Visitor::tagId)
+    }
+
+    /**
+     * Handler for changes in tags visible to the device
+     *
+     * @param tags tags currently visible to the device
+     */
+    private fun onVisibleTagsChange(tags: List<String>) {
+        GlobalScope.launch {
+            val exhibitionId = DeviceSettings.getExhibitionId()
+            if (exhibitionId != null) {
+                VisibleVisitorsContainer.setVisibleVisitors(tags.mapNotNull { findVisitorByTag(exhibitionId = exhibitionId, tagId = it) })
+                val currentVisitorSession = VisitorSessionContainer.getVisitorSession()
+                if (currentVisitorSession == null && !allowVisitorSessionCreation) {
+                    if (tags.isNotEmpty()) {
+                        val visitorSession = findVisitorSessionByTags(exhibitionId = exhibitionId, tags = tags)
+                        if (visitorSession != null) {
+                            Log.d(javaClass.name, "Visitor session ${visitorSession.id}  found for tags ${tags.joinToString(",")}")
+                            val visitorSessionTags = getVisitorSessionTags(exhibitionId = exhibitionId, visitorSession = visitorSession)
+                            VisitorSessionContainer.startVisitorSession(visitorSession, visitorSessionTags)
+                        } else {
+                            Log.d(javaClass.name, "Visitor session not active for any of the tags ${tags.joinToString(",")}")
+                        }
+                    }
+                } else {
+                    val visitorSessionTags = VisitorSessionContainer.getVisitorSessionTags()
+                    if (visitorSessionTags.any { it in tags }) {
+                        resetVisitorSessionEndTimer()
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Handler for visitor session changes
+     *
+     * @param visitorSession visitor session
+     */
+    private fun onVisitorSessionChange(visitorSession: VisitorSession?) {
+        if (visitorSession == null) {
+            endVisitorSession()
+        } else {
+            resetVisitorSessionEndTimer()
+        }
+    }
+
     companion object {
+
         lateinit var instance: ExhibitionUIApplication
+
+        /**
+         * Handler token for unseen tag polling related operations
+         */
+        const val UNSEEN_TAGS_HANDLER_TOKEN = 1
+
+        /**
+         * Handler token for visitor session related operations
+         */
+        const val VISITOR_SESSION_HANDLER_TOKEN = 2
+
     }
 }
