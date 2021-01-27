@@ -32,9 +32,12 @@ class PageActivity : MuistiActivity() {
 
         super.onCreate(savedInstanceState)
 
+        applyPageTransitions(pageView)
+
+        setContentView(R.layout.activity_page)
+
         listenSettingsButton(settings_button)
         listenIndexButton(index_page_button)
-        setContentView(R.layout.activity_page)
         setImmersiveMode()
 
         this.openView(pageView)

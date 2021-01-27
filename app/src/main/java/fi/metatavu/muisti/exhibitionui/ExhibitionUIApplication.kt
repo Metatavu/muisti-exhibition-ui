@@ -371,7 +371,7 @@ class ExhibitionUIApplication : Application() {
                     if (tags.isNotEmpty()) {
                         val visitorSession = findVisitorSessionByTags(exhibitionId = exhibitionId, tags = tags)
                         if (visitorSession != null) {
-                            Log.d(javaClass.name, "Visitor session ${visitorSession.id}  found for tags ${tags.joinToString(",")}")
+                            Log.d(javaClass.name, "Visitor session ${visitorSession.id} found for tags ${tags.joinToString(",")}")
                             val visitorSessionTags = getVisitorSessionTags(exhibitionId = exhibitionId, visitorSession = visitorSession)
                             VisitorSessionContainer.startVisitorSession(visitorSession, visitorSessionTags)
                         } else {

@@ -46,7 +46,10 @@ class MainActivity : MuistiActivity() {
                 }
 
                 runOnUiThread {
+                    setImmersiveMode()
+
                     if (idlePage != null) {
+                        applyPageTransitions(idlePage)
                         setContentView(R.layout.activity_page)
                         openView(idlePage)
                     } else {

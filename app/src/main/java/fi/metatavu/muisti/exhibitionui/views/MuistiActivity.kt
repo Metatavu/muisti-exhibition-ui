@@ -128,14 +128,11 @@ abstract class MuistiActivity : AppCompatActivity() {
     }
 
     /**
-     * Opens a view
+     * Applies page transitions
      *
-     * Method adds page view as a child of page activity view and
-     * applies page triggers into the page
-     *
-     * @param pageView
+     * @param pageView page view object
      */
-    protected open fun openView(pageView: PageView) {
+    protected fun applyPageTransitions(pageView: PageView) {
         val context = this
 
         val pageEnterTransitions = pageView.page.enterTransitions.mapNotNull { context.getPageAnimation(it.transition, Visibility.MODE_IN) }
@@ -155,7 +152,17 @@ abstract class MuistiActivity : AppCompatActivity() {
                 null
             }
         }
+    }
 
+    /**
+     * Opens a view
+     *
+     * Method adds page view as a child of page activity view and
+     * applies page triggers into the page
+     *
+     * @param pageView
+     */
+    protected open fun openView(pageView: PageView) {
         pageView.view.layoutParams?.height = ConstraintLayout.LayoutParams.MATCH_PARENT
         pageView.view.layoutParams?.width = ConstraintLayout.LayoutParams.MATCH_PARENT
 
