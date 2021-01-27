@@ -91,10 +91,10 @@ class ExhibitionUIApplication : Application() {
         readApiValues()
 
         val activity = getCurrentActivity()
-        if (activity is MuistiActivity) {
+        if (activity is PageActivity) {
             activity.startMainActivity()
+            currentActivity = null
         }
-        currentActivity = null
     }
 
     /**
