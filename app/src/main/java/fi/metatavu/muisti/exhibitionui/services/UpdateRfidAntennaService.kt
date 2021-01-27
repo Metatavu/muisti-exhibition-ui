@@ -1,17 +1,14 @@
 package fi.metatavu.muisti.exhibitionui.services
 
-import android.bluetooth.BluetoothClass
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.JobIntentService
 import fi.metatavu.muisti.api.client.models.*
-import fi.metatavu.muisti.exhibitionui.BuildConfig
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttActionInterface
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
 import fi.metatavu.muisti.exhibitionui.persistence.repository.PageRepository
-import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

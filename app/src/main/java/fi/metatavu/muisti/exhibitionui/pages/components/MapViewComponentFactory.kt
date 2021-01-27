@@ -12,6 +12,7 @@ import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import fi.metatavu.muisti.exhibitionui.BuildConfig
 import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleListener
+import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
 /**
@@ -62,8 +63,8 @@ private class MapViewLifeCycleListener(val buildContext: ComponentBuildContext, 
     private var geoJsonSource: GeoJsonSource? = null
     private var mapboxMap: MapboxMap? = null
 
-    override fun onPageActivate(pageActivity: PageActivity) {
-        val context: Context = pageActivity
+    override fun onPageActivate(activity: MuistiActivity) {
+        val context: Context = activity
         Mapbox.getInstance(context, BuildConfig.MAP_BOX_ACCESS_TOKEN)
 
         val mapView = MapView(context)
@@ -73,7 +74,7 @@ private class MapViewLifeCycleListener(val buildContext: ComponentBuildContext, 
         view.addView(mapView)
     }
 
-    override fun onPageDeactivate(pageActivity: PageActivity) {
+    override fun onPageDeactivate(activity: MuistiActivity) {
         mapView?.onStop()
     }
 

@@ -1,19 +1,10 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
-import android.content.res.Resources
-import android.graphics.BitmapFactory
 import android.graphics.Typeface
-import android.graphics.drawable.BitmapDrawable
-import android.net.Uri
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
-import fi.metatavu.muisti.api.client.models.VisitorSession
-import fi.metatavu.muisti.exhibitionui.pages.PageViewVisitorSessionListener
-import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
-import fi.metatavu.muisti.exhibitionui.views.PageActivity
-import java.net.URL
 
 /**
  * Component factory for buttons

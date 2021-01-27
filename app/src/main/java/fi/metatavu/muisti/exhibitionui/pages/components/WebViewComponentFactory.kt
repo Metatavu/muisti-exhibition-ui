@@ -6,8 +6,8 @@ import android.webkit.WebView
 import android.widget.FrameLayout
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleAdapter
-import fi.metatavu.muisti.exhibitionui.views.PageActivity
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResourceType
+import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 
 /**
  * Component container Web View
@@ -24,7 +24,7 @@ class WebViewContainer(buildContext: ComponentBuildContext, val data: String?, v
     init {
         buildContext.addLifecycleListener(object: PageViewLifecycleAdapter() {
             @SuppressLint("SetJavaScriptEnabled")
-            override fun onPageActivate(pageActivity: PageActivity) {
+            override fun onPageActivate(activity: MuistiActivity) {
                 val view = WebView(buildContext.context)
                 if (data != null) {
                     view.loadDataWithBaseURL(null, data, contentType, "UTF-8", null)

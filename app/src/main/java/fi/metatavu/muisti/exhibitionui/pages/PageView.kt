@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import fi.metatavu.muisti.api.client.models.VisitorSession
 import fi.metatavu.muisti.exhibitionui.persistence.model.Page
+import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
 /**
@@ -15,17 +16,17 @@ interface PageViewLifecycleListener {
     /**
      * Method invoked when page is being activated
      *
-     * @param pageActivity page activity instance
+     * @param activity activity instance
      */
-    fun onPageActivate (pageActivity: PageActivity)
+    fun onPageActivate (activity: MuistiActivity)
 
 
     /**
      * Method invoked when page is being deactivated
      *
-     * @param pageActivity page activity instance
+     * @param activity activity instance
      */
-    fun onPageDeactivate (pageActivity: PageActivity)
+    fun onPageDeactivate (activity: MuistiActivity)
 
     /**
      * Method invoked when page is on low memory
@@ -67,12 +68,12 @@ interface PageViewLifecycleListener {
 /**
  * Adapter class for PageViewLifecycleListener interface
  */
-open class PageViewLifecycleAdapter: PageViewLifecycleListener {
+open class PageViewLifecycleAdapter() : PageViewLifecycleListener {
 
-    override fun onPageActivate(pageActivity: PageActivity) {
+    override fun onPageActivate(activity: MuistiActivity) {
     }
 
-    override fun onPageDeactivate(pageActivity: PageActivity) {
+    override fun onPageDeactivate(activity: MuistiActivity) {
     }
 
     override fun onLowMemory() {

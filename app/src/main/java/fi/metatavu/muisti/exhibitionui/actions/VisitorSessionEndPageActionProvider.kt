@@ -1,11 +1,9 @@
 package fi.metatavu.muisti.exhibitionui.actions
 
-import android.util.Log
-import android.webkit.WebView
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventActionType
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventProperty
-import fi.metatavu.muisti.exhibitionui.pages.components.WebViewContainer
-import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
+import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
+import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
 /**
@@ -16,7 +14,7 @@ import fi.metatavu.muisti.exhibitionui.views.PageActivity
  */
 class VisitorSessionEndPageActionProvider(properties: Array<ExhibitionPageEventProperty>): AbstractPageActionProvider(properties) {
 
-    override fun performAction(pageActivity: PageActivity) {
+    override fun performAction(activity: MuistiActivity) {
         VisitorSessionContainer.endVisitorSession()
     }
 

@@ -19,7 +19,7 @@ import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleListener
-import fi.metatavu.muisti.exhibitionui.views.PageActivity
+import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import org.xmlpull.v1.XmlPullParser
 import java.io.File
 
@@ -80,8 +80,8 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerView>() {
  */
 private class PlayerPageViewLifecycleListener(val offlineFile: File, val playerView: PlayerView): PageViewLifecycleListener {
 
-    override fun onPageActivate(pageActivity: PageActivity) {
-        val context: Context = pageActivity
+    override fun onPageActivate(activity: MuistiActivity) {
+        val context: Context = activity
         val player = SimpleExoPlayer.Builder(context).build()
         player.playWhenReady = true
         playerView.player = player
@@ -93,7 +93,7 @@ private class PlayerPageViewLifecycleListener(val offlineFile: File, val playerV
         player.repeatMode = Player.REPEAT_MODE_ALL
     }
 
-    override fun onPageDeactivate(pageActivity: PageActivity) {
+    override fun onPageDeactivate(activity: MuistiActivity) {
         playerView.player?.release()
     }
 

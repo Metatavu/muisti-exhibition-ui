@@ -3,15 +3,14 @@ package fi.metatavu.muisti.exhibitionui.views
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import fi.metatavu.muisti.api.client.models.VisitorSession
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
-import fi.metatavu.muisti.exhibitionui.pages.PageView
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
-import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
+import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
-import kotlinx.android.synthetic.main.activity_page.*
 import kotlinx.android.synthetic.main.activity_page.settings_button
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -23,41 +22,49 @@ import java.util.*
 class MainActivity : MuistiActivity() {
 
     private var mViewModel: MainViewModel? = null
-
-
     private var handler: Handler = Handler()
+
+    private val visitorSessionObserver = Observer<VisitorSession?> {
+        onVisitorSessionChange(it)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-        GlobalScope.launch {
-            val idlePage = when (val pageId = mViewModel?.getIdlePageId()) {
-                null -> null
-                else -> PageViewContainer.getPageView(pageId)
-            }
+        VisitorSessionContainer.getLiveVisitorSession().observe(this, visitorSessionObserver)
 
-            runOnUiThread {
-                if (idlePage != null) {
-                    setContentView(R.layout.activity_page)
-                    openIdlePage(idlePage)
-                } else {
-                    setContentView(R.layout.activity_main)
+        GlobalScope.launch {
+            val exhibitionId = DeviceSettings.getExhibitionId()
+            val deviceId = DeviceSettings.getExhibitionDeviceId()
+
+            if (exhibitionId == null || deviceId == null) {
+                startSettingsActivity()
+            } else {
+                val idlePage = when (val pageId = mViewModel?.getIdlePageId()) {
+                    null -> null
+                    else -> PageViewContainer.getPageView(pageId)
                 }
-                supportActionBar?.hide()
-                listenSettingsButton(settings_button)
-                waitForForcedPortraitMode()
+
+                runOnUiThread {
+                    if (idlePage != null) {
+                        setContentView(R.layout.activity_page)
+                        openView(idlePage)
+                    } else {
+                        setContentView(R.layout.activity_main)
+                    }
+
+                    setImmersiveMode()
+                    listenSettingsButton(settings_button)
+                    waitForForcedPortraitMode()
+                }
             }
         }
     }
 
     override fun onDestroy() {
+        VisitorSessionContainer.getLiveVisitorSession().removeObserver(visitorSessionObserver)
         removeSettingsAndIndexListeners()
         super.onDestroy()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        visitorLogin()
     }
 
     override fun onPause() {
@@ -70,62 +77,15 @@ class MainActivity : MuistiActivity() {
         ExhibitionUIApplication.instance.readApiValues()
     }
 
-    /**
-     * Opens the idle page
-     *
-     * @param idlePage idle page view
-     */
-    private fun openIdlePage(idlePage: PageView) {
-        releaseView(idlePage.view)
-        runOnUiThread {
-            this.root.addView(idlePage.view)
-        }
-    }
+    private suspend fun startVisitorSession(visitorSession: VisitorSession) {
+        val language = visitorSession.language
+        val frontPage = mViewModel?.getFrontPage(language = language)
 
-    /**
-     * Logs the visitor in to the system if visitor and redirects user forward
-     *
-     * if user cannot be logged in because of configuration errors, user is redirected into
-     * the settings activity
-     */
-    private fun visitorLogin() = GlobalScope.launch {
-        val exhibitionId = DeviceSettings.getExhibitionId()
-        val deviceId = DeviceSettings.getExhibitionDeviceId()
-
-        if (exhibitionId != null && deviceId != null) {
-            waitForVisitor {
-                visitorSession -> GlobalScope.launch {
-                    val language = visitorSession.language
-                    val frontPage = mViewModel?.getFrontPage(language = language)
-
-                    if (frontPage != null) {
-                        val visitor = VisitorSessionContainer.getCurrentVisitors().getOrNull(0)?.email ?: "vieras"
-
-                        waitForPage(frontPage)
-                    } else {
-                        startPreviewActivity()
-                    }
-                }
-            }
+        if (frontPage != null) {
+            waitForPage(frontPage)
         } else {
-            startSettingsActivity()
+            startPreviewActivity()
         }
-    }
-
-    /**
-     * Triggers the callback once visitor has been logged in
-     *
-     * @param callback callback to trigger on visitor login
-     */
-    private fun waitForVisitor(callback: (visitorSession: VisitorSession) -> Unit) {
-        handler.postDelayed({
-            val visitorSession = VisitorSessionContainer.getVisitorSession()
-            if (visitorSession == null) {
-                waitForVisitor(callback)
-            } else {
-                callback(visitorSession)
-            }
-        }, "waitForVisitor", 500)
     }
 
     /**
@@ -165,4 +125,18 @@ class MainActivity : MuistiActivity() {
         val intent = Intent(this, PreviewActivity::class.java)
         this.startActivity(intent)
     }
+
+    /**
+     * Handler for visitor session changes
+     *
+     * @param visitorSession visitor session
+     */
+    private fun onVisitorSessionChange(visitorSession: VisitorSession?) {
+        visitorSession ?: return
+
+        GlobalScope.launch {
+            startVisitorSession(visitorSession)
+        }
+    }
+
 }
