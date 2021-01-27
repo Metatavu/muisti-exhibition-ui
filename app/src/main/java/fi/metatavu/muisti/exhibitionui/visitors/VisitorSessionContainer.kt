@@ -1,5 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.visitors
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import fi.metatavu.muisti.api.client.models.VisitorSession
@@ -31,6 +32,7 @@ class VisitorSessionContainer {
          * @param visitorSessionTags visitor session's tags
          */
         fun startVisitorSession(visitorSession: VisitorSession, visitorSessionTags: List<String> ) {
+            Log.d(VisitorSessionContainer::class.java.name, "Visitor session ${visitorSession.id} started")
             this.currentVisitorSessionTags = visitorSessionTags
             this.setVisitorSession(visitorSession)
         }

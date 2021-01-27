@@ -117,7 +117,7 @@ class ExhibitionUIApplication : Application() {
                 antennas.forEach {
                     antenna -> run {
                         getAntennaTopics(antenna).forEach { topic ->
-                            Log.d(javaClass.name, "Proximity start listener started for topic $topic")
+                            Log.d(javaClass.name, "Proximity start listener started for topic $topic with start threshold ${antenna.visitorSessionStartThreshold}")
 
                             MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
                                 proximityUpdate -> handleProximityUpdate(antenna = antenna, proximityUpdate = proximityUpdate)
@@ -357,6 +357,33 @@ class ExhibitionUIApplication : Application() {
     }
 
     /**
+     * Refresh visitor session state with given tags
+     *
+     * @param exhibitionId exhibition id
+     * @param tags tags
+     */
+    private suspend fun refreshVisitorSessionState(exhibitionId: UUID, tags: List<String>) {
+        val currentVisitorSession = VisitorSessionContainer.getVisitorSession()
+        if (currentVisitorSession == null) {
+            if (tags.isNotEmpty()) {
+                val visitorSession = findVisitorSessionByTags(exhibitionId = exhibitionId, tags = tags)
+                if (visitorSession != null) {
+                    Log.d(javaClass.name, "Visitor session ${visitorSession.id} found for tags ${tags.joinToString(",")}")
+                    val visitorSessionTags = getVisitorSessionTags(exhibitionId = exhibitionId, visitorSession = visitorSession)
+                    VisitorSessionContainer.startVisitorSession(visitorSession, visitorSessionTags)
+                } else {
+                    Log.d(javaClass.name, "Visitor session not active for any of the tags ${tags.joinToString(",")}")
+                }
+            }
+        } else {
+            val visitorSessionTags = VisitorSessionContainer.getVisitorSessionTags()
+            if (visitorSessionTags.any { it in tags }) {
+                resetVisitorSessionEndTimer()
+            }
+        }
+    }
+
+    /**
      * Handler for changes in tags visible to the device
      *
      * @param tags tags currently visible to the device
@@ -366,23 +393,9 @@ class ExhibitionUIApplication : Application() {
             val exhibitionId = DeviceSettings.getExhibitionId()
             if (exhibitionId != null) {
                 VisibleVisitorsContainer.setVisibleVisitors(tags.mapNotNull { findVisitorByTag(exhibitionId = exhibitionId, tagId = it) })
-                val currentVisitorSession = VisitorSessionContainer.getVisitorSession()
-                if (currentVisitorSession == null && !allowVisitorSessionCreation) {
-                    if (tags.isNotEmpty()) {
-                        val visitorSession = findVisitorSessionByTags(exhibitionId = exhibitionId, tags = tags)
-                        if (visitorSession != null) {
-                            Log.d(javaClass.name, "Visitor session ${visitorSession.id} found for tags ${tags.joinToString(",")}")
-                            val visitorSessionTags = getVisitorSessionTags(exhibitionId = exhibitionId, visitorSession = visitorSession)
-                            VisitorSessionContainer.startVisitorSession(visitorSession, visitorSessionTags)
-                        } else {
-                            Log.d(javaClass.name, "Visitor session not active for any of the tags ${tags.joinToString(",")}")
-                        }
-                    }
-                } else {
-                    val visitorSessionTags = VisitorSessionContainer.getVisitorSessionTags()
-                    if (visitorSessionTags.any { it in tags }) {
-                        resetVisitorSessionEndTimer()
-                    }
+
+                if (!allowVisitorSessionCreation) {
+                    refreshVisitorSessionState(exhibitionId = exhibitionId, tags = tags)
                 }
             }
         }
@@ -396,8 +409,10 @@ class ExhibitionUIApplication : Application() {
     private fun onVisitorSessionChange(visitorSession: VisitorSession?) {
         if (visitorSession == null) {
             endVisitorSession()
+            Log.d(javaClass.name, "Visitor session has ended")
         } else {
             resetVisitorSessionEndTimer()
+            Log.d(javaClass.name, "Visitor session ${visitorSession.id} still active")
         }
     }
 
