@@ -24,6 +24,7 @@ class PageActionProviderFactory {
                 ExhibitionPageEventActionType.setuservalue -> return SetUserValuePageActionProvider(properties)
                 ExhibitionPageEventActionType.triggerdevicegroupevent -> return TriggerDeviceGroupEventPageActionProvider(properties)
                 ExhibitionPageEventActionType.executeWebScript -> return ExecuteWebScriptPageActionProvider(properties)
+                ExhibitionPageEventActionType.startVisitorSession -> return StartVisitorSessionPageActionProvider(properties)
                 else -> Log.d(PageActionProviderFactory::javaClass.name, "Could not find page action provider for $action")
             }
 
