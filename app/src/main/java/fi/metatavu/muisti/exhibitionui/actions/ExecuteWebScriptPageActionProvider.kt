@@ -5,6 +5,7 @@ import android.webkit.WebView
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventActionType
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventProperty
 import fi.metatavu.muisti.exhibitionui.pages.components.WebViewContainer
+import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
 /**
@@ -17,7 +18,7 @@ import fi.metatavu.muisti.exhibitionui.views.PageActivity
  */
 class ExecuteWebScriptPageActionProvider(properties: Array<ExhibitionPageEventProperty>): AbstractPageActionProvider(properties) {
 
-    override fun performAction(pageActivity: PageActivity) {
+    override fun performAction(activity: MuistiActivity) {
         val webViewId = getPropertyString("webViewId")
         if (webViewId == null) {
             Log.d( javaClass.name,"webViewId required for execute web script action")
@@ -30,7 +31,7 @@ class ExecuteWebScriptPageActionProvider(properties: Array<ExhibitionPageEventPr
             return
         }
 
-        val webView = pageActivity.findView(webViewId)
+        val webView = activity.findView(webViewId)
         if (webView == null) {
             Log.d( javaClass.name,"webView $webViewId does not exist")
             return

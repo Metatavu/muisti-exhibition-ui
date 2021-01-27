@@ -4,6 +4,7 @@ import fi.metatavu.muisti.api.client.models.ExhibitionPageEventActionType
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventProperty
 import fi.metatavu.muisti.api.client.models.MqttTriggerDeviceGroupEvent
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
+import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
 /**
@@ -16,7 +17,7 @@ import fi.metatavu.muisti.exhibitionui.views.PageActivity
  */
 class TriggerDeviceGroupEventPageActionProvider(properties: Array<ExhibitionPageEventProperty>): AbstractPageActionProvider(properties) {
 
-    override fun performAction(pageActivity: PageActivity) {
+    override fun performAction(activity: MuistiActivity) {
         val eventName = getPropertyString("name") ?: return
         val payload = MqttTriggerDeviceGroupEvent(event = eventName)
         // TODO: Publish to actual device group

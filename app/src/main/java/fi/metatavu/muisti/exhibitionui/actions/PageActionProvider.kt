@@ -1,6 +1,7 @@
 package fi.metatavu.muisti.exhibitionui.actions
 
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventActionType
+import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
 /**
@@ -11,9 +12,9 @@ interface PageActionProvider {
     /**
      * Performs an action
      *
-     * @param pageActivity page activity where the action will be performed
+     * @param activity activity where the action will be performed
      */
-    fun performAction(pageActivity: PageActivity)
+    fun performAction(activity: MuistiActivity)
 
     /**
      * Action type
