@@ -100,7 +100,7 @@ class MainActivity : MuistiActivity() {
             } else {
                 waitForPage(pageId)
             }
-        }, "visitorLogin", 500)
+        }, 500)
     }
 
     /**
@@ -120,7 +120,7 @@ class MainActivity : MuistiActivity() {
                     requestedOrientation = orientation ?: return@postDelayed
                 }
             }
-        }, "waitForForcedPortrait", 500)
+        }, 500)
     }
 
     /**
