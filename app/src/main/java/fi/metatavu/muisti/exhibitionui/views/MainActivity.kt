@@ -24,6 +24,7 @@ class MainActivity : MuistiActivity() {
 
     private var mViewModel: MainViewModel? = null
 
+
     private var handler: Handler = Handler()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,9 +72,9 @@ class MainActivity : MuistiActivity() {
     }
 
     /**
-     * Makes sure the specified page is not reserved by another view and opens it
+     * Opens the idle page
      *
-     * @param idlePage page to open
+     * @param idlePage idle page view
      */
     private fun openIdlePage(idlePage: PageView) {
         releaseView(idlePage.view)
