@@ -55,7 +55,7 @@ class MainActivity : MuistiActivity() {
 
                     setImmersiveMode()
                     listenSettingsButton(settings_button)
-                    waitForForcedPortraitMode()
+                    waitForForcedPortraitMode(idlePage?.orientation)
                 }
             }
         }
