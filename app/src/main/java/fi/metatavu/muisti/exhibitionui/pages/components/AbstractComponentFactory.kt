@@ -21,7 +21,6 @@ import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.pages.PageViewVisitorSessionListener
 import fi.metatavu.muisti.exhibitionui.script.ScriptController
-import fi.metatavu.muisti.exhibitionui.session.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 import uk.co.deanwild.flowtextview.FlowTextView
 import java.io.File

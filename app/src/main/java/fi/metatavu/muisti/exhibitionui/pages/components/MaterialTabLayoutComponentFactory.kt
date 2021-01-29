@@ -10,7 +10,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleAdapter
-import fi.metatavu.muisti.exhibitionui.views.PageActivity
+import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 
 /**
  * Tab layout component factory
@@ -301,7 +301,7 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
      */
     private fun initializeTabContentComponents(buildContext: ComponentBuildContext, parent: View, contentContainerId: String, tabContentComponents: List<View>) {
         buildContext.addLifecycleListener(object: PageViewLifecycleAdapter() {
-            override fun onPageActivate(pageActivity: PageActivity) {
+            override fun onPageActivate(activity: MuistiActivity) {
                 val target = parent.findViewWithTag<ViewGroup>(contentContainerId)
                 if (target != null) {
                     tabContentComponents.forEach {
@@ -313,8 +313,8 @@ class MaterialTabLayoutComponentFactory : AbstractComponentFactory<MuistiTabLayo
                 }
             }
 
-            override fun onPageDeactivate(pageActivity: PageActivity) {
-                super.onPageDeactivate(pageActivity)
+            override fun onPageDeactivate(activity: MuistiActivity) {
+                super.onPageDeactivate(activity)
                 val target = parent.findViewWithTag<ViewGroup>(contentContainerId)
                 if (target != null) {
                     tabContentComponents.forEachIndexed { index, it ->
