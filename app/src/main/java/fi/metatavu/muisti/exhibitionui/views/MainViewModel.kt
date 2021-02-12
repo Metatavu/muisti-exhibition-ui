@@ -1,11 +1,10 @@
 package fi.metatavu.muisti.exhibitionui.views
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
-import fi.metatavu.muisti.exhibitionui.persistence.model.DeviceSettingName
 import fi.metatavu.muisti.exhibitionui.persistence.repository.PageRepository
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import java.util.*
@@ -38,10 +37,14 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
      * @return a idle page id for the current device or null if not found
      */
     suspend fun getIdlePageId() : UUID? {
-        val deviceId = DeviceSettings.getExhibitionDeviceId()
-        val exhibitionId = DeviceSettings.getExhibitionId()
-        val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId ?: return null, deviceId ?: return null)
-
-        return device.idlePageId
+        try {
+            val deviceId = DeviceSettings.getExhibitionDeviceId()
+            val exhibitionId = DeviceSettings.getExhibitionId()
+            val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId ?: return null, deviceId ?: return null)
+            return device.idlePageId
+        } catch (e: Exception) {
+            Log.d(javaClass.name, "Could not get idle page: ${e.message}")
+            return null
+        }
     }
 }
