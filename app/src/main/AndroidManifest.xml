@@ -5,13 +5,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-
+    <uses-feature android:required="false" android:name="android.hardware.faketouch"/>
+    <uses-feature android:required="false" android:name="android.hardware.touchscreen"/>
     <application
         android:name=".ExhibitionUIApplication"
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat"
         android:icon="@mipmap/ic_launcher">
-
         <activity
             android:name=".views.PreviewActivity"
             android:label="@string/title_activity_preview"
@@ -20,11 +20,13 @@
         <activity
             android:name=".views.PageActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
+            android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="behind" />
 
         <activity
             android:name=".views.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
+            android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="behind">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

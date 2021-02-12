@@ -55,7 +55,7 @@ class MainActivity : MuistiActivity() {
 
                     setImmersiveMode()
                     listenSettingsButton(settings_button)
-                    waitForForcedPortraitMode()
+                    waitForForcedPortraitMode(idlePage?.orientation)
                 }
             }
         }
@@ -100,22 +100,27 @@ class MainActivity : MuistiActivity() {
             } else {
                 waitForPage(pageId)
             }
-        }, "visitorLogin", 500)
+        }, 500)
     }
 
     /**
-     * Checks if forced portrait mode setting is loaded and implements it
+     * Checks if forced portrait mode setting is loaded,
+     * if true forcces portrait otherwise sets the specified orientation.
+     *
+     * @param orientation orientation to set if portrait mode is not forced.
      */
-    private fun waitForForcedPortraitMode() {
+    private fun waitForForcedPortraitMode(orientation: Int?) {
         handler.postDelayed({
             if (ExhibitionUIApplication.instance.forcedPortraitMode == null) {
-                waitForForcedPortraitMode()
+                waitForForcedPortraitMode(orientation)
             } else {
                 if(ExhibitionUIApplication.instance.forcedPortraitMode == true) {
                     setForcedPortraitMode()
+                } else {
+                    requestedOrientation = orientation ?: return@postDelayed
                 }
             }
-        }, "waitForForcedPortrait", 500)
+        }, 500)
     }
 
     /**
