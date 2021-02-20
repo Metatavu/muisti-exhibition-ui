@@ -28,14 +28,14 @@ interface PageDao {
     suspend fun findByPageId(pageId: UUID): Page?
 
     /**
-     * Finds a page by order number and language
+     * Lists a page by order number and language
      *
      * @param language language
      * @param orderNumber order number
      * @return found page or null if not found
      */
     @Query("SELECT * FROM Page WHERE orderNumber = :orderNumber AND language = :language")
-    suspend fun findByOrderNumberAndLanguage(orderNumber: Int, language: String): Page?
+    suspend fun listByOrderNumberAndLanguage(orderNumber: Int, language: String): List<Page>
 
     /**
      * Lists all pages
