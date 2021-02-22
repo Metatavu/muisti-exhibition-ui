@@ -80,14 +80,14 @@ class VisitorSessionContainer {
                     variables = variables.plus(VisitorSessionVariable(name = name, value = value))
                 }
 
-                setVisitorSession(visitorSession.copy(variables = variables))
+                liveVisitorSession.postValue(visitorSession.copy(variables = variables))
             }
         }
 
         /**
          * Updates current visitor session if needed
          *
-         * @param visitorSession visitor session
+         * @param visitorSession visitor session-
          */
         private fun setVisitorSession(visitorSession: VisitorSession?) {
             if (getVisitorSession()?.id != visitorSession?.id) {
