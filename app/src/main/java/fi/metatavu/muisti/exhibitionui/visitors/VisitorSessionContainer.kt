@@ -87,7 +87,7 @@ class VisitorSessionContainer {
         /**
          * Updates current visitor session if needed
          *
-         * @param visitorSession visitor session-
+         * @param visitorSession visitor session
          */
         private fun setVisitorSession(visitorSession: VisitorSession?) {
             if (getVisitorSession()?.id != visitorSession?.id) {
