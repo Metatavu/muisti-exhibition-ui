@@ -79,7 +79,10 @@ class MainActivity : MuistiActivity() {
 
     private suspend fun startVisitorSession(visitorSession: VisitorSession) {
         val language = visitorSession.language
-        val frontPage = mViewModel?.getFrontPage(language = language)
+        val frontPage = mViewModel?.getFrontPage(
+            language = language,
+            visitorSession = visitorSession
+        )
 
         if (frontPage != null) {
             waitForPage(frontPage)
