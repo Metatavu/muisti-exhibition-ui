@@ -124,6 +124,21 @@ interface PageViewVisitorSessionListener {
 }
 
 /**
+ * Adapter class for page view session listener interface
+ */
+abstract class PageViewVisitorSessionAdapter: PageViewVisitorSessionListener {
+
+    override suspend fun prepareVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
+
+    }
+
+    override fun performVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
+
+    }
+
+}
+
+/**
  * Data class for storing generated page views
  *
  * @property orientation page orientation

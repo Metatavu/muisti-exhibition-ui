@@ -17,6 +17,9 @@ import android.view.View.*
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
 import android.widget.*
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.pages.PageViewVisitorSessionListener
@@ -110,14 +113,14 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             return null
         }
 
-        try {
+        return try {
             if (value.length == 4 && value.startsWith("#")) {
-                return Color.parseColor("#" + value.substring(1).map { "$it$it" }.joinToString (""))
+                Color.parseColor("#" + value.substring(1).map { "$it$it" }.joinToString (""))
             } else {
-                return Color.parseColor(value)
+                Color.parseColor(value)
             }
         } catch (e: IllegalArgumentException) {
-            return null
+            null
         }
     }
 
@@ -202,8 +205,8 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param property property
      * @return resource value for given property
      */
-    protected fun getResourceData(buildContext: ComponentBuildContext, property: PageLayoutViewProperty): String? {
-        return getResourceData(buildContext.page.resources, property?.value)
+    private fun getResourceData(buildContext: ComponentBuildContext, property: PageLayoutViewProperty): String? {
+        return getResourceData(buildContext.page.resources, property.value)
     }
 
     /**
@@ -214,7 +217,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @return resource type for given property
      */
     protected fun getResourceType(buildContext: ComponentBuildContext, property: PageLayoutViewProperty): ExhibitionPageResourceType? {
-        return getResourceType(buildContext.page.resources, property?.value)
+        return getResourceType(buildContext.page.resources, property.value)
     }
 
     /**
@@ -234,7 +237,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param value property value
      * @return resource value for given property
      */
-    protected fun getResourceData(resources: Array<ExhibitionPageResource>, value: String?): String? {
+    private fun getResourceData(resources: Array<ExhibitionPageResource>, value: String?): String? {
         val resource = getResource(resources, value)
         resource ?: return null
         return resource.data
@@ -246,7 +249,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param value property value
      * @return resource type for given property
      */
-    protected fun getResourceType(resources: Array<ExhibitionPageResource>, value: String?): ExhibitionPageResourceType? {
+    private fun getResourceType(resources: Array<ExhibitionPageResource>, value: String?): ExhibitionPageResourceType? {
         val resource = getResource(resources, value)
         resource ?: return null
         return resource.type
@@ -262,17 +265,6 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     protected fun getResourceOfflineFile(buildContext: ComponentBuildContext, propertyName: String): File? {
         val srcValue = buildContext.pageLayoutView.properties.firstOrNull { it.name == propertyName }?.value
         return getResourceOfflineFile(buildContext.page.resources, srcValue)
-    }
-
-    /**
-     * Downloads a resource into offline storage and returns a file
-     *
-     * @param buildContext build context
-     * @param url URL of the file
-     * @return offlined file or null if not found
-     */
-    protected fun getResourceOfflineFile(buildContext: ComponentBuildContext, url: URL?): File? {
-        return getResourceOfflineFile(resources = buildContext.page.resources, url = url)
     }
 
     /**
@@ -316,16 +308,21 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param returnNotScripted whether to return result of non-scripted resources
      * @return scripted resource evaluated value
      */
-    protected fun getScriptedResource(buildContext: ComponentBuildContext, visitorSession: VisitorSession, propertyName: String, returnNotScripted: Boolean): String? {
+    protected fun getScriptedResource(
+        buildContext: ComponentBuildContext,
+        visitorSession: VisitorSession,
+        propertyName: String,
+        returnNotScripted: Boolean
+    ): String? {
         val propertyValue = buildContext.pageLayoutView.properties.firstOrNull { it.name == propertyName }?.value ?: return null
         val resource = getResource(buildContext.page.resources, propertyValue) ?: return null
         val scripted = isScriptedResource(resource)
 
         if (!scripted) {
-            if (returnNotScripted) {
-                return resource.data
+            return if (returnNotScripted) {
+                resource.data
             } else {
-                return null
+                null
             }
         }
 
@@ -338,7 +335,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param resource resource
      * @return whether resource is considered to be scripted
      */
-    private fun isScriptedResource(resource: ExhibitionPageResource?): Boolean {
+    protected fun isScriptedResource(resource: ExhibitionPageResource?): Boolean {
         resource ?: return false
         return isScriptedResourceMode(resource.mode)
     }
@@ -381,7 +378,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             private fun prepareBackgroundImage(visitorSession: VisitorSession) {
                 val url = getUrl(getScriptedResource(buildContext,  visitorSession, "backgroundImage", false))
                 if (url != null) {
-                    getResourceOfflineFile(buildContext, url)
+                    getResourceOfflineFile(url = url)
                 }
             }
 
@@ -391,7 +388,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             private fun updateBackgroundImage(visitorSession: VisitorSession) {
                 val url = getUrl(getScriptedResource(buildContext, visitorSession,"backgroundImage", false))
                 if (url != null) {
-                    setBackgroundImage(buildContext, view, url)
+                    setBackgroundImage(view = view, url = url)
                 }
             }
         })
@@ -427,15 +424,101 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      */
     private fun evaluateResourceScript(resource: ExhibitionPageResource?, visitorSession: VisitorSession): String? {
         resource ?: return null
-        val scripted = isScriptedResource(resource)
         val data = resource.data
 
-        if (!scripted) {
-            return data
+        return when (resource.mode ?: PageResourceMode.static) {
+            PageResourceMode.static -> data
+            PageResourceMode.scripted -> evaluateScripted(visitorSession, data)
+            PageResourceMode.dynamic -> evaluateDynamic(visitorSession, data)
         }
+    }
 
+    /**
+     * Evaluates dynamic resource data
+     *
+     * @param visitorSession visitor session
+     * @param data data
+     * @return evaluated data
+     */
+    private fun evaluateDynamic(
+        visitorSession: VisitorSession,
+        data: String
+    ): String? {
+        val moshi = Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+
+        val resourceAdapter: JsonAdapter<DynamicPageResource> =
+            moshi.adapter<DynamicPageResource>(DynamicPageResource::class.java)
+
+        val switchParamsAdapter: JsonAdapter<DynamicPageResourceSwitch> =
+            moshi.adapter<DynamicPageResourceSwitch>(DynamicPageResourceSwitch::class.java)
+
+        val mapParamsAdapter: JsonAdapter<Map<*, *>> =
+            moshi.adapter<Map<*, *>>(Map::class.java)
+
+        val dynamicResource = resourceAdapter.fromJson(data) ?: return null
+        val type = dynamicResource.type ?: return null
+        val params = dynamicResource.params ?: return null
+        val paramMap = params as Map<*, *>
+
+        when (type) {
+            DynamicPageResourceType.switch -> {
+                val switchParams = switchParamsAdapter.fromJson(mapParamsAdapter.toJson(paramMap)) ?: return null
+
+                return evaluateDynamicSwitch(
+                    visitorSession = visitorSession,
+                    params = switchParams
+                )
+            }
+            else -> return data
+        }
+    }
+
+    /**
+     * Evaluates dynamic switch resource data
+     *
+     * @param visitorSession visitor session
+     * @param params switch params
+     * @return evaluated data
+     */
+    private fun evaluateDynamicSwitch(
+        visitorSession: VisitorSession,
+        params: DynamicPageResourceSwitch
+    ): String? {
+        when (params.dataSource) {
+            DynamicPageResourceDataSource.userValue -> {
+                val userValues = visitorSession.variables?.map { it.name to it.value }?.toMap() ?: emptyMap()
+                val userValue =  userValues[params.key]
+                val value = params.`when`?.find { it.equals == userValue }?.value
+
+                if (value != null) {
+                    return value
+                }
+
+                return params.`when`?.find { it.default == true }?.value
+            }
+
+        }
+    }
+
+    /**
+     * Evaluates scripted resource data
+     *
+     * @param visitorSession visitor session
+     * @param data data
+     * @return evaluated data
+     */
+    private fun evaluateScripted(
+        visitorSession: VisitorSession,
+        data: String
+    ): String? {
         val userValues = visitorSession.variables?.map { it.name to it.value }?.toMap() ?: emptyMap()
-        val result = ScriptController.executeInlineFunction("function m(uv) { const userValues = {}; uv.forEach((k, v) => { userValues[k] = v }); return ${data} }", "m", arrayOf(userValues))
+        val result = ScriptController.executeInlineFunction(
+            "function m(uv) { const userValues = {}; uv.forEach((k, v) => { userValues[k] = v }); return $data }",
+            "m",
+            arrayOf(userValues)
+        )
 
         return org.mozilla.javascript.Context.toString(result)
     }
@@ -475,18 +558,17 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         val url = getUrl(resourceData ?: value)
         url ?: return
 
-        setBackgroundImage(buildContext = buildContext, view = view, url = url)
+        setBackgroundImage(view = view, url = url)
     }
 
     /**
      * Sets background image
      *
-     * @param buildContext build context
      * @param view view component
      * @param url url
      */
-    private fun setBackgroundImage(buildContext: ComponentBuildContext, view: View, url: URL?) {
-        val offlineFile = getResourceOfflineFile(buildContext = buildContext, url = url)
+    private fun setBackgroundImage(view: View, url: URL?) {
+        val offlineFile = getResourceOfflineFile(url = url)
         offlineFile ?: return
 
         val bitmap = BitmapFactory.decodeFile(offlineFile.absolutePath)
@@ -539,17 +621,16 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         val url = getUrl(resource ?: value)
         url ?: return null
 
-        return getResourceOfflineFile(resources = resources, url = url)
+        return getResourceOfflineFile(url = url)
     }
 
     /**
      * Downloads a resource into offline storage and returns a file
      *
-     * @param resources resources
      * @param url URL of the resource
      * @return offlined file
      */
-    private fun getResourceOfflineFile(resources: Array<ExhibitionPageResource>, url: URL?): File? {
+    private fun getResourceOfflineFile(url: URL?): File? {
         url ?: return null
 
         val downloadsDir = ExhibitionUIApplication.instance.applicationContext.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
@@ -561,7 +642,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         val offlineFile = File(downloadsDir, "$urlHash$extension")
         if (!offlineFile.exists()) {
             Log.d(this.javaClass.name, "Downloading ${url.toExternalForm()} into local file ${offlineFile.absolutePath}")
-            offlineFile.parentFile.mkdirs()
+            offlineFile.parentFile!!.mkdirs()
             offlineFile.createNewFile()
 
             try {
@@ -603,16 +684,20 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param view view component
      * @param value value
      */
-    protected fun setLayoutGravity(view: View, value: String?) {
+    private fun setLayoutGravity(view: View, value: String?) {
         val gravity = parseGravity(value)
         gravity ?: return
 
-        if (view.layoutParams is FrameLayout.LayoutParams) {
-            (view.layoutParams as FrameLayout.LayoutParams).gravity = gravity
-        } else if (view.layoutParams is LinearLayout.LayoutParams) {
-            (view.layoutParams as LinearLayout.LayoutParams).gravity = gravity
-        } else {
-            Log.d(this.javaClass.name, "Unsupported layout ${view.layoutParams.javaClass.name} for gravity")
+        when (view.layoutParams) {
+            is FrameLayout.LayoutParams -> {
+                (view.layoutParams as FrameLayout.LayoutParams).gravity = gravity
+            }
+            is LinearLayout.LayoutParams -> {
+                (view.layoutParams as LinearLayout.LayoutParams).gravity = gravity
+            }
+            else -> {
+                Log.d(this.javaClass.name, "Unsupported layout ${view.layoutParams.javaClass.name} for gravity")
+            }
         }
     }
 
@@ -622,19 +707,25 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param view view component
      * @param value value
      */
-    protected fun setGravity(view: View, value: String?) {
+    private fun setGravity(view: View, value: String?) {
         val gravity = parseGravity(value)
         gravity ?: return
-        if(view is TextView){
-            view.gravity = gravity
-        } else if (view is LinearLayout) {
-            view.gravity = gravity
-        } else if (view is RelativeLayout) {
-            view.gravity = gravity
-        } else if (view is Button) {
-            view.gravity = gravity
-        } else if (view is FlowTextView) {
-            view.gravity = gravity
+        when (view) {
+            is TextView -> {
+                view.gravity = gravity
+            }
+            is LinearLayout -> {
+                view.gravity = gravity
+            }
+            is RelativeLayout -> {
+                view.gravity = gravity
+            }
+            is Button -> {
+                view.gravity = gravity
+            }
+            is FlowTextView -> {
+                view.gravity = gravity
+            }
         }
     }
 
@@ -644,7 +735,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param view view component
      * @param property property to be set
      */
-    protected fun setLayoutMargin(view: View, property: PageLayoutViewProperty) {
+    private fun setLayoutMargin(view: View, property: PageLayoutViewProperty) {
         val px = stringToPx(property.value)?.toInt()
         px ?: return
 
@@ -669,7 +760,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param view view component
      * @param property property to be set
      */
-    protected fun setLayoutOf(view: View, property: PageLayoutViewProperty) {
+    private fun setLayoutOf(view: View, property: PageLayoutViewProperty) {
         val value = property.value
 
         if (view.layoutParams is RelativeLayout.LayoutParams) {
@@ -692,12 +783,16 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      */
     protected fun getInitialLayoutParams(parent: View?): ViewGroup.LayoutParams {
         if (parent != null) {
-            if (parent is FlowTextView) {
-                return RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT)
-            } else if (parent is FrameLayout) {
-                return FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-            } else if (parent is LinearLayout) {
-                return LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
+            when (parent) {
+                is FlowTextView -> {
+                    return RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT)
+                }
+                is FrameLayout -> {
+                    return FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+                }
+                is LinearLayout -> {
+                    return LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
+                }
             }
         }
 
@@ -723,29 +818,34 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             return
         }
 
-        if (parent is FrameLayout) {
-            when (property.value) {
-                "match_parent" -> view.layoutParams.width = FrameLayout.LayoutParams.MATCH_PARENT
-                "wrap_content" -> view.layoutParams.width = FrameLayout.LayoutParams.WRAP_CONTENT
-                "fill_parent" -> view.layoutParams.width = FrameLayout.LayoutParams.FILL_PARENT
-                else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for FrameLayout width")
+        when (parent) {
+            is FrameLayout -> {
+                when (property.value) {
+                    "match_parent" -> view.layoutParams.width = FrameLayout.LayoutParams.MATCH_PARENT
+                    "wrap_content" -> view.layoutParams.width = FrameLayout.LayoutParams.WRAP_CONTENT
+                    "fill_parent" -> view.layoutParams.width = FrameLayout.LayoutParams.FILL_PARENT
+                    else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for FrameLayout width")
+                }
             }
-        } else if (parent is LinearLayout) {
-            when (property.value) {
-                "match_parent" -> view.layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT
-                "wrap_content" -> view.layoutParams.width = LinearLayout.LayoutParams.WRAP_CONTENT
-                "fill_parent" -> view.layoutParams.width = LinearLayout.LayoutParams.FILL_PARENT
-                else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for LinearLayout width")
+            is LinearLayout -> {
+                when (property.value) {
+                    "match_parent" -> view.layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT
+                    "wrap_content" -> view.layoutParams.width = LinearLayout.LayoutParams.WRAP_CONTENT
+                    "fill_parent" -> view.layoutParams.width = LinearLayout.LayoutParams.FILL_PARENT
+                    else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for LinearLayout width")
+                }
             }
-        } else if (parent is RelativeLayout) {
-            when (property.value) {
-                "match_parent" -> view.layoutParams.width = RelativeLayout.LayoutParams.MATCH_PARENT
-                "wrap_content" -> view.layoutParams.width = RelativeLayout.LayoutParams.WRAP_CONTENT
-                "fill_parent" -> view.layoutParams.width = RelativeLayout.LayoutParams.FILL_PARENT
-                else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for RelativeLayout width")
+            is RelativeLayout -> {
+                when (property.value) {
+                    "match_parent" -> view.layoutParams.width = RelativeLayout.LayoutParams.MATCH_PARENT
+                    "wrap_content" -> view.layoutParams.width = RelativeLayout.LayoutParams.WRAP_CONTENT
+                    "fill_parent" -> view.layoutParams.width = RelativeLayout.LayoutParams.FILL_PARENT
+                    else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for RelativeLayout width")
+                }
             }
-        } else {
-            Log.d(this.javaClass.name, "Unsupported layout ${parent.javaClass.name} for layout width")
+            else -> {
+                Log.d(this.javaClass.name, "Unsupported layout ${parent.javaClass.name} for layout width")
+            }
         }
     }
 
@@ -797,29 +897,34 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             return
         }
 
-        if (parent is FrameLayout) {
-            when (property.value) {
-                "match_parent" -> view.layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT
-                "wrap_content" -> view.layoutParams.height = FrameLayout.LayoutParams.WRAP_CONTENT
-                "fill_parent" -> view.layoutParams.height = FrameLayout.LayoutParams.FILL_PARENT
-                else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for FrameLayout height")
+        when (parent) {
+            is FrameLayout -> {
+                when (property.value) {
+                    "match_parent" -> view.layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT
+                    "wrap_content" -> view.layoutParams.height = FrameLayout.LayoutParams.WRAP_CONTENT
+                    "fill_parent" -> view.layoutParams.height = FrameLayout.LayoutParams.FILL_PARENT
+                    else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for FrameLayout height")
+                }
             }
-        } else if (parent is LinearLayout) {
-            when (property.value) {
-                "match_parent" -> view.layoutParams.height = LinearLayout.LayoutParams.MATCH_PARENT
-                "wrap_content" -> view.layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT
-                "fill_parent" -> view.layoutParams.height = LinearLayout.LayoutParams.FILL_PARENT
-                else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for LinearLayout height")
+            is LinearLayout -> {
+                when (property.value) {
+                    "match_parent" -> view.layoutParams.height = LinearLayout.LayoutParams.MATCH_PARENT
+                    "wrap_content" -> view.layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT
+                    "fill_parent" -> view.layoutParams.height = LinearLayout.LayoutParams.FILL_PARENT
+                    else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for LinearLayout height")
+                }
             }
-        } else if (parent is RelativeLayout) {
-            when (property.value) {
-                "match_parent" -> view.layoutParams.height = RelativeLayout.LayoutParams.MATCH_PARENT
-                "wrap_content" -> view.layoutParams.height = RelativeLayout.LayoutParams.WRAP_CONTENT
-                "fill_parent" -> view.layoutParams.height = RelativeLayout.LayoutParams.FILL_PARENT
-                else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for RelativeLayout height")
+            is RelativeLayout -> {
+                when (property.value) {
+                    "match_parent" -> view.layoutParams.height = RelativeLayout.LayoutParams.MATCH_PARENT
+                    "wrap_content" -> view.layoutParams.height = RelativeLayout.LayoutParams.WRAP_CONTENT
+                    "fill_parent" -> view.layoutParams.height = RelativeLayout.LayoutParams.FILL_PARENT
+                    else -> Log.d(this.javaClass.name, "Unsupported value ${property.value} for RelativeLayout height")
+                }
             }
-        } else {
-            Log.d(this.javaClass.name, "Unsupported layout ${parent.javaClass.name} for layout height")
+            else -> {
+                Log.d(this.javaClass.name, "Unsupported layout ${parent.javaClass.name} for layout height")
+            }
         }
     }
 
@@ -856,7 +961,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             "center_vertical" -> return Gravity.CENTER_VERTICAL
             "center_horizontal" -> return Gravity.CENTER_HORIZONTAL
             else -> {
-                Log.d(this.javaClass.name, "Could not parse gravity component ${value}")
+                Log.d(this.javaClass.name, "Could not parse gravity component $value")
             }
         }
 
