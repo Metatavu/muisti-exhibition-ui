@@ -32,7 +32,7 @@ import fi.metatavu.muisti.exhibitionui.actions.PageActionProvider
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProviderFactory
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
-import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
+import fi.metatavu.muisti.exhibitionui.visitors.VisibleTagsContainer
 
 /**
  * Muisti activity abstract class
@@ -43,7 +43,7 @@ abstract class MuistiActivity : AppCompatActivity() {
     private val deviceGroupEvents = mutableMapOf<String, Array<ExhibitionPageEvent>>()
     private val keyDownListeners = mutableListOf<KeyCodeListener>()
     private val keyUpListeners = mutableListOf<KeyCodeListener>()
-    private var settingsClickCounter = 0
+    private var buttonClickCounter = 0
     private val clickCounterHandler = Handler()
     protected var currentPageView: PageView? = null
     val transitionElements: MutableList<View> = mutableListOf()
@@ -449,6 +449,17 @@ abstract class MuistiActivity : AppCompatActivity() {
     }
 
     /**
+     * Starts listening for login button click
+     *
+     * @param button button
+     */
+    protected fun listenLoginButton(button: Button) {
+        button.setOnClickListener{
+            loginButtonClick()
+        }
+    }
+
+    /**
      * Removes settings and index page listeners
      */
     protected fun removeSettingsAndIndexListeners() {
@@ -556,7 +567,10 @@ abstract class MuistiActivity : AppCompatActivity() {
      * Logs in with debug account
      */
     private fun debugLogin() {
-        // ExhibitionUIApplication.instance.visitorLogin(BuildConfig.KEYCLOAK_DEMO_TAG)
+        VisibleTagsContainer.tagSeen(
+                tag = BuildConfig.KEYCLOAK_DEMO_TAG,
+                visitorSessionEndTimeout = 30
+        )
     }
 
     /**
@@ -567,13 +581,15 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     private fun settingsButtonClick() {
         clickCounterHandler.removeCallbacksAndMessages("settings")
-        settingsClickCounter += 1
-        if (settingsClickCounter > 4) {
+        buttonClickCounter += 1
+        if (buttonClickCounter > 4) {
             startSettingsActivity()
         } else {
-            clickCounterHandler.postDelayed({
-                settingsClickCounter = 0
-            }, "settings", 1000)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                clickCounterHandler.postDelayed({
+                    buttonClickCounter = 0
+                }, "settings", 1000)
+            }
         }
     }
 
@@ -585,13 +601,35 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     protected fun indexButtonClick() {
         clickCounterHandler.removeCallbacksAndMessages("index")
-        settingsClickCounter += 1
-        if (settingsClickCounter > 4) {
+        buttonClickCounter += 1
+        if (buttonClickCounter > 4) {
             startMainActivity()
         } else {
-            clickCounterHandler.postDelayed({
-                settingsClickCounter = 0
-            }, "index", 1000)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                clickCounterHandler.postDelayed({
+                    buttonClickCounter = 0
+                }, "index", 1000)
+            }
+        }
+    }
+
+    /**
+     * Handler for settings button click
+     *
+     * Increases settings click count and navigates to settings if it has been clicked 5 times.
+     * Counter resets to zero after 1 sec
+     */
+    protected fun loginButtonClick() {
+        clickCounterHandler.removeCallbacksAndMessages("login")
+        buttonClickCounter += 1
+        if (buttonClickCounter > 4) {
+            debugLogin()
+        } else {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                clickCounterHandler.postDelayed({
+                    buttonClickCounter = 0
+                }, "login", 1000)
+            }
         }
     }
 }

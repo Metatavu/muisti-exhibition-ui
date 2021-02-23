@@ -80,7 +80,7 @@ class VisitorSessionContainer {
                     variables = variables.plus(VisitorSessionVariable(name = name, value = value))
                 }
 
-                setVisitorSession(visitorSession.copy(variables = variables))
+                liveVisitorSession.postValue(visitorSession.copy(variables = variables))
             }
         }
 

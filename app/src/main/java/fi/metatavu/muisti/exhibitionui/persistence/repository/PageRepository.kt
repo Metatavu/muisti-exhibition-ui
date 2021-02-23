@@ -15,13 +15,13 @@ import java.util.*
 class PageRepository(private val pageDao: PageDao) {
 
     /**
-     * Finds an index page for given language
+     * Lists index pages for given language
      *
      * @param language language
-     * @return index page for given language or null if not found
+     * @return index pages for given language
      */
-    suspend fun findIndexPage(language: String): Page? {
-        return pageDao.findByOrderNumberAndLanguage(orderNumber = 0, language = language)
+    suspend fun listIndexPages(language: String): List<Page> {
+        return pageDao.listByOrderNumberAndLanguage(orderNumber = 0, language = language)
     }
 
     /**
@@ -29,7 +29,7 @@ class PageRepository(private val pageDao: PageDao) {
      *
      * @return list of pages
      */
-    suspend fun listAll(): List<Page>? {
+    suspend fun listAll(): List<Page> {
         return pageDao.listAll()
     }
 
@@ -86,6 +86,8 @@ class PageRepository(private val pageDao: PageDao) {
             exhibitionId = exhibitionId,
             modifiedAt = page.modifiedAt!!,
             resources = page.resources,
+            activeConditionUserVariable = contentVersion?.activeCondition?.userVariable,
+            activeConditionEquals = contentVersion?.activeCondition?.equals,
             eventTriggers = page.eventTriggers,
             layoutId = page.layoutId,
             enterTransitions = page.enterTransitions,

@@ -9,7 +9,6 @@ import fi.metatavu.muisti.api.client.infrastructure.UUIDAdapter
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventTrigger
 import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
 import fi.metatavu.muisti.api.client.models.ExhibitionPageTransition
-import fi.metatavu.muisti.api.client.models.Transition
 import fi.metatavu.muisti.exhibitionui.persistence.types.UUIDConverter
 import java.util.*
 
@@ -30,6 +29,10 @@ data class Page (
 
     @NonNull
     val language: String,
+
+    val activeConditionUserVariable: String?,
+
+    val activeConditionEquals: String?,
 
     @NonNull
     var orderNumber: Int,

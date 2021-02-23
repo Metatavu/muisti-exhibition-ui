@@ -9,9 +9,9 @@ import fi.metatavu.muisti.api.client.models.VisitorSession
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
-import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
-import kotlinx.android.synthetic.main.activity_page.settings_button
+import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
+import kotlinx.android.synthetic.main.activity_page.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.*
@@ -54,6 +54,7 @@ class MainActivity : MuistiActivity() {
                     }
 
                     setImmersiveMode()
+                    listenLoginButton(login_button)
                     listenSettingsButton(settings_button)
                     waitForForcedPortraitMode(idlePage?.orientation)
                 }
@@ -79,7 +80,10 @@ class MainActivity : MuistiActivity() {
 
     private suspend fun startVisitorSession(visitorSession: VisitorSession) {
         val language = visitorSession.language
-        val frontPage = mViewModel?.getFrontPage(language = language)
+        val frontPage = mViewModel?.getFrontPage(
+            language = language,
+            visitorSession = visitorSession
+        )
 
         if (frontPage != null) {
             waitForPage(frontPage)
