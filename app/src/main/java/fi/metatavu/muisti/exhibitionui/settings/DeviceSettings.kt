@@ -16,12 +16,16 @@ class DeviceSettings {
 
     companion object {
 
-        private val deviceSettingRepository: DeviceSettingRepository =
-            DeviceSettingRepository(ExhibitionUIDatabase.getDatabase().deviceSettingDao())
+        private var deviceSettingRepository: DeviceSettingRepository? = null
         private val listType = Types.newParameterizedType(MutableList::class.java, RfidAntenna::class.java)
         private val jsonAdapter: JsonAdapter<List<RfidAntenna>> = moshi.adapter<List<RfidAntenna>>(listType)
 
-
+        private fun getDeviceSettingRepo(): DeviceSettingRepository {
+            return deviceSettingRepository ?: DeviceSettingRepository(ExhibitionUIDatabase.getDatabase()
+                .deviceSettingDao()).also {
+                    deviceSettingRepository = it
+                }
+        }
 
         /**
          * Returns exhibition id if set
@@ -123,7 +127,7 @@ class DeviceSettings {
          * @return device setting value or null if not defined
          */
         private suspend fun getSettingValue(name: DeviceSettingName): String? {
-            return deviceSettingRepository.getValue(name)
+            return getDeviceSettingRepo().getValue(name)
         }
 
         /**
@@ -133,7 +137,7 @@ class DeviceSettings {
          * @param value new value
          */
         private suspend fun setSettingValue(name: DeviceSettingName, value: String?) {
-            deviceSettingRepository.setValue(name, value)
+            getDeviceSettingRepo().setValue(name, value)
         }
 
         /**
