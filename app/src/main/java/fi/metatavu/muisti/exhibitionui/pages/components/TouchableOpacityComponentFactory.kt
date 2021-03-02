@@ -27,7 +27,7 @@ class TouchableOpacityComponentFactory : AbstractComponentFactory<Button>() {
         button.setBackgroundResource(outValue.resourceId)
 
         buildContext.pageLayoutView.properties.forEach {
-            this.setProperty(buildContext, parent, button, it )
+            this.setProperty(buildContext, parent, button, it)
         }
 
         return button
