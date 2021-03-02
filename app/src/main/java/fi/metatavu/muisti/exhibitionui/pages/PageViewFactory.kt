@@ -30,6 +30,7 @@ class PageViewFactory {
             componentFactories.add(MaterialTabLayoutComponentFactory())
             componentFactories.add(WebViewComponentFactory())
             componentFactories.add(VisitorsViewComponentFactory())
+            componentFactories.add(TouchableOpacityComponentFactory())
         }
 
         /**
