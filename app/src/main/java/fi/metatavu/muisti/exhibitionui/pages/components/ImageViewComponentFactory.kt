@@ -2,8 +2,6 @@ package fi.metatavu.muisti.exhibitionui.pages.components
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Rect
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
@@ -11,8 +9,6 @@ import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.api.client.models.VisitorSession
 import fi.metatavu.muisti.exhibitionui.pages.PageViewVisitorSessionAdapter
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
-import java.io.ByteArrayOutputStream
-import java.io.OutputStream
 import java.net.URL
 
 /**
@@ -44,6 +40,8 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
 
             /**
              * Prepares image for scripted resources
+             *
+             * @param visitorSession Visitor session that triggered the preparation
              */
             private fun prepareImage(visitorSession: VisitorSession) {
                 val url = getUrl(getScriptedResource(buildContext,  visitorSession, "src", false))
@@ -54,6 +52,8 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
 
             /**
              * Updates image for scripted resources
+             *
+             * @param visitorSession Visitor session that triggered the update
              */
             private fun updateImage(visitorSession: VisitorSession) {
                 val url = getUrl(getScriptedResource(buildContext, visitorSession,"src", false))
@@ -98,7 +98,7 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
      * Sets a image src
      *
      * @param imageView image view component
-     * @param url url
+     * @param url url or null
      */
     private fun updateImageSource(imageView: ImageView, url: URL?) {
         val offlineFile = getResourceOfflineFile(url = url)
