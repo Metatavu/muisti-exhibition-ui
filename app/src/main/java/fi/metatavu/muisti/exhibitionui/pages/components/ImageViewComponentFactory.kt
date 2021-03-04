@@ -5,6 +5,10 @@ import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import fi.metatavu.muisti.api.client.models.VisitorSession
+import fi.metatavu.muisti.exhibitionui.pages.PageViewVisitorSessionAdapter
+import fi.metatavu.muisti.exhibitionui.views.PageActivity
+import java.net.URL
 
 /**
  * Component factory for image components
@@ -23,6 +27,40 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
         buildContext.pageLayoutView.properties.forEach {
             this.setProperty(buildContext, parent, imageView, it)
         }
+
+        buildContext.addVisitorSessionListener(object : PageViewVisitorSessionAdapter() {
+            override suspend fun prepareVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
+                prepareImage(visitorSession)
+            }
+
+            override fun performVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
+                updateImage(visitorSession)
+            }
+
+            /**
+             * Prepares image for scripted resources
+             *
+             * @param visitorSession Visitor session that triggered the preparation
+             */
+            private fun prepareImage(visitorSession: VisitorSession) {
+                val url = getUrl(getScriptedResource(buildContext,  visitorSession, "src", false))
+                if (url != null) {
+                    getResourceOfflineFile(url = url)
+                }
+            }
+
+            /**
+             * Updates image for scripted resources
+             *
+             * @param visitorSession Visitor session that triggered the update
+             */
+            private fun updateImage(visitorSession: VisitorSession) {
+                val url = getUrl(getScriptedResource(buildContext, visitorSession,"src", false))
+                if (url != null) {
+                    updateImageSource(imageView = imageView, url = url)
+                }
+            }
+        })
 
         return imageView
     }
@@ -55,4 +93,20 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
         imageView.setImageBitmap(bmp)
     }
 
+    /**
+     * Sets a image src
+     *
+     * @param buildContext build context
+     * @param imageView image view component
+     * @param url url or null
+     */
+    private fun updateImageSource(imageView: ImageView, url: URL?) {
+        val offlineFile = getResourceOfflineFile(url = url)
+        offlineFile ?: return
+
+        val bitmap = BitmapFactory.decodeFile(offlineFile.absolutePath)
+        if (bitmap != null) {
+            imageView.setImageBitmap(bitmap)
+        }
+    }
 }

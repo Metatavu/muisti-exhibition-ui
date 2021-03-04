@@ -630,7 +630,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param url URL of the resource
      * @return offlined file
      */
-    private fun getResourceOfflineFile(url: URL?): File? {
+    protected fun getResourceOfflineFile(url: URL?): File? {
         url ?: return null
 
         val downloadsDir = ExhibitionUIApplication.instance.applicationContext.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
