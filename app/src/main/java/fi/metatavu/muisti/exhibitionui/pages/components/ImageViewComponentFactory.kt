@@ -94,7 +94,7 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
      *
      * @param buildContext build context
      * @param imageView image view component
-     * @param url url
+     * @param url url or null
      */
     private fun updateImageSource(imageView: ImageView, url: URL?) {
         val offlineFile = getResourceOfflineFile(url = url)
