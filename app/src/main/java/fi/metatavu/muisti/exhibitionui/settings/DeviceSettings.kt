@@ -39,6 +39,25 @@ class DeviceSettings {
         }
 
         /**
+         * Sets rotation flip boolean setting
+         *
+         * @param value value of setting
+         */
+        suspend fun setRotationFlip(value: Boolean) {
+            setSettingValue(DeviceSettingName.DEVICE_ROTATE_FLIP, value.toString())
+        }
+
+        /**
+         * Gets rotation flip boolean setting
+         *
+         * @return Boolean value of the setting, defaults to false
+         */
+        suspend fun getRotationFlip(): Boolean {
+            val string = getSettingValue(DeviceSettingName.DEVICE_ROTATE_FLIP)
+            return string?.toBoolean() ?: false
+        }
+
+        /**
          * Sets exhibition id
          *
          * @param exhibitionId exhibition id

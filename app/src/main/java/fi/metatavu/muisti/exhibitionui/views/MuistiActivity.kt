@@ -32,7 +32,10 @@ import fi.metatavu.muisti.exhibitionui.actions.PageActionProvider
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProviderFactory
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
+import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import fi.metatavu.muisti.exhibitionui.visitors.VisibleTagsContainer
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
  * Muisti activity abstract class
@@ -88,7 +91,7 @@ abstract class MuistiActivity : AppCompatActivity() {
 
         setCurrentActivity(this)
 
-        if (ExhibitionUIApplication.instance.forcedPortraitMode == true){
+        if (ExhibitionUIApplication.instance.forcedPortraitMode == true) {
             setForcedPortraitMode()
         }
     }
@@ -543,8 +546,15 @@ abstract class MuistiActivity : AppCompatActivity() {
      * Sets forced portrait mode
      */
     fun setForcedPortraitMode() {
-        runOnUiThread {
-            findViewById<RotateLayout>(R.id.main_screen_rotate)?.angle = 90
+        GlobalScope.launch {
+            val rotation = DeviceSettings.getRotationFlip()
+            runOnUiThread {
+                if (rotation) {
+                    findViewById<RotateLayout>(R.id.main_screen_rotate)?.angle = 270
+                } else {
+                    findViewById<RotateLayout>(R.id.main_screen_rotate)?.angle = 90
+                }
+            }
         }
     }
 

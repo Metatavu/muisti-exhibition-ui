@@ -36,6 +36,10 @@
             android:enabled="false"
             app:key="rfid_antennas" />
 
+        <CheckBoxPreference
+            app:title="@string/flip_forced_rotation_title"
+            app:key="flip_forced_rotation" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>

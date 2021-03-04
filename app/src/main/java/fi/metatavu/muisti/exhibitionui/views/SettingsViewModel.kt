@@ -70,6 +70,15 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
     }
 
     /**
+     * Sets rotation flip setting
+     *
+     * @param value setting value
+     */
+    fun setRotationFlip(value: Boolean) = viewModelScope.launch {
+        DeviceSettings.setRotationFlip(value)
+    }
+
+    /**
      * Returns exhibition device id if set
      *
      * @return exhibition device id or null if not set

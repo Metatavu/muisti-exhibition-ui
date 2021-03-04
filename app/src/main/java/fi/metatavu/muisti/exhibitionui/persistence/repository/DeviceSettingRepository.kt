@@ -42,5 +42,4 @@ class DeviceSettingRepository(private val deviceSettingDao: DeviceSettingDao) {
             deviceSettingDao.insert(DeviceSetting(name.name, value))
         }
     }
-
 }

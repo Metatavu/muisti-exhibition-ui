@@ -19,7 +19,7 @@ import fi.metatavu.muisti.exhibitionui.persistence.types.UUIDConverter
 /**
  * The Room database
  */
-@Database(entities = [ UpdateUserValueTask::class, DeviceSetting::class, Layout::class, Page::class], version = 9)
+@Database(entities = [ UpdateUserValueTask::class, DeviceSetting::class, Layout::class, Page::class ], version = 10)
 @TypeConverters(PageLayoutViewConverter::class, ExhibitionPageViewConverter::class, UUIDConverter::class)
 abstract class ExhibitionUIDatabase : RoomDatabase() {
 
