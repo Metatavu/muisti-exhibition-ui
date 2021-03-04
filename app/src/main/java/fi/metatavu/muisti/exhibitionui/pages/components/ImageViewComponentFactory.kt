@@ -114,6 +114,7 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
      * Returns image from URL as original or a scaled image if size exceeds 80MB
      *
      * @param url URL to get image from
+     * @return Bitmap or null if decoding fails
      */
     private fun getScaledImage(url: URL): Bitmap? {
         val bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream())
