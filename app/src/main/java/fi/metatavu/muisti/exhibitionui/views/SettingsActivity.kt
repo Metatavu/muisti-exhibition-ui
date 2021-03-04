@@ -8,10 +8,6 @@ import android.view.View
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.whenStarted
-import androidx.preference.EditTextPreference
-import androidx.preference.ListPreference
-import androidx.preference.Preference
-import androidx.preference.PreferenceFragmentCompat
 import fi.metatavu.muisti.api.client.models.Exhibition
 import fi.metatavu.muisti.api.client.models.ExhibitionDevice
 import fi.metatavu.muisti.api.client.models.RfidAntenna
@@ -19,6 +15,7 @@ import fi.metatavu.muisti.exhibitionui.services.UpdateRfidAntenna
 import kotlinx.android.synthetic.main.settings_activity.*
 import java.util.*
 import android.widget.ArrayAdapter
+import androidx.preference.*
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
@@ -117,6 +114,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val exhibitionDevicePreference: ListPreference = findPreference("exhibition_device")!!
         exhibitionDevicePreference.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
             onExhibitionDevicePreferenceChange(preference as ListPreference, newValue as String)
+            true
+        }
+
+        val deviceRotationFlip: CheckBoxPreference = findPreference("flip_forced_rotation")!!
+        deviceRotationFlip.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
+            mViewModel?.setRotationFlip(newValue as Boolean)
             true
         }
     }

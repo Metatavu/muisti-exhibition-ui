@@ -24,6 +24,11 @@ enum class DeviceSettingName {
     /**
      * Setting for storing device's rfid antenna id
      */
-    EXHIBITION_RFID_ANTENNA
+    EXHIBITION_RFID_ANTENNA,
+
+    /**
+     * Setting for storing device's rfid antenna id
+     */
+    DEVICE_ROTATE_FLIP
 
 }
