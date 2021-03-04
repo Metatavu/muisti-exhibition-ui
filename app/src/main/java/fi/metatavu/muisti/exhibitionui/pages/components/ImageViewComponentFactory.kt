@@ -39,6 +39,8 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
 
             /**
              * Prepares image for scripted resources
+             *
+             * @param visitorSession Visitor session that triggered the preparation
              */
             private fun prepareImage(visitorSession: VisitorSession) {
                 val url = getUrl(getScriptedResource(buildContext,  visitorSession, "src", false))
@@ -49,6 +51,8 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
 
             /**
              * Updates image for scripted resources
+             *
+             * @param visitorSession Visitor session that triggered the update
              */
             private fun updateImage(visitorSession: VisitorSession) {
                 val url = getUrl(getScriptedResource(buildContext, visitorSession,"src", false))
