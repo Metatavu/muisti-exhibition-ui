@@ -182,6 +182,18 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     }
 
     /**
+     * Returns boolean property value
+     *
+     * @param buildContext build context
+     * @param propertyName property's name
+     * @return boolean property value
+     */
+    protected fun getBooleanProperty(buildContext: ComponentBuildContext, propertyName: String): Boolean? {
+        val data = getPropertyResourceData(buildContext = buildContext, propertyName = propertyName) ?: return null
+        return data == "true"
+    }
+
+    /**
      * Returns resource data for given property
      *
      * @param buildContext build context
