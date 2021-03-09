@@ -31,7 +31,8 @@ import java.util.concurrent.TimeUnit
 class ExhibitionUIApplication : Application() {
 
     private var currentActivity: Activity? = null
-    private val handler = Handler()
+    private val visitorSessionHandler = Handler()
+    private val unseenTagsHandler = Handler()
     private var visitorSessionEndTimeout: Long = 5000
     private var allowVisitorSessionCreation = false
     var forcedPortraitMode: Boolean? = null
@@ -86,7 +87,7 @@ class ExhibitionUIApplication : Application() {
      * Logs out the current visitor session
      */
     private fun endVisitorSession() {
-        handler.removeCallbacksAndMessages(VISITOR_SESSION_HANDLER_TOKEN)
+        visitorSessionHandler.removeCallbacksAndMessages(VISITOR_SESSION_HANDLER_TOKEN)
         VisitorSessionContainer.endVisitorSession()
         readApiValues()
 
@@ -137,10 +138,10 @@ class ExhibitionUIApplication : Application() {
      * Polls recently seen tags list and removes tags that have not been seen recently
      */
     private fun pollUnseenTags() {
-        handler.postDelayed({
+        unseenTagsHandler.postDelayed({
             VisibleTagsContainer.removeUnseenTags()
             pollUnseenTags()
-        }, UNSEEN_TAGS_HANDLER_TOKEN, visitorSessionEndTimeout / 2)
+        }, visitorSessionEndTimeout / 2)
     }
 
     /**
@@ -228,15 +229,15 @@ class ExhibitionUIApplication : Application() {
      * Resets visitor session end timer
      */
     private fun resetVisitorSessionEndTimer() {
-        handler.removeCallbacksAndMessages(VISITOR_SESSION_HANDLER_TOKEN)
+        visitorSessionHandler.removeCallbacksAndMessages(null)
 
-        handler.postDelayed({
+        visitorSessionHandler.postDelayed({
             endVisitorSession()
-        }, VISITOR_SESSION_HANDLER_TOKEN, visitorSessionEndTimeout)
+        }, visitorSessionEndTimeout)
 
-        handler.postDelayed({
+        visitorSessionHandler.postDelayed({
             logoutWarning()
-        }, VISITOR_SESSION_HANDLER_TOKEN, visitorSessionEndTimeout / 2)
+        },visitorSessionEndTimeout / 2)
     }
 
     /**
