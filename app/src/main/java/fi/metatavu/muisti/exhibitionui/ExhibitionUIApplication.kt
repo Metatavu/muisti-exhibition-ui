@@ -87,7 +87,7 @@ class ExhibitionUIApplication : Application() {
      * Logs out the current visitor session
      */
     private fun endVisitorSession() {
-        visitorSessionHandler.removeCallbacksAndMessages(VISITOR_SESSION_HANDLER_TOKEN)
+        visitorSessionHandler.removeCallbacksAndMessages(null)
         VisitorSessionContainer.endVisitorSession()
         readApiValues()
 
@@ -420,16 +420,6 @@ class ExhibitionUIApplication : Application() {
     companion object {
 
         lateinit var instance: ExhibitionUIApplication
-
-        /**
-         * Handler token for unseen tag polling related operations
-         */
-        const val UNSEEN_TAGS_HANDLER_TOKEN = 1
-
-        /**
-         * Handler token for visitor session related operations
-         */
-        const val VISITOR_SESSION_HANDLER_TOKEN = 2
 
     }
 }
