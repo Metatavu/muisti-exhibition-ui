@@ -7,6 +7,8 @@ import fi.metatavu.muisti.api.client.models.RfidAntenna
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
 import fi.metatavu.muisti.exhibitionui.persistence.model.DeviceSettingName
 import fi.metatavu.muisti.exhibitionui.persistence.repository.DeviceSettingRepository
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.*
 
 /**
@@ -54,10 +56,12 @@ class DeviceSettings {
          *
          * @return Boolean value of the setting, defaults to false
          */
-        suspend fun getRotationFlip(): Boolean {
-            return flipScreenRotate ?: getSettingValue(DeviceSettingName.DEVICE_ROTATE_FLIP)?.toBoolean().also {
-                flipScreenRotate = it
-            } ?: false
+        fun getRotationFlip(): Boolean {
+            return flipScreenRotate ?: false.also {
+                GlobalScope.launch {
+                    flipScreenRotate = getSettingValue(DeviceSettingName.DEVICE_ROTATE_FLIP)?.toBoolean()
+                }
+            }
         }
 
         /**

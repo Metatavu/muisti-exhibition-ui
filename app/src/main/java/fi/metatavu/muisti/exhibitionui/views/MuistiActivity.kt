@@ -67,9 +67,6 @@ abstract class MuistiActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
         super.onCreate(savedInstanceState, persistentState)
-        if (ExhibitionUIApplication.instance.forcedPortraitMode == true) {
-            setForcedPortraitMode()
-        }
     }
 
     override fun onDestroy() {
@@ -486,7 +483,7 @@ abstract class MuistiActivity : AppCompatActivity() {
      * @param sharedElements shared elements to morph during transition or null
      */
     fun goToPage(pageId: UUID, sharedElements: List<View>? = null) {
-        val intent = Intent(this, PageActivity::class.java).apply{
+        val intent = Intent(this, PageActivity::class.java).apply {
             putExtra("pageId", pageId.toString())
         }
 
@@ -556,14 +553,12 @@ abstract class MuistiActivity : AppCompatActivity() {
      * Sets forced portrait mode
      */
     fun setForcedPortraitMode() {
-        GlobalScope.launch {
-            val rotation = DeviceSettings.getRotationFlip()
-            runOnUiThread {
-                if (rotation) {
-                    findViewById<RotateLayout>(R.id.main_screen_rotate)?.angle = 270
-                } else {
-                    findViewById<RotateLayout>(R.id.main_screen_rotate)?.angle = 90
-                }
+        val rotation = DeviceSettings.getRotationFlip()
+        runOnUiThread {
+            if (rotation) {
+                findViewById<RotateLayout>(R.id.main_screen_rotate)?.angle = 270
+            } else {
+                findViewById<RotateLayout>(R.id.main_screen_rotate)?.angle = 90
             }
         }
     }
