@@ -95,7 +95,7 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
     }
 
     /**
-     * Sets a image src
+     * Sets image src
      *
      * @param imageView image view component
      * @param url url or null

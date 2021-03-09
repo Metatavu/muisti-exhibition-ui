@@ -47,7 +47,9 @@ abstract class MuistiActivity : AppCompatActivity() {
     private val keyDownListeners = mutableListOf<KeyCodeListener>()
     private val keyUpListeners = mutableListOf<KeyCodeListener>()
     private var buttonClickCounter = 0
-    private val clickCounterHandler = Handler()
+    private val indexClickCounterHandler = Handler()
+    private val settingsClickCounterHandler = Handler()
+    private val loginClickCounterHandler = Handler()
     protected var currentPageView: PageView? = null
     val transitionElements: MutableList<View> = mutableListOf()
     var countDownTimer: CountDownTimer? = null
@@ -472,7 +474,9 @@ abstract class MuistiActivity : AppCompatActivity() {
      * Removes settings and index page listeners
      */
     protected fun removeSettingsAndIndexListeners() {
-        clickCounterHandler.removeCallbacksAndMessages(null)
+        settingsClickCounterHandler.removeCallbacksAndMessages(null)
+        indexClickCounterHandler.removeCallbacksAndMessages(null)
+        loginClickCounterHandler.removeCallbacksAndMessages(null)
     }
 
     /**
@@ -498,7 +502,7 @@ abstract class MuistiActivity : AppCompatActivity() {
         }
 
         val finishTimeout = max(window.exitTransition?.duration ?: 0, window.enterTransition?.duration  ?: 0)
-        clickCounterHandler.postDelayed({
+        loginClickCounterHandler.postDelayed({
             finish()
         }, max(finishTimeout, 300))
     }
@@ -596,55 +600,51 @@ abstract class MuistiActivity : AppCompatActivity() {
      * Counter resets to zero after 1 sec
      */
     private fun settingsButtonClick() {
-        clickCounterHandler.removeCallbacksAndMessages("settings")
+        settingsClickCounterHandler.removeCallbacksAndMessages(null)
         buttonClickCounter += 1
         if (buttonClickCounter > 4) {
             startSettingsActivity()
         } else {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                clickCounterHandler.postDelayed({
-                    buttonClickCounter = 0
-                }, "settings", 1000)
-            }
+            settingsClickCounterHandler.postDelayed({
+                buttonClickCounter = 0
+            }, 1000)
         }
     }
 
     /**
-     * Handler for settings button click
+     * Handler for index button click
      *
-     * Increases settings click count and navigates to settings if it has been clicked 5 times.
+     * Increases settings click count and navigates to index page if it has been clicked 5 times.
      * Counter resets to zero after 1 sec
      */
     protected fun indexButtonClick() {
-        clickCounterHandler.removeCallbacksAndMessages("index")
+        indexClickCounterHandler.removeCallbacksAndMessages(null)
         buttonClickCounter += 1
         if (buttonClickCounter > 4) {
             startMainActivity()
         } else {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                clickCounterHandler.postDelayed({
-                    buttonClickCounter = 0
-                }, "index", 1000)
-            }
+            indexClickCounterHandler.postDelayed({
+                buttonClickCounter = 0
+            }, 1000)
         }
     }
 
     /**
-     * Handler for settings button click
+     * Handler for login button click
      *
-     * Increases settings click count and navigates to settings if it has been clicked 5 times.
+     * Increases settings click count and logs in if it has been clicked 5 times.
      * Counter resets to zero after 1 sec
      */
     protected fun loginButtonClick() {
-        clickCounterHandler.removeCallbacksAndMessages("login")
+        loginClickCounterHandler.removeCallbacksAndMessages(null)
         buttonClickCounter += 1
         if (buttonClickCounter > 4) {
             debugLogin()
         } else {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                clickCounterHandler.postDelayed({
+                loginClickCounterHandler.postDelayed({
                     buttonClickCounter = 0
-                }, "login", 1000)
+                }, 1000)
             }
         }
     }
