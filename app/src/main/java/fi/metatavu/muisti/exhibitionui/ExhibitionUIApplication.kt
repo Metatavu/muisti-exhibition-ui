@@ -42,11 +42,11 @@ class ExhibitionUIApplication : Application() {
      */
     init {
         instance = this
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateKeycloakTokenServiceTask() }, 1, 25, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateLayoutsServiceTask() }, 5, 3000, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 5, 1000, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 5, 30, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueConstructPagesServiceTask() }, 5, 2500, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateKeycloakTokenServiceTask() }, 1, 5, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateLayoutsServiceTask() }, 5, 15, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 5, 1, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 5, 15, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueConstructPagesServiceTask() }, 5, 15, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorsServiceTask() }, 5, 5, TimeUnit.SECONDS)
 
         VisibleTagsContainer.getLiveVisibleTags().observeForever {
