@@ -14,8 +14,7 @@ import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
 import fi.metatavu.muisti.exhibitionui.persistence.model.Layout
 import fi.metatavu.muisti.exhibitionui.persistence.repository.LayoutRepository
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.util.*
 import java.lang.Exception
 

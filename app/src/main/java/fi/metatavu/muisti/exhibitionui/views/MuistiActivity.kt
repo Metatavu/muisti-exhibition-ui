@@ -63,6 +63,13 @@ abstract class MuistiActivity : AppCompatActivity() {
         }
     }
 
+    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
+        super.onCreate(savedInstanceState, persistentState)
+        if (ExhibitionUIApplication.instance.forcedPortraitMode == true) {
+            setForcedPortraitMode()
+        }
+    }
+
     override fun onDestroy() {
         this.releaseView(currentPageView?.view)
         super.onDestroy()
@@ -85,15 +92,14 @@ abstract class MuistiActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
+        if (ExhibitionUIApplication.instance.forcedPortraitMode == true) {
+            setForcedPortraitMode()
+        }
         super.onResume()
 
         currentPageView?.lifecycleListeners?.forEach { it.onResume() }
 
         setCurrentActivity(this)
-
-        if (ExhibitionUIApplication.instance.forcedPortraitMode == true) {
-            setForcedPortraitMode()
-        }
     }
 
     override fun onPause() {

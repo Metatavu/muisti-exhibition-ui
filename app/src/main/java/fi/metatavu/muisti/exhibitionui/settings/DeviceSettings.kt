@@ -16,6 +16,7 @@ class DeviceSettings {
 
     companion object {
 
+        private var flipScreenRotate: Boolean? = null
         private var deviceSettingRepository: DeviceSettingRepository? = null
         private val listType = Types.newParameterizedType(MutableList::class.java, RfidAntenna::class.java)
         private val jsonAdapter: JsonAdapter<List<RfidAntenna>> = moshi.adapter<List<RfidAntenna>>(listType)
@@ -44,6 +45,7 @@ class DeviceSettings {
          * @param value value of setting
          */
         suspend fun setRotationFlip(value: Boolean) {
+            flipScreenRotate = value
             setSettingValue(DeviceSettingName.DEVICE_ROTATE_FLIP, value.toString())
         }
 
@@ -53,8 +55,9 @@ class DeviceSettings {
          * @return Boolean value of the setting, defaults to false
          */
         suspend fun getRotationFlip(): Boolean {
-            val string = getSettingValue(DeviceSettingName.DEVICE_ROTATE_FLIP)
-            return string?.toBoolean() ?: false
+            return flipScreenRotate ?: getSettingValue(DeviceSettingName.DEVICE_ROTATE_FLIP)?.toBoolean().also {
+                flipScreenRotate = it
+            } ?: false
         }
 
         /**
