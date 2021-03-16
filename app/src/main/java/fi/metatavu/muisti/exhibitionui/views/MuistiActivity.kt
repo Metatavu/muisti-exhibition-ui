@@ -35,6 +35,7 @@ import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import fi.metatavu.muisti.exhibitionui.visitors.VisibleTagsContainer
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -43,6 +44,7 @@ import kotlinx.coroutines.launch
 abstract class MuistiActivity : AppCompatActivity() {
 
     private val handler: Handler = Handler()
+    private var pageInteractable = false
     private val deviceGroupEvents = mutableMapOf<String, Array<ExhibitionPageEvent>>()
     private val keyDownListeners = mutableListOf<KeyCodeListener>()
     private val keyUpListeners = mutableListOf<KeyCodeListener>()
@@ -65,8 +67,18 @@ abstract class MuistiActivity : AppCompatActivity() {
         }
     }
 
+
+
     override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
         super.onCreate(savedInstanceState, persistentState)
+        val transitionTime = intent.getLongExtra("transitionTime", 300)
+
+        val previous = getCurrentActivity()
+
+        handler.postDelayed({
+            pageInteractable = true
+            previous?.finish()
+        }, transitionTime)
     }
 
     override fun onDestroy() {
@@ -87,6 +99,15 @@ abstract class MuistiActivity : AppCompatActivity() {
 
     override fun finish() {
         disableClickEvents(currentPageView?.page?.eventTriggers)
+
+        this.closeView()
+
+        if (getCurrentActivity() == this){
+            setCurrentActivity(null)
+        }
+
+        currentPageView?.lifecycleListeners?.forEach { it.onPause() }
+
         super.finish()
     }
 
@@ -105,10 +126,6 @@ abstract class MuistiActivity : AppCompatActivity() {
         super.onPause()
 
         this.closeView()
-
-        if (getCurrentActivity() == this){
-            setCurrentActivity(null)
-        }
 
         currentPageView?.lifecycleListeners?.forEach { it.onPause() }
     }
@@ -362,6 +379,9 @@ abstract class MuistiActivity : AppCompatActivity() {
      * @param event event to be triggered
      */
     private fun triggerEvent(event: ExhibitionPageEvent) {
+        if (!pageInteractable) {
+            return
+        }
         val properties = event.properties
         val provider: PageActionProvider? = PageActionProviderFactory.buildProvider(event.action, properties)
         if (provider == null) {
@@ -483,6 +503,8 @@ abstract class MuistiActivity : AppCompatActivity() {
      * @param sharedElements shared elements to morph during transition or null
      */
     fun goToPage(pageId: UUID, sharedElements: List<View>? = null) {
+        Log.d(javaClass.name, "Go to page!")
+        pageInteractable = false
         val intent = Intent(this, PageActivity::class.java).apply {
             putExtra("pageId", pageId.toString())
         }
@@ -493,15 +515,15 @@ abstract class MuistiActivity : AppCompatActivity() {
             intent.apply { putStringArrayListExtra("elements", ArrayList(targetElements))}
             val options = ActivityOptions
                 .makeSceneTransitionAnimation(this, *transitionElementPairs)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+            intent.putExtra("pageTransitionTime", max(window.exitTransition?.duration ?: 0, window.enterTransition?.duration  ?: 0))
             startActivity(intent, options.toBundle())
+
         } else {
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+            intent.putExtra("pageTransitionTime", max(window.exitTransition?.duration ?: 0, window.enterTransition?.duration  ?: 0))
             startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle())
         }
-
-        val finishTimeout = max(window.exitTransition?.duration ?: 0, window.enterTransition?.duration  ?: 0)
-        loginClickCounterHandler.postDelayed({
-            finish()
-        }, max(finishTimeout, 300))
     }
 
     /**

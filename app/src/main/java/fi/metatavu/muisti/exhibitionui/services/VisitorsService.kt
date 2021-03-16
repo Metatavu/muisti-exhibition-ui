@@ -77,7 +77,7 @@ class VisitorsService : JobIntentService() {
             }
 
             return visitorSessions.firstOrNull { visitorsession ->
-                matchingVisitors.all { visitorsession.visitorIds.contains(it.id) }
+                matchingVisitors.any { visitorsession.visitorIds.contains(it.id) }
             }
         }
 
@@ -87,9 +87,7 @@ class VisitorsService : JobIntentService() {
          * @return Visitor Api
          */
         private suspend fun getVisitorsApi(): VisitorsApi {
-            return visitorsApi ?: MuistiApiFactory.getVisitorsApi().also {
-                visitorsApi = it
-            }
+            return MuistiApiFactory.getVisitorsApi()
         }
 
         /**
@@ -98,9 +96,7 @@ class VisitorsService : JobIntentService() {
          * @return Visitor Sessions Api
          */
         private suspend fun getVisitorsSessionsApi(): VisitorSessionsApi {
-            return visitorSessionsApi ?: MuistiApiFactory.getVisitorSessionsApi().also {
-                visitorSessionsApi = it
-            }
+            return MuistiApiFactory.getVisitorSessionsApi()
         }
 
         /**
