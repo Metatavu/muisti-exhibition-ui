@@ -44,7 +44,6 @@ import kotlinx.coroutines.launch
 abstract class MuistiActivity : AppCompatActivity() {
 
     private val handler: Handler = Handler()
-    private var pageInteractable = false
     private val deviceGroupEvents = mutableMapOf<String, Array<ExhibitionPageEvent>>()
     private val keyDownListeners = mutableListOf<KeyCodeListener>()
     private val keyUpListeners = mutableListOf<KeyCodeListener>()
@@ -55,6 +54,8 @@ abstract class MuistiActivity : AppCompatActivity() {
     protected var currentPageView: PageView? = null
     val transitionElements: MutableList<View> = mutableListOf()
     var countDownTimer: CountDownTimer? = null
+    var pageInteractable = false
+    var transitionTime = 300L
 
     // TODO: Listen only device group messages
     private val mqttTriggerDeviceGroupEventListener = MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/deviceGroupId", MqttTriggerDeviceGroupEvent::class.java) {
@@ -65,20 +66,6 @@ abstract class MuistiActivity : AppCompatActivity() {
                 triggerEvents(events)
             }
         }
-    }
-
-
-
-    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
-        super.onCreate(savedInstanceState, persistentState)
-        val transitionTime = intent.getLongExtra("transitionTime", 300)
-
-        val previous = getCurrentActivity()
-
-        handler.postDelayed({
-            pageInteractable = true
-            previous?.finish()
-        }, transitionTime)
     }
 
     override fun onDestroy() {
@@ -118,8 +105,14 @@ abstract class MuistiActivity : AppCompatActivity() {
         super.onResume()
 
         currentPageView?.lifecycleListeners?.forEach { it.onResume() }
-
-        setCurrentActivity(this)
+        val activity = this
+        GlobalScope.launch {
+            val previous = getCurrentActivity()
+            delay(transitionTime)
+            previous?.finish()
+            pageInteractable = true
+            setCurrentActivity(activity)
+        }
     }
 
     override fun onPause() {
@@ -380,6 +373,7 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     private fun triggerEvent(event: ExhibitionPageEvent) {
         if (!pageInteractable) {
+            Log.d(javaClass.name, "Nah")
             return
         }
         val properties = event.properties
@@ -516,12 +510,12 @@ abstract class MuistiActivity : AppCompatActivity() {
             val options = ActivityOptions
                 .makeSceneTransitionAnimation(this, *transitionElementPairs)
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
-            intent.putExtra("pageTransitionTime", max(window.exitTransition?.duration ?: 0, window.enterTransition?.duration  ?: 0))
+            intent.putExtra("pageTransitionTime", max(window.exitTransition?.duration ?: 300, window.enterTransition?.duration  ?: 300))
             startActivity(intent, options.toBundle())
 
         } else {
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
-            intent.putExtra("pageTransitionTime", max(window.exitTransition?.duration ?: 0, window.enterTransition?.duration  ?: 0))
+            intent.putExtra("pageTransitionTime", max(window.exitTransition?.duration ?: 300, window.enterTransition?.duration  ?: 300))
             startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle())
         }
     }
@@ -551,7 +545,7 @@ abstract class MuistiActivity : AppCompatActivity() {
      *
      * @return activity or null
      */
-    private fun getCurrentActivity() : Activity? {
+    protected fun getCurrentActivity() : Activity? {
         return ExhibitionUIApplication.instance.getCurrentActivity()
     }
 
