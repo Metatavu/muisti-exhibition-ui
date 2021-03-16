@@ -7,6 +7,8 @@ import fi.metatavu.muisti.api.client.models.RfidAntenna
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
 import fi.metatavu.muisti.exhibitionui.persistence.model.DeviceSettingName
 import fi.metatavu.muisti.exhibitionui.persistence.repository.DeviceSettingRepository
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.*
 
 /**
@@ -16,6 +18,7 @@ class DeviceSettings {
 
     companion object {
 
+        private var flipScreenRotate: Boolean? = null
         private var deviceSettingRepository: DeviceSettingRepository? = null
         private val listType = Types.newParameterizedType(MutableList::class.java, RfidAntenna::class.java)
         private val jsonAdapter: JsonAdapter<List<RfidAntenna>> = moshi.adapter<List<RfidAntenna>>(listType)
@@ -44,6 +47,7 @@ class DeviceSettings {
          * @param value value of setting
          */
         suspend fun setRotationFlip(value: Boolean) {
+            flipScreenRotate = value
             setSettingValue(DeviceSettingName.DEVICE_ROTATE_FLIP, value.toString())
         }
 
@@ -52,9 +56,12 @@ class DeviceSettings {
          *
          * @return Boolean value of the setting, defaults to false
          */
-        suspend fun getRotationFlip(): Boolean {
-            val string = getSettingValue(DeviceSettingName.DEVICE_ROTATE_FLIP)
-            return string?.toBoolean() ?: false
+        fun getRotationFlip(): Boolean {
+            return flipScreenRotate ?: false.also {
+                GlobalScope.launch {
+                    flipScreenRotate = getSettingValue(DeviceSettingName.DEVICE_ROTATE_FLIP)?.toBoolean()
+                }
+            }
         }
 
         /**

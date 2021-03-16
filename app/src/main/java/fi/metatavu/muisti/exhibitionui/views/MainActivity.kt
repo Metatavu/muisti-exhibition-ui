@@ -32,7 +32,6 @@ class MainActivity : MuistiActivity() {
         super.onCreate(savedInstanceState)
         mViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
         VisitorSessionContainer.getLiveVisitorSession().observe(this, visitorSessionObserver)
-
         GlobalScope.launch {
             val exhibitionId = DeviceSettings.getExhibitionId()
             val deviceId = DeviceSettings.getExhibitionDeviceId()

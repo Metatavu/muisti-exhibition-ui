@@ -38,9 +38,13 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         )
 
         val activeIndexPages = indexPages.filter { indexPage ->
-            val activeConditionUserVariable = indexPage.activeConditionUserVariable ?: return@filter true
-            val variable = visitorSession.variables?.find { variable -> variable.name == activeConditionUserVariable }
-            variable?.value == indexPage.activeConditionEquals
+            val activeConditionUserVariable = indexPage.activeConditionUserVariable
+            if (!activeConditionUserVariable.isNullOrEmpty()) {
+                val variable = visitorSession.variables?.find { variable -> variable.name == activeConditionUserVariable }
+                variable?.value == indexPage.activeConditionEquals
+            } else {
+                true
+            }
         }
 
         if (activeIndexPages.size > 1) {

@@ -6,7 +6,6 @@ import android.content.Intent
 import android.os.Handler
 import android.util.Log
 import androidx.core.app.JobIntentService
-import androidx.lifecycle.Observer
 import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
@@ -15,13 +14,12 @@ import fi.metatavu.muisti.exhibitionui.services.*
 import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.visitors.VisibleVisitorsContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
-import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
+import fi.metatavu.muisti.exhibitionui.visitors.ExhibitionVisitorsContainer
 import fi.metatavu.muisti.exhibitionui.visitors.VisibleTagsContainer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.lang.Exception
-import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -44,10 +42,11 @@ class ExhibitionUIApplication : Application() {
     init {
         instance = this
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateKeycloakTokenServiceTask() }, 1, 5, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateLayoutsServiceTask() }, 1, 15, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 1, 1, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 1, 4, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueConstructPagesServiceTask() }, 1, 15, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateLayoutsServiceTask() }, 5, 15, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 5, 1, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 5, 15, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueConstructPagesServiceTask() }, 5, 15, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorsServiceTask() }, 5, 5, TimeUnit.SECONDS)
 
         VisibleTagsContainer.getLiveVisibleTags().observeForever {
             onVisibleTagsChange(it)
@@ -226,6 +225,14 @@ class ExhibitionUIApplication : Application() {
     }
 
     /**
+     * Enqueues update visitors service task
+     */
+    private fun enqueueUpdateVisitorsServiceTask() {
+        val serviceIntent = Intent().apply { }
+        JobIntentService.enqueueWork(this, VisitorsService::class.java, 6, serviceIntent)
+    }
+
+    /**
      * Resets visitor session end timer
      */
     private fun resetVisitorSessionEndTimer() {
@@ -238,40 +245,6 @@ class ExhibitionUIApplication : Application() {
         visitorSessionHandler.postDelayed({
             logoutWarning()
         },visitorSessionEndTimeout / 2)
-    }
-
-    /**
-     * Finds a visitor session by tag
-     *
-     * @param exhibitionId exhibition id
-     * @param tag tag
-     * @return visitor session or null if not found
-     */
-    private suspend fun findVisitorSessionByTag(exhibitionId: UUID, tag: String): VisitorSession? {
-        val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
-
-        return visitorSessionsApi.listVisitorSessions(
-            exhibitionId = exhibitionId,
-            tagId = tag
-        ).firstOrNull()
-    }
-
-    /**
-     * Finds a visitor session by tags
-     *
-     * @param exhibitionId exhibition id
-     * @param tags tags
-     * @return visitor session or null if not found
-     */
-    private suspend fun findVisitorSessionByTags(exhibitionId: UUID, tags: List<String>): VisitorSession? {
-        for (tag in tags) {
-            val result = findVisitorSessionByTag(exhibitionId, tag)
-            if (result != null) {
-                return result
-            }
-        }
-
-        return null
     }
 
     /**
@@ -297,43 +270,6 @@ class ExhibitionUIApplication : Application() {
     }
 
     /**
-     * Finds visitor by id
-     *
-     * @param exhibitionId exhibition id
-     * @param visitorId visitor id
-     * @return visitor or null if not found
-     */
-    private suspend fun findVisitorById(exhibitionId: UUID, visitorId: UUID): Visitor? {
-        try {
-            val visitorsApi = MuistiApiFactory.getVisitorsApi()
-            return visitorsApi.findVisitor(exhibitionId = exhibitionId, visitorId =  visitorId)
-        } catch (e: Exception) {
-            Log.e(javaClass.name, "Failed to find visitor by id", e)
-        }
-
-        return null
-    }
-
-    /**
-     * Finds visitor by tagId
-     *
-     * @param exhibitionId exhibition id
-     * @param tagId tag id
-     * @return visitor or null if not found
-     */
-    private suspend fun findVisitorByTag(exhibitionId: UUID, tagId: String): Visitor? {
-        try {
-            val visitorsApi = MuistiApiFactory.getVisitorsApi()
-            val visitors = visitorsApi.listVisitors(exhibitionId = exhibitionId, tagId = tagId, email = null)
-            return visitors.firstOrNull()
-        } catch (e: Exception) {
-            Log.e(javaClass.name, "Failed to find visitor by tag", e)
-        }
-
-        return null
-    }
-
-    /**
      * Returns topics for given antenna
      *
      * @param rfidAntenna rfidAntenna
@@ -347,30 +283,28 @@ class ExhibitionUIApplication : Application() {
     /**
      * Returns all tags associated with given visitor session
      *
-     * @param exhibitionId exhibition id
      * @param visitorSession visitor session
      * @return tags associated with given visitor session
      */
-    private suspend fun getVisitorSessionTags(exhibitionId: UUID, visitorSession: VisitorSession): List<String> {
+    private fun getVisitorSessionTags(visitorSession: VisitorSession): List<String> {
         return visitorSession.visitorIds
-            .mapNotNull { findVisitorById(exhibitionId, it) }
+            .mapNotNull { ExhibitionVisitorsContainer.findVisitorById(it) }
             .map(Visitor::tagId)
     }
 
     /**
      * Refresh visitor session state with given tags
      *
-     * @param exhibitionId exhibition id
      * @param tags tags
      */
-    private suspend fun refreshVisitorSessionState(exhibitionId: UUID, tags: List<String>) {
+    private fun refreshVisitorSessionState(tags: List<String>) {
         val currentVisitorSession = VisitorSessionContainer.getVisitorSession()
         if (currentVisitorSession == null) {
             if (tags.isNotEmpty()) {
-                val visitorSession = findVisitorSessionByTags(exhibitionId = exhibitionId, tags = tags)
+                val visitorSession = ExhibitionVisitorsContainer.findVisitorSessionByTags(tags = tags)
                 if (visitorSession != null) {
                     Log.d(javaClass.name, "Visitor session ${visitorSession.id} found for tags ${tags.joinToString(",")}")
-                    val visitorSessionTags = getVisitorSessionTags(exhibitionId = exhibitionId, visitorSession = visitorSession)
+                    val visitorSessionTags = getVisitorSessionTags(visitorSession = visitorSession)
                     VisitorSessionContainer.startVisitorSession(visitorSession, visitorSessionTags)
                 } else {
                     Log.d(javaClass.name, "Visitor session not active for any of the tags ${tags.joinToString(",")}")
@@ -393,10 +327,10 @@ class ExhibitionUIApplication : Application() {
         GlobalScope.launch {
             val exhibitionId = DeviceSettings.getExhibitionId()
             if (exhibitionId != null) {
-                VisibleVisitorsContainer.setVisibleVisitors(tags.mapNotNull { findVisitorByTag(exhibitionId = exhibitionId, tagId = it) })
+                VisibleVisitorsContainer.setVisibleVisitors(tags.mapNotNull { ExhibitionVisitorsContainer.findVisitorByTag(tag = it) })
 
                 if (!allowVisitorSessionCreation) {
-                    refreshVisitorSessionState(exhibitionId = exhibitionId, tags = tags)
+                    refreshVisitorSessionState(tags = tags)
                 }
             }
         }
