@@ -541,7 +541,7 @@ abstract class MuistiActivity : AppCompatActivity() {
      *
      * @return activity or null
      */
-    protected fun getCurrentActivity() : Activity? {
+    private fun getCurrentActivity() : Activity? {
         return ExhibitionUIApplication.instance.getCurrentActivity()
     }
 
