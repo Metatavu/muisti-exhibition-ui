@@ -15,12 +15,11 @@ import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
 import fi.metatavu.muisti.exhibitionui.visitors.VisibleVisitorsContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
+import fi.metatavu.muisti.exhibitionui.visitors.ExhibitionVisitorsContainer
 import fi.metatavu.muisti.exhibitionui.visitors.VisibleTagsContainer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.lang.Exception
-import java.time.Instant
-import java.time.format.DateTimeFormatter
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -289,7 +288,7 @@ class ExhibitionUIApplication : Application() {
      */
     private fun getVisitorSessionTags(visitorSession: VisitorSession): List<String> {
         return visitorSession.visitorIds
-            .mapNotNull { VisitorsService.findVisitorById(it) }
+            .mapNotNull { ExhibitionVisitorsContainer.findVisitorById(it) }
             .map(Visitor::tagId)
     }
 
@@ -302,7 +301,7 @@ class ExhibitionUIApplication : Application() {
         val currentVisitorSession = VisitorSessionContainer.getVisitorSession()
         if (currentVisitorSession == null) {
             if (tags.isNotEmpty()) {
-                val visitorSession = VisitorsService.findVisitorSessionByTags(tags = tags)
+                val visitorSession = ExhibitionVisitorsContainer.findVisitorSessionByTags(tags = tags)
                 if (visitorSession != null) {
                     Log.d(javaClass.name, "Visitor session ${visitorSession.id} found for tags ${tags.joinToString(",")}")
                     val visitorSessionTags = getVisitorSessionTags(visitorSession = visitorSession)
@@ -328,7 +327,7 @@ class ExhibitionUIApplication : Application() {
         GlobalScope.launch {
             val exhibitionId = DeviceSettings.getExhibitionId()
             if (exhibitionId != null) {
-                VisibleVisitorsContainer.setVisibleVisitors(tags.mapNotNull { VisitorsService.findVisitorByTag(tag = it) })
+                VisibleVisitorsContainer.setVisibleVisitors(tags.mapNotNull { ExhibitionVisitorsContainer.findVisitorByTag(tag = it) })
 
                 if (!allowVisitorSessionCreation) {
                     refreshVisitorSessionState(tags = tags)
