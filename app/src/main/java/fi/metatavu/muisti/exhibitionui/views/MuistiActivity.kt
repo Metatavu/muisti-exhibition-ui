@@ -373,7 +373,6 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     private fun triggerEvent(event: ExhibitionPageEvent) {
         if (!pageInteractable) {
-            Log.d(javaClass.name, "Nah")
             return
         }
         val properties = event.properties
