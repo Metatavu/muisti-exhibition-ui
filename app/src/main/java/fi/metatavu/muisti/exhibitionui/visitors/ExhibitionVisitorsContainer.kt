@@ -5,7 +5,7 @@ import fi.metatavu.muisti.api.client.models.VisitorSession
 import java.util.*
 
 /**
- * Container for currently visible visitors
+ * Container for exhibition visitors
  */
 class ExhibitionVisitorsContainer {
 
