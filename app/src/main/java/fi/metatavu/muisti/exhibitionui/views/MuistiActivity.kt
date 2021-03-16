@@ -507,12 +507,10 @@ abstract class MuistiActivity : AppCompatActivity() {
             intent.apply { putStringArrayListExtra("elements", ArrayList(targetElements))}
             val options = ActivityOptions
                 .makeSceneTransitionAnimation(this, *transitionElementPairs)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
             intent.putExtra("pageTransitionTime", max(window.exitTransition?.duration ?: 300, window.enterTransition?.duration  ?: 300))
             startActivity(intent, options.toBundle())
 
         } else {
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
             intent.putExtra("pageTransitionTime", max(window.exitTransition?.duration ?: 300, window.enterTransition?.duration  ?: 300))
             startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle())
         }
