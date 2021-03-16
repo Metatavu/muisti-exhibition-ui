@@ -496,7 +496,6 @@ abstract class MuistiActivity : AppCompatActivity() {
      * @param sharedElements shared elements to morph during transition or null
      */
     fun goToPage(pageId: UUID, sharedElements: List<View>? = null) {
-        Log.d(javaClass.name, "Go to page!")
         pageInteractable = false
         val intent = Intent(this, PageActivity::class.java).apply {
             putExtra("pageId", pageId.toString())
