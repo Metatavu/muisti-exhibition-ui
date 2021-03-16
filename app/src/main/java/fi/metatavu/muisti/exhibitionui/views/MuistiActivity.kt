@@ -86,7 +86,6 @@ abstract class MuistiActivity : AppCompatActivity() {
 
     override fun finish() {
         disableClickEvents(currentPageView?.page?.eventTriggers)
-
         this.closeView()
 
         if (getCurrentActivity() == this){
