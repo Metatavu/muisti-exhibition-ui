@@ -194,6 +194,18 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     }
 
     /**
+     * Returns long property value
+     *
+     * @param buildContext build context
+     * @param propertyName property's name
+     * @return long property value
+     */
+    protected fun getLongProperty(buildContext: ComponentBuildContext, propertyName: String): Long? {
+        val data = getPropertyResourceData(buildContext = buildContext, propertyName = propertyName) ?: return null
+        return data.toLong()
+    }
+
+    /**
      * Returns resource data for given property
      *
      * @param buildContext build context

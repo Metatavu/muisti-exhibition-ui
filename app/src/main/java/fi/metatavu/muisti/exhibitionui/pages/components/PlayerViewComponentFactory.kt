@@ -75,6 +75,7 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
     override fun buildComponent(buildContext: ComponentBuildContext): PlayerComponentContainer {
         val showPlaybackControls = getBooleanProperty(buildContext = buildContext, propertyName = "showPlaybackControls") ?: false
         val autoPlay = getBooleanProperty(buildContext = buildContext, propertyName = "autoPlay") ?: true
+        val autoPlayDelay = getLongProperty(buildContext = buildContext, propertyName = "autoPlayDelay") ?: 0
 
         val context = buildContext.context
         val parent = buildContext.parents.lastOrNull()
@@ -99,7 +100,8 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
             buildContext.addLifecycleListener(PlayerPageViewLifecycleListener(
                 videoSource = videoSource,
                 view = view,
-                autoPlay = autoPlay
+                autoPlay = autoPlay,
+                autoPlayDelay = autoPlayDelay
             ))
         }
 
@@ -110,6 +112,7 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
         try {
             when (property.name) {
                 "autoPlay" -> {}
+                "autoPlayDelay" -> {}
                 "showPlaybackControls" -> {}
                 "src" -> { }
                 else -> super.setProperty(buildContext, parent, view, property)
@@ -133,14 +136,23 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
 private class PlayerPageViewLifecycleListener(
     val videoSource: MediaSource,
     val view: PlayerComponentContainer,
-    val autoPlay: Boolean
+    val autoPlay: Boolean,
+    val autoPlayDelay: Long
 ): PageViewLifecycleListener {
 
     override fun onPageActivate(activity: MuistiActivity) {
         val context: Context = activity
 
         val player = SimpleExoPlayer.Builder(context).build()
-        player.playWhenReady = autoPlay
+
+        if (autoPlay && autoPlayDelay > 0) {
+            Handler(Looper.getMainLooper()).postDelayed({
+                player.playWhenReady = true
+            }, autoPlayDelay)
+        } else {
+            player.playWhenReady = autoPlay
+        }
+
         player.prepare(videoSource)
         player.repeatMode = Player.REPEAT_MODE_ALL
 

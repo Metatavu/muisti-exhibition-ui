@@ -39,7 +39,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         val activeIndexPages = indexPages.filter { indexPage ->
             val activeConditionUserVariable = indexPage.activeConditionUserVariable
-            Log.d(javaClass.name, "Variable: $activeConditionUserVariable")
             if (!activeConditionUserVariable.isNullOrEmpty()) {
                 val variable = visitorSession.variables?.find { variable -> variable.name == activeConditionUserVariable }
                 variable?.value == indexPage.activeConditionEquals
