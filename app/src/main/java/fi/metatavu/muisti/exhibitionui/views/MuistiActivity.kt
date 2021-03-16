@@ -335,7 +335,9 @@ abstract class MuistiActivity : AppCompatActivity() {
             Log.d(this.javaClass.name, "Failed to locate view by id $clickViewId")
         } else {
             clickView.setOnClickListener {
-                triggerEvents(events)
+                if (pageInteractable) {
+                    triggerEvents(events)
+                }
             }
         }
     }
@@ -348,7 +350,11 @@ abstract class MuistiActivity : AppCompatActivity() {
      * @param keyDown whether to bind to key down or key up
      */
     private fun bindKeyCodeEventListener(keyCodeString: String, events: Array<ExhibitionPageEvent>, keyDown: Boolean) {
-        val listener = { triggerEvents(events) }
+        val listener = {
+            if (pageInteractable) {
+                triggerEvents(events)
+            }
+        }
         val keyCode = KeyEvent.keyCodeFromString("KEYCODE_${keyCodeString.toUpperCase(Locale.ROOT)}")
         if(keyDown){
             keyDownListeners.add(KeyCodeListener(keyCode, listener))
@@ -372,9 +378,6 @@ abstract class MuistiActivity : AppCompatActivity() {
      * @param event event to be triggered
      */
     private fun triggerEvent(event: ExhibitionPageEvent) {
-        if (!pageInteractable) {
-            return
-        }
         val properties = event.properties
         val provider: PageActionProvider? = PageActionProviderFactory.buildProvider(event.action, properties)
         if (provider == null) {
