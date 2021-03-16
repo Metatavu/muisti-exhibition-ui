@@ -2,11 +2,8 @@ package fi.metatavu.muisti.exhibitionui.views
 
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.transition.Visibility
-import android.view.Window
 import android.widget.Button
 import android.widget.Toast
-import androidx.constraintlayout.widget.ConstraintLayout
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageView
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
@@ -40,6 +37,7 @@ class PageActivity : MuistiActivity() {
         listenIndexButton(index_page_button)
         setImmersiveMode()
 
+        transitionTime = intent.getLongExtra("pageTransitionTime", 300) + 200L
         this.openView(pageView)
     }
 
