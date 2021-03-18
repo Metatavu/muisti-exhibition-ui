@@ -11,8 +11,8 @@
 
     <Button
         android:id="@+id/settings_button"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         android:background="@android:color/transparent"
@@ -52,8 +52,8 @@
     </com.github.rongi.rotate_layout.layout.RotateLayout>
     <Button
         android:id="@+id/login_button"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:layout_gravity="bottom|end"
         android:background="@android:color/transparent"
         android:alpha="0.0"/>

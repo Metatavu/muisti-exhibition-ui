@@ -51,6 +51,9 @@ class MainActivity : MuistiActivity() {
                     } else {
                         setContentView(R.layout.activity_main)
                     }
+                    if (ExhibitionUIApplication.instance.forcedPortraitMode == true) {
+                        setForcedPortraitMode()
+                    }
 
                     setImmersiveMode()
                     listenLoginButton(login_button)
