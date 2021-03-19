@@ -666,7 +666,8 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         val offlineFile = File(downloadsDir, "$urlHash$extension")
         if (!offlineFile.exists()) {
             Log.d(this.javaClass.name, "Downloading ${url.toExternalForm()} into local file ${offlineFile.absolutePath}")
-            offlineFile.parentFile!!.mkdirs()
+            offlineFile.parentFile?.mkdirs()
+
             offlineFile.createNewFile()
 
             try {
@@ -678,6 +679,8 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
                         inputStream.copyTo(outputStream)
                     }
                 }
+
+                Log.d(this.javaClass.name, "Downloaded ${url.toExternalForm()} into local file ${offlineFile.absolutePath}")
             } catch (e: Exception) {
                 offlineFile.delete()
                 Log.d(this.javaClass.name, "Failed to download $url", e)
