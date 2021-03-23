@@ -33,6 +33,7 @@ class ExhibitionUIApplication : Application() {
     private val unseenTagsHandler = Handler()
     private var visitorSessionEndTimeout: Long = 5000
     private var allowVisitorSessionCreation = false
+    private var antennaListeners = emptyList<MqttTopicListener<*>>()
     var forcedPortraitMode: Boolean? = null
         private set
 
@@ -62,6 +63,11 @@ class ExhibitionUIApplication : Application() {
         readApiValues()
         MuistiMqttService()
         startProximityListening()
+        pollUnseenTags()
+
+        UpdateRfidAntenna.addAntennaUpdateListener {
+            restartProximityListening()
+        }
     }
 
     /**
@@ -101,36 +107,23 @@ class ExhibitionUIApplication : Application() {
      * Starts mqtt proximity listening
      */
     private fun startProximityListening() = GlobalScope.launch {
-        val exhibitionId = DeviceSettings.getExhibitionId()
-        val deviceId = DeviceSettings.getExhibitionDeviceId()
+        antennaListeners = DeviceSettings.getRfidAntennas().flatMap { antenna ->
+            getAntennaTopics(antenna).map { topic ->
+                Log.d(javaClass.name, "Proximity start listener started for topic $topic with start threshold ${antenna.visitorSessionStartThreshold}")
 
-        if (exhibitionId == null) {
-            Log.e(javaClass.name, "Exhibition not configured. Cannot start proximity updates")
-        } else if (deviceId == null) {
-            Log.e(javaClass.name, "Device not configured. Cannot start proximity updates")
-        } else {
-            try {
-                Log.d(javaClass.name, "Proximity listeners starting...")
-                val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
-                val antennas = MuistiApiFactory.getRfidAntennaApi().listRfidAntennas(exhibitionId = exhibitionId, deviceGroupId = device.groupId, roomId = null)
-
-                antennas.forEach {
-                    antenna -> run {
-                        getAntennaTopics(antenna).forEach { topic ->
-                            Log.d(javaClass.name, "Proximity start listener started for topic $topic with start threshold ${antenna.visitorSessionStartThreshold}")
-
-                            MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) {
-                                proximityUpdate -> handleProximityUpdate(antenna = antenna, proximityUpdate = proximityUpdate)
-                            })
-                        }
-                    }
-                }
-
-                pollUnseenTags()
-            } catch (e: Exception){
-                Log.e(javaClass.name, "Could not start proximity listening: ${e.message}")
+                MqttClientController.addListener(MqttTopicListener(topic, MqttProximityUpdate::class.java) { proximityUpdate ->
+                    handleProximityUpdate(antenna = antenna, proximityUpdate = proximityUpdate)
+                })
             }
         }
+    }
+
+    /**
+     * Restarts mqtt proximity listening
+    */
+    private fun restartProximityListening() = GlobalScope.launch {
+        MqttClientController.removeListeners(antennaListeners)
+        startProximityListening()
     }
 
     /**

@@ -7,5 +7,6 @@ class MuistiMqttService {
     init {
         MqttClientController.addListeners(UpdatePages.getMqttTopicListeners())
         MqttClientController.addListeners(UpdateLayouts.getMqttTopicListeners())
+        MqttClientController.addListeners(UpdateRfidAntenna.getMqttTopicListeners())
     }
 }

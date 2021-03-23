@@ -66,8 +66,9 @@ class MqttClientController {
          *
          * @param newListener new listener
          */
-        fun addListener(newListener: MqttTopicListener<*>) {
+        fun addListener(newListener: MqttTopicListener<*>): MqttTopicListener<*> {
             listeners.add(newListener)
+            return newListener
         }
 
         /**
@@ -75,8 +76,17 @@ class MqttClientController {
          *
          * @param removeListener listener to be removed
          */
-        fun  removeListener(removeListener: MqttTopicListener<*>) {
+        fun removeListener(removeListener: MqttTopicListener<*>) {
             listeners.remove(removeListener)
+        }
+
+        /**
+         * Removes list of MQTT topic listeners
+         *
+         * @param removeListeners listeners to be removed
+         */
+        fun removeListeners(removeListeners: List<MqttTopicListener<*>>) {
+            removeListeners.forEach(this::removeListener)
         }
 
     }
