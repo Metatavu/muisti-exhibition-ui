@@ -50,7 +50,7 @@ object UpdateRfidAntenna : MqttActionInterface {
             handleAntennaUpdate(it.exhibitionId, it.id)
         }
         val antennaDeleteListener = MqttTopicListener(super.mqttTopic("/rfidantennas/delete"), MqttRfidAntennaDelete::class.java) {
-            handleAntennaUpdate(it.exhibitionId, it.id)
+            handleAntennaDelete(it.exhibitionId, it.id)
         }
 
         return listOf(antennaCreateListener, antennaUpdateListener, antennaDeleteListener)
@@ -77,7 +77,7 @@ object UpdateRfidAntenna : MqttActionInterface {
     }
 
     /**
-     * Handle Antenna Update
+     * Handle antenna update
      *
      * Updates device antennas if the incoming update is related to the selected exhibition or device group
      * @param updateExhibitionId exhibition Id where update happened
@@ -98,6 +98,29 @@ object UpdateRfidAntenna : MqttActionInterface {
                 }
             } catch (e: Exception) {
                 Log.e(javaClass.name, "Updating antenna failed", e)
+            }
+        }
+    }
+
+    /**
+     * Handle antenna delete. Updates antenna state if the antenna is related to the selected device group
+     *
+     * @param updateExhibitionId exhibition Id where update happened
+     * @param antennaId antenna id
+     */
+    private fun handleAntennaDelete(updateExhibitionId: UUID, antennaId: UUID) {
+        GlobalScope.launch {
+            try {
+                val exhibitionId = DeviceSettings.getExhibitionId() ?: return@launch
+                if (exhibitionId != updateExhibitionId) {
+                    return@launch
+                }
+
+                if (DeviceSettings.hasRfidAntenna(antennaId)) {
+                    updateDeviceAntennas()
+                }
+            } catch (e: Exception) {
+                Log.e(javaClass.name, "Deleting antenna failed", e)
             }
         }
     }

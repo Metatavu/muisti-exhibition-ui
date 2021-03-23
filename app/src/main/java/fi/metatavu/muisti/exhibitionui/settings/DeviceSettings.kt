@@ -100,8 +100,19 @@ class DeviceSettings {
          * @return boolean
          */
         suspend fun hasRfidAntenna(rfidAntenna: RfidAntenna): Boolean {
+            val rfidAntennaId = rfidAntenna.id ?: return false
+            return hasRfidAntenna(rfidAntennaId = rfidAntennaId)
+        }
+
+        /**
+         * Weather or not the antenna is found in the current antenna list
+         *
+         * @param rfidAntennaId antenna id to look for
+         * @return boolean
+         */
+        suspend fun hasRfidAntenna(rfidAntennaId: UUID): Boolean {
             val rfidAntennas = jsonAdapter.fromJson(getSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA) ?: return false)
-            return rfidAntennas?.any { it.id == rfidAntenna.id} ?: false
+            return rfidAntennas?.any { it.id == rfidAntennaId} ?: false
         }
 
         /**
