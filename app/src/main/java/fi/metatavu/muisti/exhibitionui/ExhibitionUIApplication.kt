@@ -172,7 +172,8 @@ class ExhibitionUIApplication : Application() {
      * @param proximityUpdate proximity update message
      */
     private fun handleProximityUpdate(antenna: RfidAntenna, proximityUpdate: MqttProximityUpdate) {
-        if (proximityUpdate.strength > antenna.visitorSessionStartThreshold) {
+        if (proximityUpdate.strength > antenna.visitorSessionStartThreshold || VisitorSessionContainer.getVisitorSession() != null &&
+                proximityUpdate.strength > antenna.visitorSessionEndThreshold) {
             VisibleTagsContainer.tagSeen(tag = proximityUpdate.tag, visitorSessionEndTimeout = visitorSessionEndTimeout)
         }
     }
@@ -237,7 +238,7 @@ class ExhibitionUIApplication : Application() {
 
         visitorSessionHandler.postDelayed({
             logoutWarning()
-        },visitorSessionEndTimeout / 2)
+        }, visitorSessionEndTimeout / 2)
     }
 
     /**
