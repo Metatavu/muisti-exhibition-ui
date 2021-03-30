@@ -69,9 +69,9 @@ class OfflineFileController {
             val filePart = File(downloadsDir, "$fileName.part")
             if (filePart.exists()) {
                 filePart.delete()
-                filePart.parentFile?.mkdirs()
             }
 
+            filePart.parentFile?.mkdirs()
             filePart.createNewFile()
 
             val filePartStream = FileOutputStream(filePart)
@@ -162,6 +162,7 @@ class OfflineFileController {
                 metaFile.delete()
             }
 
+            metaFile.parentFile?.mkdirs()
             metaFile.createNewFile()
 
             FileOutputStream(metaFile).use {
