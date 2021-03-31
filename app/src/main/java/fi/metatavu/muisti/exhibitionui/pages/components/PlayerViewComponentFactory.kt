@@ -10,6 +10,7 @@ import android.util.Log
 import android.util.Xml
 import android.view.View
 import android.widget.FrameLayout
+import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.MediaSource
@@ -118,7 +119,8 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
         val offlineFile = getResourceOfflineFile(buildContext, "src")
         if (offlineFile != null) {
             val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(context, Util.getUserAgent(context, "ExhibitionUIApplication"))
-            val videoSource: MediaSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.fromFile(offlineFile))
+            val mediaItem = MediaItem.fromUri(Uri.fromFile(offlineFile))
+            val videoSource: MediaSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
 
             buildContext.addLifecycleListener(PlayerPageViewLifecycleListener(
                 videoSource = videoSource,
@@ -176,7 +178,8 @@ private class PlayerPageViewLifecycleListener(
             player.playWhenReady = autoPlay
         }
 
-        player.prepare(videoSource)
+        player.setMediaSource(videoSource)
+        player.prepare()
         player.repeatMode = Player.REPEAT_MODE_ALL
 
         val playerView = view.playerView
