@@ -35,7 +35,11 @@ import org.xmlpull.v1.XmlPullParser
 @SuppressLint("ViewConstructor")
 class PlayerComponentContainer(
     buildContext: ComponentBuildContext,
-    showPlaybackControls: Boolean
+    showPlaybackControls: Boolean,
+    showRewindButton: Boolean,
+    showFastForwardButton: Boolean,
+    showPreviousButton: Boolean,
+    showNextButton: Boolean
 ): FrameLayout(buildContext.context) {
 
     val playerView: PlayerView
@@ -53,10 +57,21 @@ class PlayerComponentContainer(
         playerView = PlayerView(context, Xml.asAttributeSet(parser))
         playerView.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
 
+        if (showPlaybackControls) {
+            playerView.setShowRewindButton(showRewindButton)
+            playerView.setShowFastForwardButton(showFastForwardButton)
+            playerView.setShowPreviousButton(showPreviousButton)
+            playerView.setShowNextButton(showNextButton)
+        }
+
         addView(playerView)
 
         if (showPlaybackControls) {
             playerControlView = PlayerControlView(context, Xml.asAttributeSet(parser))
+            playerControlView.setShowRewindButton(showRewindButton)
+            playerControlView.setShowFastForwardButton(showFastForwardButton)
+            playerControlView.setShowPreviousButton(showPreviousButton)
+            playerControlView.setShowNextButton(showNextButton)
             addView(playerControlView)
         } else {
             playerControlView = null
@@ -76,13 +91,21 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
         val showPlaybackControls = getBooleanProperty(buildContext = buildContext, propertyName = "showPlaybackControls") ?: false
         val autoPlay = getBooleanProperty(buildContext = buildContext, propertyName = "autoPlay") ?: true
         val autoPlayDelay = getLongProperty(buildContext = buildContext, propertyName = "autoPlayDelay") ?: 0
+        val showRewindButton = getBooleanProperty(buildContext = buildContext, propertyName = "showRewindButton") ?: false
+        val showFastForwardButton = getBooleanProperty(buildContext = buildContext, propertyName = "showFastForwardButton") ?: false
+        val showPreviousButton = getBooleanProperty(buildContext = buildContext, propertyName = "showPreviousButton") ?: false
+        val showNextButton = getBooleanProperty(buildContext = buildContext, propertyName = "showNextButton") ?: false
 
         val context = buildContext.context
         val parent = buildContext.parents.lastOrNull()
 
         val view = PlayerComponentContainer(
             buildContext = buildContext,
-            showPlaybackControls = showPlaybackControls
+            showPlaybackControls = showPlaybackControls,
+            showRewindButton = showRewindButton,
+            showFastForwardButton = showFastForwardButton,
+            showPreviousButton = showPreviousButton,
+            showNextButton = showNextButton
         )
 
         setupView(buildContext, view)
