@@ -139,6 +139,10 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
                 "autoPlay" -> {}
                 "autoPlayDelay" -> {}
                 "showPlaybackControls" -> {}
+                "showRewindButton" -> { }
+                "showFastForwardButton" -> { }
+                "showPreviousButton" -> { }
+                "showNextButton" -> { }
                 "src" -> { }
                 else -> super.setProperty(buildContext, parent, view, property)
             }
