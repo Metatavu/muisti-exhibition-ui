@@ -59,7 +59,6 @@ class ExhibitionUIApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        readApiValues()
         MuistiMqttService()
         startProximityListening()
         pollUnseenTags()
@@ -181,10 +180,8 @@ class ExhibitionUIApplication : Application() {
      * Enqueues update keycloak token task
      */
     private fun enqueueUpdateKeycloakTokenServiceTask() {
-        if (VisitorSessionContainer.getVisitorSession() == null) {
-            val serviceIntent = Intent().apply { }
-            JobIntentService.enqueueWork(this, UpdateKeycloakTokenService::class.java, 1, serviceIntent)
-        }
+        val serviceIntent = Intent().apply { }
+        JobIntentService.enqueueWork(this, UpdateKeycloakTokenService::class.java, 1, serviceIntent)
     }
 
     /**
