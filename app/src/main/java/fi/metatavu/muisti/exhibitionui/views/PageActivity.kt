@@ -2,8 +2,10 @@ package fi.metatavu.muisti.exhibitionui.views
 
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.view.View
+import android.view.animation.AccelerateInterpolator
 import android.widget.Button
-import android.widget.Toast
+import android.widget.TextView
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageView
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
@@ -12,13 +14,17 @@ import kotlinx.android.synthetic.main.activity_page.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.*
+import kotlin.math.roundToInt
+
 
 /**
  * Activity for displaying pages from API
  */
 class PageActivity : MuistiActivity() {
 
-    private var logoutWarningToast: Toast? = null
+    private val showWarningAtSecondsLeft = 5000
+
+    private var logoutWarning : TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val pageId: String? = intent.getStringExtra("pageId")
@@ -32,6 +38,7 @@ class PageActivity : MuistiActivity() {
         applyPageTransitions(pageView)
 
         setContentView(R.layout.activity_page)
+        logoutWarning = findViewById(R.id.logout_warning)
 
         listenSettingsButton(settings_button)
         listenIndexButton(index_page_button)
@@ -39,6 +46,11 @@ class PageActivity : MuistiActivity() {
 
         transitionTime = intent.getLongExtra("pageTransitionTime", 300) + 200L
         this.openView(pageView)
+    }
+
+    override fun openView(pageView: PageView) {
+        super.openView(pageView)
+        triggerVisitorSessionChange(pageView)
     }
 
     /**
@@ -56,19 +68,34 @@ class PageActivity : MuistiActivity() {
      * @param timeUntilLogout time left until logout
      */
     fun logoutWarning(timeUntilLogout: Long) {
-        val logoutWarningText = "Olet kirjautumassa ulos "
-        val context = this
         countDownTimer = object : CountDownTimer(timeUntilLogout, 1000) {
             override fun onTick(millisUntilFinished: Long) {
-                logoutWarningToast?.cancel()
-                logoutWarningToast = Toast.makeText(context, logoutWarningText + millisUntilFinished / 1000, Toast.LENGTH_SHORT)
-                logoutWarningToast?.show()
+                if (logoutWarning == null) {
+                    logoutWarning = findViewById(R.id.logout_warning) ?: return
+                }
+
+                if (millisUntilFinished < showWarningAtSecondsLeft + 100) {
+                    if (logoutWarning?.visibility == View.INVISIBLE) {
+                        showViewWithFade(logoutWarning!!)
+                    }
+                    val secondsLeft = (millisUntilFinished / 1000f).roundToInt()
+                    logoutWarning?.text = getString(R.string.logout_warning, secondsLeft.toString())
+                }
             }
 
             override fun onFinish() {
-                logoutWarningToast?.cancel()
+                logoutWarning?.visibility = View.INVISIBLE
             }
         }.start()
+    }
+
+    /**
+     * Sets the specified view visible with a fade animation
+     */
+    private fun showViewWithFade(view: View) {
+        view.alpha = 0f
+        view.visibility = View.VISIBLE
+        view.animate().alpha(1f).setDuration(500).setInterpolator(AccelerateInterpolator())?.start()
     }
 
     /**
@@ -76,12 +103,8 @@ class PageActivity : MuistiActivity() {
      */
     fun cancelLogoutWarning() {
         countDownTimer?.cancel()
-        logoutWarningToast?.cancel()
-    }
-
-    override fun openView(pageView: PageView) {
-        super.openView(pageView)
-        triggerVisitorSessionChange(pageView)
+        val logoutWarning = findViewById<TextView>(R.id.logout_warning)
+        logoutWarning.visibility = View.INVISIBLE
     }
 
     /**

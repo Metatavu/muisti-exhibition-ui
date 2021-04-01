@@ -80,8 +80,8 @@ class ExhibitionVisitorsContainer {
                 tags.contains(it.tagId)
             }
 
-            return visitorSessions.firstOrNull { visitorsession ->
-                matchingVisitors.all { visitorsession.visitorIds.contains(it.id) }
+            return visitorSessions.firstOrNull { visitorSession ->
+                matchingVisitors.any { visitorSession.visitorIds.contains(it.id) }
             }
         }
     }

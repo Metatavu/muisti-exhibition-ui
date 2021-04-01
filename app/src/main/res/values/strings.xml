@@ -26,5 +26,6 @@
 
     <string name="title_activity_preview">Page preview</string>
     <string name="preview_page_button">Preview page</string>
+    <string name="logout_warning">Olet Kirjautumassa ulos %1$s</string>
 
 </resources>

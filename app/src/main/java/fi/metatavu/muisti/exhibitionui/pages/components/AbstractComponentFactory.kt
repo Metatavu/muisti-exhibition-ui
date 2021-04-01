@@ -22,16 +22,14 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
+import fi.metatavu.muisti.exhibitionui.files.OfflineFileController
 import fi.metatavu.muisti.exhibitionui.pages.PageViewVisitorSessionListener
 import fi.metatavu.muisti.exhibitionui.script.ScriptController
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 import uk.co.deanwild.flowtextview.FlowTextView
 import java.io.File
-import java.io.FileOutputStream
 import java.net.MalformedURLException
 import java.net.URL
-import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
 
 
 /**
@@ -657,37 +655,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     protected fun getResourceOfflineFile(url: URL?): File? {
         url ?: return null
 
-        val downloadsDir = ExhibitionUIApplication.instance.applicationContext.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
-
-        val urlExternal = url.toExternalForm()
-        val urlHash: String = md5(urlExternal)
-        val extension: String = urlExternal.substring(urlExternal.lastIndexOf("."))
-
-        val offlineFile = File(downloadsDir, "$urlHash$extension")
-        if (!offlineFile.exists()) {
-            Log.d(this.javaClass.name, "Downloading ${url.toExternalForm()} into local file ${offlineFile.absolutePath}")
-            offlineFile.parentFile?.mkdirs()
-
-            offlineFile.createNewFile()
-
-            try {
-                val outputStream = FileOutputStream(offlineFile)
-                val inputStream = url.openConnection().getInputStream()
-
-                inputStream.use {
-                    outputStream.use {
-                        inputStream.copyTo(outputStream)
-                    }
-                }
-
-                Log.d(this.javaClass.name, "Downloaded ${url.toExternalForm()} into local file ${offlineFile.absolutePath}")
-            } catch (e: Exception) {
-                offlineFile.delete()
-                Log.d(this.javaClass.name, "Failed to download $url", e)
-            }
-        }
-
-        return offlineFile
+        return OfflineFileController.getOfflineFile(url = url)
     }
 
     /**
@@ -1094,33 +1062,5 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     private fun convertDpToPixel(dp: Float?): Float? {
         dp ?: return null
         return (dp * displayMetrics.density)
-    }
-
-    /**
-     * Calculates a md5 hash from given string
-     *
-     * @param str string
-     * @return md5 hash
-     */
-    private fun md5(str: String): String {
-        val hexString = StringBuilder()
-
-        for (aMessageDigest in md5(str.toByteArray(StandardCharsets.UTF_8))) {
-            hexString.append(Integer.toHexString(0xFF and aMessageDigest.toInt()).padStart(2, '0'))
-        }
-
-        return hexString.toString()
-    }
-
-    /**
-     * Calculates a md5 hash from given bytes
-     *
-     * @param bytes bytes
-     * @return md5 hash bytes
-     */
-    private fun md5(bytes: ByteArray): ByteArray {
-        val digest = MessageDigest.getInstance("MD5")
-        digest.update(bytes)
-        return digest.digest()
     }
 }
