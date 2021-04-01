@@ -226,6 +226,4 @@ class OfflineFileController {
  *
  * @param eTag file eTag
  */
-private class FileMeta(val eTag: String?) {
-
-}
+private data class FileMeta(val eTag: String?)
