@@ -131,6 +131,7 @@ class OfflineFileController {
         /**
          * Read file meta
          *
+         * @param file file
          * @return file meta
          */
         private fun readFileMeta(file: File): FileMeta? {
