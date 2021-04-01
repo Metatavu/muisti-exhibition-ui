@@ -46,9 +46,7 @@ class ExhibitionUIApplication : Application() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 5, 1, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorsServiceTask() }, 5, 5, TimeUnit.SECONDS)
 
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateLayoutsServiceTask() }, 5, 120, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 10, 120, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueConstructPagesServiceTask() }, 15, 120, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ queueContentGeneration() }, 5, 600, TimeUnit.SECONDS)
 
         VisibleTagsContainer.getLiveVisibleTags().observeForever {
             onVisibleTagsChange(it)
@@ -259,6 +257,15 @@ class ExhibitionUIApplication : Application() {
         }
 
         resetVisitorSessionEndTimer()
+    }
+
+    /**
+     * Queues layout update, pages update and construct pages tasks
+     */
+    fun queueContentGeneration() {
+        Executors.newSingleThreadScheduledExecutor().schedule({ enqueueUpdateLayoutsServiceTask() }, 1, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().schedule({ enqueueUpdatePagesServiceTask() }, 10,  TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().schedule({ enqueueConstructPagesServiceTask() }, 15,  TimeUnit.SECONDS)
     }
 
     /**
