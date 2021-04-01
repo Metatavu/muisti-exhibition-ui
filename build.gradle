@@ -8,6 +8,7 @@ buildscript {
     ext.daggerVersion = "2.26"
     ext.jaxrs_functional_test_builder_version = "1.0.4"
     ext.awaitility_version = "4.0.2"
+    ext.exoplayerVersion = "2.13.2"
 
     repositories {
         google()

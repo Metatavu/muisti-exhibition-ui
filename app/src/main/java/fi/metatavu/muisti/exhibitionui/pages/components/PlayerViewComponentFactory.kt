@@ -10,6 +10,7 @@ import android.util.Log
 import android.util.Xml
 import android.view.View
 import android.widget.FrameLayout
+import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.MediaSource
@@ -35,7 +36,11 @@ import org.xmlpull.v1.XmlPullParser
 @SuppressLint("ViewConstructor")
 class PlayerComponentContainer(
     buildContext: ComponentBuildContext,
-    showPlaybackControls: Boolean
+    showPlaybackControls: Boolean,
+    showRewindButton: Boolean,
+    showFastForwardButton: Boolean,
+    showPreviousButton: Boolean,
+    showNextButton: Boolean
 ): FrameLayout(buildContext.context) {
 
     val playerView: PlayerView
@@ -53,10 +58,21 @@ class PlayerComponentContainer(
         playerView = PlayerView(context, Xml.asAttributeSet(parser))
         playerView.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
 
+        if (showPlaybackControls) {
+            playerView.setShowRewindButton(showRewindButton)
+            playerView.setShowFastForwardButton(showFastForwardButton)
+            playerView.setShowPreviousButton(showPreviousButton)
+            playerView.setShowNextButton(showNextButton)
+        }
+
         addView(playerView)
 
         if (showPlaybackControls) {
             playerControlView = PlayerControlView(context, Xml.asAttributeSet(parser))
+            playerControlView.setShowRewindButton(showRewindButton)
+            playerControlView.setShowFastForwardButton(showFastForwardButton)
+            playerControlView.setShowPreviousButton(showPreviousButton)
+            playerControlView.setShowNextButton(showNextButton)
             addView(playerControlView)
         } else {
             playerControlView = null
@@ -76,13 +92,21 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
         val showPlaybackControls = getBooleanProperty(buildContext = buildContext, propertyName = "showPlaybackControls") ?: false
         val autoPlay = getBooleanProperty(buildContext = buildContext, propertyName = "autoPlay") ?: true
         val autoPlayDelay = getLongProperty(buildContext = buildContext, propertyName = "autoPlayDelay") ?: 0
+        val showRewindButton = getBooleanProperty(buildContext = buildContext, propertyName = "showRewindButton") ?: false
+        val showFastForwardButton = getBooleanProperty(buildContext = buildContext, propertyName = "showFastForwardButton") ?: false
+        val showPreviousButton = getBooleanProperty(buildContext = buildContext, propertyName = "showPreviousButton") ?: false
+        val showNextButton = getBooleanProperty(buildContext = buildContext, propertyName = "showNextButton") ?: false
 
         val context = buildContext.context
         val parent = buildContext.parents.lastOrNull()
 
         val view = PlayerComponentContainer(
             buildContext = buildContext,
-            showPlaybackControls = showPlaybackControls
+            showPlaybackControls = showPlaybackControls,
+            showRewindButton = showRewindButton,
+            showFastForwardButton = showFastForwardButton,
+            showPreviousButton = showPreviousButton,
+            showNextButton = showNextButton
         )
 
         setupView(buildContext, view)
@@ -95,7 +119,8 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
         val offlineFile = getResourceOfflineFile(buildContext, "src")
         if (offlineFile != null) {
             val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(context, Util.getUserAgent(context, "ExhibitionUIApplication"))
-            val videoSource: MediaSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.fromFile(offlineFile))
+            val mediaItem = MediaItem.fromUri(Uri.fromFile(offlineFile))
+            val videoSource: MediaSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
 
             buildContext.addLifecycleListener(PlayerPageViewLifecycleListener(
                 videoSource = videoSource,
@@ -114,6 +139,10 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
                 "autoPlay" -> {}
                 "autoPlayDelay" -> {}
                 "showPlaybackControls" -> {}
+                "showRewindButton" -> { }
+                "showFastForwardButton" -> { }
+                "showPreviousButton" -> { }
+                "showNextButton" -> { }
                 "src" -> { }
                 else -> super.setProperty(buildContext, parent, view, property)
             }
@@ -153,7 +182,8 @@ private class PlayerPageViewLifecycleListener(
             player.playWhenReady = autoPlay
         }
 
-        player.prepare(videoSource)
+        player.setMediaSource(videoSource)
+        player.prepare()
         player.repeatMode = Player.REPEAT_MODE_ALL
 
         val playerView = view.playerView
