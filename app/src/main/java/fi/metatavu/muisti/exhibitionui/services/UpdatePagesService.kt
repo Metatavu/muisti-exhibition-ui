@@ -88,7 +88,7 @@ object UpdatePages : MqttActionInterface {
      * @param pageId pageId to delete
      */
     private fun updateSinglePage(pageId: UUID) {
-        Log.d(javaClass.name, "Updating single page!")
+        Log.d(javaClass.name, "Updating page: $pageId")
         GlobalScope.launch {
             try {
                 val exhibitionId = DeviceSettings.getExhibitionId()
@@ -105,7 +105,6 @@ object UpdatePages : MqttActionInterface {
 
                     val localPage = updatePage(page, contentVersion)
                     if (localPage != null) {
-                        Log.d(javaClass.name, "Constructing single page!")
                         ConstructPagesService.constructPage(localPage)
                     }
                 }
