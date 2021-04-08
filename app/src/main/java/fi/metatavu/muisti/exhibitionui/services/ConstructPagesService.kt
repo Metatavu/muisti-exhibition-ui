@@ -1,8 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.services
 
-import android.content.Intent
 import android.util.Log
-import androidx.core.app.JobIntentService
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
@@ -18,28 +16,21 @@ import java.lang.Exception
 /**
  * Service for constructing page view
  */
-class ConstructPagesService : JobIntentService() {
+object ConstructPagesService {
 
     private val pageRepository: PageRepository = PageRepository(ExhibitionUIDatabase.getDatabase().pageDao())
     private val layoutRepository: LayoutRepository = LayoutRepository(ExhibitionUIDatabase.getDatabase().layoutDao())
 
-    override fun onHandleWork(intent: Intent) {
-        GlobalScope.launch {
-            val pages = pageRepository.listAll()
-            if (pages != null) {
-                for (page in pages) {
-                    constructPage(page)
-                }
+    fun constructAllPages() = GlobalScope.launch {
+        val pages = pageRepository.listAll()
+        if (pages != null) {
+            for (page in pages) {
+                constructPage(page)
             }
         }
     }
 
-    /**
-     * Constructs a page view
-     *
-     * @param page page
-     */
-    private suspend fun constructPage(page: Page) {
+    suspend fun constructPage(page: Page) {
         try {
             val pageId = page.pageId
             val layoutId = page.layoutId

@@ -43,11 +43,10 @@ class ExhibitionUIApplication : Application() {
     init {
         instance = this
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateKeycloakTokenServiceTask() }, 1, 5, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateLayoutsServiceTask() }, 5, 15, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 5, 1, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdatePagesServiceTask() }, 5, 15, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueConstructPagesServiceTask() }, 5, 15, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorsServiceTask() }, 5, 5, TimeUnit.SECONDS)
+
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueuePageCreation() }, 5, 600, TimeUnit.SECONDS)
 
         VisibleTagsContainer.getLiveVisibleTags().observeForever {
             onVisibleTagsChange(it)
@@ -60,7 +59,6 @@ class ExhibitionUIApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        readApiValues()
         MuistiMqttService()
         startProximityListening()
         pollUnseenTags()
@@ -195,27 +193,13 @@ class ExhibitionUIApplication : Application() {
     }
 
     /**
-     * Enqueues update layouts task
+     * Enqueues page creation task
      */
-    private fun enqueueUpdateLayoutsServiceTask() {
-        val serviceIntent = Intent().apply { }
-        JobIntentService.enqueueWork(this, UpdateLayoutsService::class.java, 3, serviceIntent)
-    }
-
-    /**
-     * Enqueues update pages task
-     */
-    private fun enqueueUpdatePagesServiceTask() {
-        val serviceIntent = Intent().apply { }
-        JobIntentService.enqueueWork(this, UpdatePagesService::class.java, 4, serviceIntent)
-    }
-
-    /**
-     * Enqueues construct pages task
-     */
-    private fun enqueueConstructPagesServiceTask() {
-        val serviceIntent = Intent().apply { }
-        JobIntentService.enqueueWork(this, ConstructPagesService::class.java, 5, serviceIntent)
+    fun enqueuePageCreation() {
+        if (VisitorSessionContainer.getVisitorSession() == null) {
+            val serviceIntent = Intent().apply { }
+            JobIntentService.enqueueWork(this, PageCreateService::class.java, 5, serviceIntent)
+        }
     }
 
     /**
