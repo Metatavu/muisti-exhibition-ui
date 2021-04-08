@@ -305,7 +305,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 reloadExhibitionDevicesPreference(null)
             }
             UpdateRfidAntenna.updateDeviceAntennas()
-            ExhibitionUIApplication.instance.queueContentGeneration()
+            ExhibitionUIApplication.instance.enqueuePageCreation()
         }
     }
 

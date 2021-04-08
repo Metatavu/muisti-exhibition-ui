@@ -65,17 +65,17 @@ class PageRepository(private val pageDao: PageDao) {
      * @param page page
      * @param contentVersion content version of the page or null
      */
-    suspend fun updatePage(page: ExhibitionPage, contentVersion: ContentVersion?) {
+    suspend fun updatePage(page: ExhibitionPage, contentVersion: ContentVersion?): Page? {
         val id = page.id
         if (id == null) {
             Log.d(PageRepository::javaClass.name, "id was null")
-            return
+            return null
         }
 
         val exhibitionId = page.exhibitionId
         if (exhibitionId == null) {
             Log.d(PageRepository::javaClass.name, "exhibitionId was null")
-            return
+            return null
         }
 
         val updatePage = Page(
@@ -99,6 +99,6 @@ class PageRepository(private val pageDao: PageDao) {
         } else {
             pageDao.update(updatePage)
         }
-
+        return updatePage
     }
 }

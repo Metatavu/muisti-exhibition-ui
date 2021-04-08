@@ -46,7 +46,7 @@ class ExhibitionUIApplication : Application() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 5, 1, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorsServiceTask() }, 5, 5, TimeUnit.SECONDS)
 
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ queueContentGeneration() }, 5, 600, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueuePageCreation() }, 5, 600, TimeUnit.SECONDS)
 
         VisibleTagsContainer.getLiveVisibleTags().observeForever {
             onVisibleTagsChange(it)
@@ -193,32 +193,12 @@ class ExhibitionUIApplication : Application() {
     }
 
     /**
-     * Enqueues update layouts task
+     * Enqueues page creation task
      */
-    private fun enqueueUpdateLayoutsServiceTask() {
+    fun enqueuePageCreation() {
         if (VisitorSessionContainer.getVisitorSession() == null) {
             val serviceIntent = Intent().apply { }
-            JobIntentService.enqueueWork(this, UpdateLayoutsService::class.java, 3, serviceIntent)
-        }
-    }
-
-    /**
-     * Enqueues update pages task
-     */
-    private fun enqueueUpdatePagesServiceTask() {
-        if (VisitorSessionContainer.getVisitorSession() == null) {
-            val serviceIntent = Intent().apply { }
-            JobIntentService.enqueueWork(this, UpdatePagesService::class.java, 4, serviceIntent)
-        }
-    }
-
-    /**
-     * Enqueues construct pages task
-     */
-    private fun enqueueConstructPagesServiceTask() {
-        if (VisitorSessionContainer.getVisitorSession() == null) {
-            val serviceIntent = Intent().apply { }
-            JobIntentService.enqueueWork(this, ConstructPagesService::class.java, 5, serviceIntent)
+            JobIntentService.enqueueWork(this, PageCreateService::class.java, 5, serviceIntent)
         }
     }
 
@@ -255,15 +235,6 @@ class ExhibitionUIApplication : Application() {
         }
 
         resetVisitorSessionEndTimer()
-    }
-
-    /**
-     * Queues layout update, pages update and construct pages tasks
-     */
-    fun queueContentGeneration() {
-        Executors.newSingleThreadScheduledExecutor().schedule({ enqueueUpdateLayoutsServiceTask() }, 1, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().schedule({ enqueueUpdatePagesServiceTask() }, 10,  TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().schedule({ enqueueConstructPagesServiceTask() }, 15,  TimeUnit.SECONDS)
     }
 
     /**

@@ -1,8 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.services
 
-import android.content.Intent
 import android.util.Log
-import androidx.core.app.JobIntentService
 import fi.metatavu.muisti.api.client.models.MqttLayoutCreate
 import fi.metatavu.muisti.api.client.models.MqttLayoutDelete
 import fi.metatavu.muisti.api.client.models.MqttLayoutUpdate
@@ -12,37 +10,23 @@ import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttActionInterface
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
-import fi.metatavu.muisti.exhibitionui.persistence.model.Layout
 import fi.metatavu.muisti.exhibitionui.persistence.repository.LayoutRepository
 import kotlinx.coroutines.*
 import java.util.*
 import java.lang.Exception
 
-/**
- * Service for getting layouts from the API
- */
-class UpdateLayoutsService : JobIntentService() {
-    override fun onHandleWork(intent: Intent) {
-        try {
-            UpdateLayouts.updateAllLayouts()
-        } catch (e: Exception) {
-            Log.d(javaClass.name, "Failed to update layouts", e)
-        }
-    }
-}
-
 object UpdateLayouts : MqttActionInterface {
 
     override fun getMqttTopicListeners(): List<MqttTopicListener<*>> {
-        val layoutUpdateListener = MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/pages/update", MqttLayoutUpdate::class.java) {
+        val layoutUpdateListener = MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/layouts/update", MqttLayoutUpdate::class.java) {
             val layoutId = it.id ?: return@MqttTopicListener
             updateLayout(layoutId)
         }
-        val layoutCreateListener = MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/pages/create", MqttLayoutCreate::class.java) {
+        val layoutCreateListener = MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/layouts/create", MqttLayoutCreate::class.java) {
             val layoutId = it.id ?: return@MqttTopicListener
             updateLayout(layoutId)
         }
-        val layoutDeleteListener = MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/pages/delete", MqttLayoutDelete::class.java) {
+        val layoutDeleteListener = MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/layouts/delete", MqttLayoutDelete::class.java) {
             val layoutId = it.id ?: return@MqttTopicListener
             deleteLayout(layoutId)
         }
@@ -62,14 +46,12 @@ object UpdateLayouts : MqttActionInterface {
     /**
      ' Retrieves all layouts from the API and saves them into the local database
      */
-    fun updateAllLayouts(){
-        GlobalScope.launch {
-            try {
-                val layouts = MuistiApiFactory.getPageLayoutsApi().listPageLayouts(deviceModelId = null, screenOrientation = null)
-                addLayouts(layouts)
-            } catch (e: Exception) {
-                Log.e(javaClass.name, "Failed to update all layouts", e)
-            }
+    fun updateAllLayouts() = GlobalScope.launch {
+        try {
+            val layouts = MuistiApiFactory.getPageLayoutsApi().listPageLayouts(deviceModelId = null, screenOrientation = null)
+            addLayouts(layouts)
+        } catch (e: Exception) {
+            Log.e(javaClass.name, "Failed to update all layouts", e)
         }
     }
 
