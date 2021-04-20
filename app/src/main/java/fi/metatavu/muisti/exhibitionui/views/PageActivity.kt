@@ -27,13 +27,13 @@ class PageActivity : MuistiActivity() {
     private var logoutWarning : TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
         val pageId: String? = intent.getStringExtra("pageId")
 
         val pageView = PageViewContainer.getPageView(UUID.fromString(pageId))
                 ?: // TODO: Handle error
                 return
-
-        super.onCreate(savedInstanceState)
 
         applyPageTransitions(pageView)
 
@@ -104,7 +104,7 @@ class PageActivity : MuistiActivity() {
     fun cancelLogoutWarning() {
         countDownTimer?.cancel()
         val logoutWarning = findViewById<TextView>(R.id.logout_warning)
-        logoutWarning.visibility = View.INVISIBLE
+        logoutWarning?.visibility = View.INVISIBLE
     }
 
     /**
