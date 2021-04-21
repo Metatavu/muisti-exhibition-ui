@@ -1,7 +1,5 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
@@ -46,7 +44,7 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
             private fun prepareImage(visitorSession: VisitorSession) {
                 val url = getUrl(getScriptedResource(buildContext,  visitorSession, "src", false))
                 if (url != null) {
-                    getResourceOfflineFile(url = url)
+                    getOfflineFile(url = url)
                 }
             }
 
@@ -89,9 +87,8 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
     private fun setSrc(buildContext: ComponentBuildContext, imageView: ImageView, value: String?) {
         val resource = getResourceData(buildContext, value)
         val url = getUrl(resource ?: value)
-        url ?: return
-        val bmp = getScaledImage(url)
-        imageView.setImageBitmap(bmp)
+        val bitmap = getOfflineBitmap(url = url) ?: return
+        imageView.setImageBitmap(bitmap)
     }
 
     /**
@@ -101,29 +98,10 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
      * @param url url or null
      */
     private fun updateImageSource(imageView: ImageView, url: URL?) {
-        val offlineFile = getResourceOfflineFile(url = url)
-        offlineFile ?: return
-
-        val bitmap = BitmapFactory.decodeFile(offlineFile.absolutePath)
+        val bitmap = getOfflineBitmap(url = url)
         if (bitmap != null) {
             imageView.setImageBitmap(bitmap)
         }
     }
 
-    /**
-     * Returns image from URL as original or a scaled image if size exceeds 80MB
-     *
-     * @param url URL to get image from
-     * @return Bitmap or null if decoding fails
-     */
-    private fun getScaledImage(url: URL): Bitmap? {
-        val bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream())
-        return if (bmp.byteCount > 80000000) {
-            val options = BitmapFactory.Options()
-            options.inSampleSize = 2
-            BitmapFactory.decodeStream(url.openConnection().getInputStream(), null, options)
-        } else {
-            bmp
-        }
-    }
 }
