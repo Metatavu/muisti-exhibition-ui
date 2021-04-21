@@ -3,8 +3,10 @@ package fi.metatavu.muisti.exhibitionui.pages.components
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Resources
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.text.Html
@@ -30,6 +32,8 @@ import uk.co.deanwild.flowtextview.FlowTextView
 import java.io.File
 import java.net.MalformedURLException
 import java.net.URL
+import kotlin.math.max
+import kotlin.math.min
 
 
 /**
@@ -41,6 +45,8 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
 
     private val context: Context = ExhibitionUIApplication.instance.applicationContext
     private val displayMetrics: DisplayMetrics = context.resources.displayMetrics
+    private val displayWidth = Resources.getSystem().displayMetrics.widthPixels
+    private val displayHeight = Resources.getSystem().displayMetrics.heightPixels
 
     /**
      * Sets up view
@@ -113,7 +119,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
 
         return try {
             if (value.length == 4 && value.startsWith("#")) {
-                Color.parseColor("#" + value.substring(1).map { "$it$it" }.joinToString (""))
+                Color.parseColor("#" + value.substring(1).map { "$it$it" }.joinToString(""))
             } else {
                 Color.parseColor(value)
             }
@@ -398,9 +404,9 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
              * Prepares background image for scripted resources
              */
             private fun prepareBackgroundImage(visitorSession: VisitorSession) {
-                val url = getUrl(getScriptedResource(buildContext,  visitorSession, "backgroundImage", false))
+                val url = getUrl(getScriptedResource(buildContext, visitorSession, "backgroundImage", false))
                 if (url != null) {
-                    getResourceOfflineFile(url = url)
+                    getOfflineFile(url = url)
                 }
             }
 
@@ -408,7 +414,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
              * Updates background image for scripted resources
              */
             private fun updateBackgroundImage(visitorSession: VisitorSession) {
-                val url = getUrl(getScriptedResource(buildContext, visitorSession,"backgroundImage", false))
+                val url = getUrl(getScriptedResource(buildContext, visitorSession, "backgroundImage", false))
                 if (url != null) {
                     setBackgroundImage(view = view, url = url)
                 }
@@ -511,7 +517,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         when (params.dataSource) {
             DynamicPageResourceDataSource.userValue -> {
                 val userValues = visitorSession.variables?.map { it.name to it.value }?.toMap() ?: emptyMap()
-                val userValue =  userValues[params.key]
+                val userValue = userValues[params.key]
                 val value = params.`when`?.find { it.equals == userValue }?.value
 
                 if (value != null) {
@@ -590,10 +596,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param url url
      */
     private fun setBackgroundImage(view: View, url: URL?) {
-        val offlineFile = getResourceOfflineFile(url = url)
-        offlineFile ?: return
-
-        val bitmap = BitmapFactory.decodeFile(offlineFile.absolutePath)
+        val bitmap = getOfflineBitmap(url = url)
         if (bitmap != null) {
             view.background = BitmapDrawable(Resources.getSystem(), bitmap)
         }
@@ -625,7 +628,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             "padding" -> view.setPadding(px, px, px, px)
             "paddingLeft" -> view.setPadding(px, view.paddingTop, view.paddingRight, view.paddingBottom)
             "paddingTop" -> view.setPadding(view.paddingLeft, px, view.paddingRight, view.paddingBottom)
-            "paddingRight" -> view.setPadding(view.paddingLeft, view.paddingTop, px,  view.paddingBottom)
+            "paddingRight" -> view.setPadding(view.paddingLeft, view.paddingTop, px, view.paddingBottom)
             "paddingBottom" -> view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, px)
             else -> Log.d(ImageViewComponentFactory::javaClass.name, "Property ${property.name} not supported")
         }
@@ -643,7 +646,41 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         val url = getUrl(resource ?: value)
         url ?: return null
 
-        return getResourceOfflineFile(url = url)
+        return getOfflineFile(url = url)
+    }
+
+    /**
+     * Returns offlined image from URL
+     *
+     * @param url URL to get image from
+     * @return Bitmap or null
+     */
+    protected fun getOfflineBitmap(url: URL?): Bitmap? {
+        return getOfflineBitmap(url = url, maxImageWidth = displayWidth, maxImageHeight = displayHeight)
+    }
+
+    /**
+     * Returns offlined image from URL as original or a scaled image if size exceeds 80MB
+     *
+     * @param url URL to get image from
+     * @param maxImageWidth maximum width of returned image. Defaults to device width
+     * @param maxImageHeight maximum height of returned image. Defaults to device height
+     * @return Bitmap or null
+     */
+    protected fun getOfflineBitmap(url: URL?, maxImageWidth: Int, maxImageHeight: Int): Bitmap? {
+        val offlineFile = getOfflineFile(url = url) ?: return null
+        val bitmap = BitmapFactory.decodeFile(offlineFile.absolutePath) ?: return null
+        val imageWidth = min(maxImageWidth, displayWidth)
+        val imageHeight = min(maxImageHeight, displayHeight)
+
+        return if (bitmap.width > imageWidth || bitmap.height > imageHeight) {
+            val scaleX = imageWidth.toFloat() / bitmap.width.toFloat()
+            val scaleY = imageHeight.toFloat() / bitmap.height.toFloat()
+            val scale = max(scaleX, scaleY)
+            getScaledBitmap(bitmap = bitmap, scale = scale)
+        } else {
+            bitmap
+        }
     }
 
     /**
@@ -652,7 +689,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param url URL of the resource
      * @return offlined file
      */
-    protected fun getResourceOfflineFile(url: URL?): File? {
+    protected fun getOfflineFile(url: URL?): File? {
         url ?: return null
 
         return OfflineFileController.getOfflineFile(url = url)
@@ -671,6 +708,21 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         } catch (e: MalformedURLException) {
             return null
         }
+    }
+
+    /**
+     * Scales bitmap
+     *
+     * @param bitmap bitmap to be scaled
+     * @param scale scaling factor
+     * @return scaled bitmap
+     */
+    private fun getScaledBitmap(bitmap: Bitmap, scale: Float): Bitmap {
+        val matrix = Matrix()
+        matrix.postScale(scale, scale)
+        val resizedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, false)
+        bitmap.recycle()
+        return resizedBitmap
     }
 
     /**
@@ -1038,7 +1090,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     private fun regexToFloat(regex: String, value: String): Float? {
         val match = Regex(regex).find(value)
         match ?: return null
-        val ( number ) = match.destructured
+        val (number) = match.destructured
         return number.toFloatOrNull()
     }
 

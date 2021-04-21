@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.net.SocketTimeoutException
 
 /**
  * Controller class for offlined files
@@ -32,7 +33,15 @@ class OfflineFileController {
          */
         @Synchronized fun getOfflineFile(url: URL): File? {
             val urlExternal = url.toExternalForm()
-            return download(urlExternal)
+            try {
+                return download(urlExternal)
+            } catch (e: SocketTimeoutException) {
+                Log.e(OfflineFileController::class.java.name, "Socket timeout while downloading $urlExternal")
+            } catch (e: Exception) {
+                Log.e(OfflineFileController::class.java.name, "Failed to download $urlExternal", e)
+            }
+
+            return null
         }
 
         /**

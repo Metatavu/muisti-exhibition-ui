@@ -1,26 +1,27 @@
 package fi.metatavu.muisti.exhibitionui.views
 
-import android.app.ActivityManager
 import android.content.Intent
 import android.os.Bundle
 import android.util.DisplayMetrics
-import android.view.View
+import android.widget.ArrayAdapter
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.whenStarted
+import androidx.preference.*
 import fi.metatavu.muisti.api.client.models.Exhibition
 import fi.metatavu.muisti.api.client.models.ExhibitionDevice
 import fi.metatavu.muisti.api.client.models.RfidAntenna
-import fi.metatavu.muisti.exhibitionui.services.UpdateRfidAntenna
-import kotlinx.android.synthetic.main.settings_activity.*
-import java.util.*
-import android.widget.ArrayAdapter
-import androidx.preference.*
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
-import kotlinx.coroutines.*
+import fi.metatavu.muisti.exhibitionui.services.UpdateRfidAntenna
+import kotlinx.android.synthetic.main.settings_activity.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.*
 
 
 /**
@@ -59,18 +60,16 @@ class SettingsActivity : MuistiActivity() {
 
     /**
      * Exits the settings activity
-     *
-     * @param view view that called the exit function
      */
-    fun exitSettings(view: View?) {
-        val intent = Intent(this, MainActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    fun exitSettings() {
+        val intent = Intent(this, LoadingActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         startActivity(intent)
         finish()
     }
 
     override fun onBackPressed() {
-        exitSettings(null)
+        exitSettings()
     }
 }
 
@@ -86,7 +85,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             whenStarted {
                 val exhibitions = listExhibitions()
                 val exhibitionId = getExhibitionId()
-                val exhibition = exhibitions.find { it.id!!.equals(exhibitionId) }
+                val exhibition = exhibitions.find { it.id!! == exhibitionId }
 
                 val exhibitionPreference: ListPreference = findPreference("exhibition")!!
                 exhibitionPreference.entries = exhibitions.map { it.name }.toTypedArray()
@@ -118,7 +117,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         val deviceRotationFlip: CheckBoxPreference = findPreference("flip_forced_rotation")!!
-        deviceRotationFlip.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
+        deviceRotationFlip.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
             mViewModel?.setRotationFlip(newValue as Boolean)
             true
         }
@@ -181,7 +180,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             exhibitionDevices = listExhibitionDevices(exhibitionId)
         }
 
-        val exhibitionDevice = exhibitionDevices?.find { it.id!!.equals(exhibitionDeviceId) }
+        val exhibitionDevice = exhibitionDevices?.find { it.id!! == exhibitionDeviceId }
         val exhibitionDevicesPreference: ListPreference = findPreference("exhibition_device")!!
         exhibitionDevicesPreference.entries = exhibitionDevices?.map { it.name }?.toTypedArray() ?: emptyArray()
         exhibitionDevicesPreference.entryValues = exhibitionDevices?.map { it.id.toString() }?.toTypedArray()  ?: emptyArray()
@@ -222,7 +221,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
      * @return exhibition devices from API
      */
     private suspend fun listExhibitionDevices(exhibitionId: UUID): Array<ExhibitionDevice> = withContext(Dispatchers.Default) {
-        mViewModel!!.listExhibitionDevices(exhibitionId, null)
+        val result = mViewModel!!.listExhibitionDevices(exhibitionId, null)
+        result.sortBy { it.name }
+        result
     }
 
     /**
@@ -305,7 +306,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 reloadExhibitionDevicesPreference(null)
             }
             UpdateRfidAntenna.updateDeviceAntennas()
-            ExhibitionUIApplication.instance.enqueuePageCreation()
         }
     }
 

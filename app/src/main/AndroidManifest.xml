@@ -28,6 +28,13 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="behind">
+        </activity>
+
+        <activity
+            android:name=".views.LoadingActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="behind">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -49,15 +56,13 @@
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
-        <service
-            android:name=".services.PageCreateService"
-            android:exported="false"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
         <service android:name=".services.UpdateRfidAntennaService" />
+
         <service
             android:name=".services.VisitorsService"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+
     </application>
 
 </manifest>

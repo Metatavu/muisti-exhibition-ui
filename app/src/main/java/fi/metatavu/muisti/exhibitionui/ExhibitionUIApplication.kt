@@ -42,11 +42,10 @@ class ExhibitionUIApplication : Application() {
      */
     init {
         instance = this
+
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateKeycloakTokenServiceTask() }, 1, 5, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 5, 1, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorsServiceTask() }, 5, 5, TimeUnit.SECONDS)
-
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueuePageCreation() }, 5, 600, TimeUnit.SECONDS)
 
         VisibleTagsContainer.getLiveVisibleTags().observeForever {
             onVisibleTagsChange(it)
@@ -190,16 +189,6 @@ class ExhibitionUIApplication : Application() {
     private fun enqueueUpdateUserValueServiceTask() {
         val serviceIntent = Intent().apply { }
         JobIntentService.enqueueWork(this, UpdateUserValueService::class.java, 2, serviceIntent)
-    }
-
-    /**
-     * Enqueues page creation task
-     */
-    fun enqueuePageCreation() {
-        if (VisitorSessionContainer.getVisitorSession() == null) {
-            val serviceIntent = Intent().apply { }
-            JobIntentService.enqueueWork(this, PageCreateService::class.java, 5, serviceIntent)
-        }
     }
 
     /**
