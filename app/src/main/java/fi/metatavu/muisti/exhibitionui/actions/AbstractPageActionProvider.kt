@@ -1,5 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.actions
 
+import android.util.Log
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventProperty
 import java.util.*
 
@@ -19,7 +20,17 @@ abstract class AbstractPageActionProvider(private val properties: Array<Exhibiti
     protected fun getPropertyUuid(name: String): UUID? {
         val value = getPropertyString(name)
         value ?: return null
-        return UUID.fromString(value)
+
+        if (value.isEmpty()) {
+            return null
+        }
+
+        try {
+            return UUID.fromString(value)
+        } catch (e: IllegalArgumentException) {
+            Log.e(this.javaClass.name, "Invalid UUID ($value) as property $name value")
+            return null
+        }
     }
 
     /**
