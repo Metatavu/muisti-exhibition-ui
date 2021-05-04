@@ -20,11 +20,14 @@ class LoadingActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_loading)
-        loadContents()
-
         settings_button.setOnClickListener {
             startSettingsActivity()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadContents()
     }
 
     /**
