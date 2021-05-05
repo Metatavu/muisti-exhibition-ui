@@ -31,11 +31,12 @@ class ExhibitionUIApplication : Application() {
     private var currentActivity: Activity? = null
     private val visitorSessionHandler = Handler()
     private val unseenTagsHandler = Handler()
-    private var visitorSessionEndTimeout: Long = 5000
+    private var visitorSessionEndTimeout = 5000L
     private var allowVisitorSessionCreation = false
     private var antennaListeners = emptyList<MqttTopicListener<*>>()
     var forcedPortraitMode: Boolean? = null
         private set
+    private val tagsPollInterval = 1000L
 
     /**
      * Constructor
@@ -130,7 +131,15 @@ class ExhibitionUIApplication : Application() {
         unseenTagsHandler.postDelayed({
             VisibleTagsContainer.removeUnseenTags()
             pollUnseenTags()
-        }, visitorSessionEndTimeout / 2)
+        }, tagsPollInterval)
+    }
+
+    /**
+     * Restarts polling unseen tags
+     */
+    private fun restartPollUnseenTags() {
+        unseenTagsHandler.removeCallbacksAndMessages(null)
+        pollUnseenTags()
     }
 
     /**
@@ -273,6 +282,7 @@ class ExhibitionUIApplication : Application() {
                     Log.d(javaClass.name, "Visitor session ${visitorSession.id} found for tags ${tags.joinToString(",")}")
                     val visitorSessionTags = getVisitorSessionTags(visitorSession = visitorSession)
                     VisitorSessionContainer.startVisitorSession(visitorSession, visitorSessionTags)
+                    restartPollUnseenTags()
                 } else {
                     Log.d(javaClass.name, "Visitor session not active for any of the tags ${tags.joinToString(",")}")
                 }
