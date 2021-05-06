@@ -1,5 +1,8 @@
 package fi.metatavu.muisti.exhibitionui.files
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.util.Log
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
@@ -14,6 +17,7 @@ import java.security.MessageDigest
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.SocketTimeoutException
+import kotlin.math.max
 
 /**
  * Controller class for offlined files
@@ -42,6 +46,48 @@ class OfflineFileController {
             }
 
             return null
+        }
+
+        /**
+         * Returns offline image file scaled to max image width and height
+         *
+         * @param url URL
+         * @param maxImageWidth image width
+         * @param maxImageHeight image height
+         * @return offline file or null if file is not image
+         */
+        @Synchronized fun getOfflineImageFile(url: URL, maxImageWidth: Int, maxImageHeight: Int): File? {
+            val urlExternal = url.toExternalForm()
+            val urlHash: String = md5(urlExternal)
+            val extension: String = urlExternal.substring(urlExternal.lastIndexOf("."))
+            val imageFileName = "img-$urlHash$extension"
+            val offlineImageFile = File(downloadsDir, imageFileName)
+
+            if (offlineImageFile.exists()) {
+                Log.d(OfflineFileController::class.java.name, "Using offlined image file for $urlExternal")
+                return offlineImageFile
+            }
+
+            val offlineFile = download(urlExternal = urlExternal)
+
+            val bitmap = getFileBitmap(
+                offlineFile = offlineFile,
+                maxImageWidth = maxImageWidth,
+                maxImageHeight = maxImageHeight
+            )
+
+            if (bitmap == null) {
+                Log.d(OfflineFileController::class.java.name, "Failed to offline image file for $urlExternal. Possibly not an image file?")
+                return null
+            }
+
+            FileOutputStream(offlineImageFile).use {
+                bitmap.compress(Bitmap.CompressFormat.WEBP, 100, it)
+            }
+
+            Log.d(OfflineFileController::class.java.name, "Offlined image file for $urlExternal")
+
+            return offlineImageFile
         }
 
         /**
@@ -226,6 +272,46 @@ class OfflineFileController {
             val digest = MessageDigest.getInstance("MD5")
             digest.update(bytes)
             return digest.digest()
+        }
+
+        /**
+         * Returns offlined image from URL as original or a scaled image if size exceeds 80MB
+         *
+         * @param offlineFile offlined file
+         * @param maxImageWidth maximum width of returned image.
+         * @param maxImageHeight maximum height of returned image.
+         * @return Bitmap or null
+         */
+        private fun getFileBitmap(offlineFile: File?, maxImageWidth: Int, maxImageHeight: Int): Bitmap? {
+            if (offlineFile == null || !offlineFile.exists()) {
+                return null
+            }
+
+            val bitmap = BitmapFactory.decodeFile(offlineFile.absolutePath) ?: return null
+
+            return if (bitmap.width > maxImageWidth || bitmap.height > maxImageHeight) {
+                val scaleX = maxImageWidth.toFloat() / bitmap.width.toFloat()
+                val scaleY = maxImageHeight.toFloat() / bitmap.height.toFloat()
+                val scale = max(scaleX, scaleY)
+                getScaledBitmap(bitmap = bitmap, scale = scale)
+            } else {
+                bitmap
+            }
+        }
+
+        /**
+         * Scales bitmap
+         *
+         * @param bitmap bitmap to be scaled
+         * @param scale scaling factor
+         * @return scaled bitmap
+         */
+        private fun getScaledBitmap(bitmap: Bitmap, scale: Float): Bitmap {
+            val matrix = Matrix()
+            matrix.postScale(scale, scale)
+            val resizedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, false)
+            bitmap.recycle()
+            return resizedBitmap
         }
     }
 
