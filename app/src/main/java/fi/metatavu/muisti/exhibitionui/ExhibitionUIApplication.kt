@@ -36,6 +36,9 @@ class ExhibitionUIApplication : Application() {
     private var antennaListeners = emptyList<MqttTopicListener<*>>()
     var forcedPortraitMode: Boolean? = null
         private set
+    private var loginAllowed = true
+    private var logoutGraceTime = 3000L
+    private val logoutGraceHandler = Handler()
     private val tagsPollInterval = 1000L
 
     /**
@@ -92,6 +95,7 @@ class ExhibitionUIApplication : Application() {
     private fun endVisitorSession() {
         visitorSessionHandler.removeCallbacksAndMessages(null)
         VisitorSessionContainer.endVisitorSession()
+        startLogoutGracePeriod()
         readApiValues()
 
         val activity = getCurrentActivity()
@@ -99,6 +103,16 @@ class ExhibitionUIApplication : Application() {
             activity.startMainActivity()
             currentActivity = null
         }
+    }
+
+    /**
+     * Sets loginAllowed to false for the duration of logout grace time
+     */
+    private fun startLogoutGracePeriod() {
+        loginAllowed = false
+        logoutGraceHandler.postDelayed({
+            loginAllowed = true
+        }, logoutGraceTime)
     }
 
     /**
@@ -276,7 +290,7 @@ class ExhibitionUIApplication : Application() {
     private fun refreshVisitorSessionState(tags: List<String>) {
         val currentVisitorSession = VisitorSessionContainer.getVisitorSession()
         if (currentVisitorSession == null) {
-            if (tags.isNotEmpty()) {
+            if (tags.isNotEmpty() && loginAllowed) {
                 val visitorSession = ExhibitionVisitorsContainer.findVisitorSessionByTags(tags = tags)
                 if (visitorSession != null) {
                     Log.d(javaClass.name, "Visitor session ${visitorSession.id} found for tags ${tags.joinToString(",")}")
