@@ -102,11 +102,11 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
     private fun setSrc(buildContext: ComponentBuildContext, imageView: ImageView, value: String?) {
         val resource = getResourceData(buildContext, value)
         val url = getUrl(resource ?: value)
-        val bitmap = getOfflineBitmap(url = url) ?: return
 
         if (ExhibitionUIApplication.instance.deviceImageLoadStrategy == DeviceImageLoadStrategy.dISK) {
-            bitmap.recycle()
+            getOfflineImageFile(url = url) ?: return
         } else {
+            val bitmap = getOfflineBitmap(url = url) ?: return
             imageView.setImageBitmap(bitmap)
         }
     }

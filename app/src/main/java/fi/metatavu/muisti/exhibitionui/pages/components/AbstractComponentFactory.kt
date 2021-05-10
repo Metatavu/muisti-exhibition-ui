@@ -661,6 +661,16 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     }
 
     /**
+     * Returns offlined image file from URL
+     *
+     * @param url URL to get image from
+     * @return Fule or null
+     */
+    protected fun getOfflineImageFile(url: URL?): File? {
+        return getOfflineImageFile(url = url, maxImageWidth = displayWidth, maxImageHeight = displayHeight)
+    }
+
+    /**
      * Returns offlined image from URL as original or a scaled image if size exceeds 80MB
      *
      * @param url URL to get image from
@@ -669,24 +679,21 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @return Bitmap or null
      */
     private fun getOfflineBitmap(url: URL?, maxImageWidth: Int, maxImageHeight: Int): Bitmap? {
-        url ?: return null
-        val offlineImageFile = OfflineFileController.getOfflineImageFile(url = url, maxImageWidth = maxImageWidth, maxImageHeight = maxImageHeight) ?: return null
+        val offlineImageFile = getOfflineImageFile(url = url, maxImageWidth = maxImageWidth, maxImageHeight = maxImageHeight) ?: return null
         return BitmapFactory.decodeFile(offlineImageFile.absolutePath) ?: return null
+    }
 
-        /**
-        val offlineFile = getOfflineFile(url = url) ?: return null
-        val bitmap = BitmapFactory.decodeFile(offlineFile.absolutePath) ?: return null
-        val imageWidth = min(maxImageWidth, displayWidth)
-        val imageHeight = min(maxImageHeight, displayHeight)
-
-        return if (bitmap.width > imageWidth || bitmap.height > imageHeight) {
-            val scaleX = imageWidth.toFloat() / bitmap.width.toFloat()
-            val scaleY = imageHeight.toFloat() / bitmap.height.toFloat()
-            val scale = max(scaleX, scaleY)
-            getScaledBitmap(bitmap = bitmap, scale = scale)
-        } else {
-            bitmap
-        }**/
+    /**
+     * Returns offlined image file from URL as original or a scaled image if size exceeds 80MB
+     *
+     * @param url URL to get image from
+     * @param maxImageWidth maximum width of returned image. Defaults to device width
+     * @param maxImageHeight maximum height of returned image. Defaults to device height
+     * @return File or null
+     */
+    private fun getOfflineImageFile(url: URL?, maxImageWidth: Int, maxImageHeight: Int): File? {
+        url ?: return null
+        return OfflineFileController.getOfflineImageFile(url = url, maxImageWidth = maxImageWidth, maxImageHeight = maxImageHeight)
     }
 
     /**

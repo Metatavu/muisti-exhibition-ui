@@ -60,7 +60,7 @@ class OfflineFileController {
             val urlExternal = url.toExternalForm()
             val urlHash: String = md5(urlExternal)
             val extension: String = urlExternal.substring(urlExternal.lastIndexOf("."))
-            val imageFileName = "img-$urlHash$extension"
+            val imageFileName = "img-$urlHash-${maxImageWidth}x${maxImageHeight}$extension"
             val offlineImageFile = File(downloadsDir, imageFileName)
 
             if (offlineImageFile.exists()) {
