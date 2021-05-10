@@ -48,7 +48,11 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
      * @return exhibition devices
      */
     suspend fun listExhibitionDevices(exhibitionId: UUID, exhibitionGroupId: UUID?): Array<ExhibitionDevice> {
-        return MuistiApiFactory.getExhibitionDevicesApi().listExhibitionDevices(exhibitionId, exhibitionGroupId)
+        return MuistiApiFactory.getExhibitionDevicesApi().listExhibitionDevices(
+                exhibitionId = exhibitionId,
+                exhibitionGroupId = exhibitionGroupId,
+                deviceModelId = null
+        )
     }
 
     /**

@@ -34,7 +34,11 @@ class ExhibitionUIApplication : Application() {
     private var visitorSessionEndTimeout: Long = 5000
     private var allowVisitorSessionCreation = false
     private var antennaListeners = emptyList<MqttTopicListener<*>>()
+
     var forcedPortraitMode: Boolean? = null
+        private set
+
+    var deviceImageLoadStrategy: DeviceImageLoadStrategy = DeviceImageLoadStrategy.mEMORY
         private set
 
     /**
@@ -152,10 +156,12 @@ class ExhibitionUIApplication : Application() {
                 forcedPortraitMode = device.screenOrientation == ScreenOrientation.forcedPortrait
                 visitorSessionEndTimeout = group.visitorSessionEndTimeout
                 allowVisitorSessionCreation = group.allowVisitorSessionCreation
+                deviceImageLoadStrategy = device.imageLoadStrategy
 
                 Log.d(javaClass.name, "Device orientation is set to: ${device.screenOrientation}")
                 Log.d(javaClass.name, "Visitor session end timeout set to: $visitorSessionEndTimeout")
                 Log.d(javaClass.name, "Allow visitor session creation is set to: $allowVisitorSessionCreation")
+                Log.d(javaClass.name, "Device image load strategy is set to: $deviceImageLoadStrategy")
             } catch (e: Exception) {
                 Log.e(javaClass.name, "Could not read device settings from API", e)
             }
