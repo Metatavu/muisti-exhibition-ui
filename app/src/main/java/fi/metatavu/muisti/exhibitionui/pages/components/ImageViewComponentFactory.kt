@@ -130,9 +130,9 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
  * Image view lifecycle listener. Used when image load strategy is set to disk
  *
  * @param imageView image view
+ * @param url image URL
  * @param maxImageWidth image maximum width
  * @param maxImageHeight image maximum height
- * @param url image URL
  */
 private class ImageViewLifecycleListener(private val imageView: ImageView, private val url: URL?, private val maxImageWidth: Int, private val maxImageHeight: Int): PageViewLifecycleAdapter() {
 
