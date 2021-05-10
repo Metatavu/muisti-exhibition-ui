@@ -54,6 +54,7 @@ object UpdatePages : MqttActionInterface {
                 var pages = MuistiApiFactory.getExhibitionPagesApi().listExhibitionPages(
                     exhibitionId = exhibitionId,
                     contentVersionId = null,
+                    pageLayoutId = null,
                     exhibitionDeviceId = deviceId
                 )
 

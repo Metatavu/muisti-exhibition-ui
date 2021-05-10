@@ -43,10 +43,11 @@ import kotlin.math.min
  */
 abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
 
+    protected val displayWidth = Resources.getSystem().displayMetrics.widthPixels
+    protected val displayHeight = Resources.getSystem().displayMetrics.heightPixels
+
     private val context: Context = ExhibitionUIApplication.instance.applicationContext
     private val displayMetrics: DisplayMetrics = context.resources.displayMetrics
-    private val displayWidth = Resources.getSystem().displayMetrics.widthPixels
-    private val displayHeight = Resources.getSystem().displayMetrics.heightPixels
 
     /**
      * Sets up view
@@ -660,6 +661,16 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     }
 
     /**
+     * Returns offlined image file from URL
+     *
+     * @param url URL to get image from
+     * @return File or null
+     */
+    protected fun getOfflineImageFile(url: URL?): File? {
+        return getOfflineImageFile(url = url, maxImageWidth = displayWidth, maxImageHeight = displayHeight)
+    }
+
+    /**
      * Returns offlined image from URL as original or a scaled image if size exceeds 80MB
      *
      * @param url URL to get image from
@@ -667,20 +678,22 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param maxImageHeight maximum height of returned image. Defaults to device height
      * @return Bitmap or null
      */
-    protected fun getOfflineBitmap(url: URL?, maxImageWidth: Int, maxImageHeight: Int): Bitmap? {
-        val offlineFile = getOfflineFile(url = url) ?: return null
-        val bitmap = BitmapFactory.decodeFile(offlineFile.absolutePath) ?: return null
-        val imageWidth = min(maxImageWidth, displayWidth)
-        val imageHeight = min(maxImageHeight, displayHeight)
+    private fun getOfflineBitmap(url: URL?, maxImageWidth: Int, maxImageHeight: Int): Bitmap? {
+        val offlineImageFile = getOfflineImageFile(url = url, maxImageWidth = maxImageWidth, maxImageHeight = maxImageHeight) ?: return null
+        return BitmapFactory.decodeFile(offlineImageFile.absolutePath) ?: return null
+    }
 
-        return if (bitmap.width > imageWidth || bitmap.height > imageHeight) {
-            val scaleX = imageWidth.toFloat() / bitmap.width.toFloat()
-            val scaleY = imageHeight.toFloat() / bitmap.height.toFloat()
-            val scale = max(scaleX, scaleY)
-            getScaledBitmap(bitmap = bitmap, scale = scale)
-        } else {
-            bitmap
-        }
+    /**
+     * Returns offlined image file from URL as original or a scaled image if size exceeds 80MB
+     *
+     * @param url URL to get image from
+     * @param maxImageWidth maximum width of returned image. Defaults to device width
+     * @param maxImageHeight maximum height of returned image. Defaults to device height
+     * @return File or null
+     */
+    private fun getOfflineImageFile(url: URL?, maxImageWidth: Int, maxImageHeight: Int): File? {
+        url ?: return null
+        return OfflineFileController.getOfflineImageFile(url = url, maxImageWidth = maxImageWidth, maxImageHeight = maxImageHeight)
     }
 
     /**
@@ -708,21 +721,6 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         } catch (e: MalformedURLException) {
             return null
         }
-    }
-
-    /**
-     * Scales bitmap
-     *
-     * @param bitmap bitmap to be scaled
-     * @param scale scaling factor
-     * @return scaled bitmap
-     */
-    private fun getScaledBitmap(bitmap: Bitmap, scale: Float): Bitmap {
-        val matrix = Matrix()
-        matrix.postScale(scale, scale)
-        val resizedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, false)
-        bitmap.recycle()
-        return resizedBitmap
     }
 
     /**
