@@ -664,7 +664,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * Returns offlined image file from URL
      *
      * @param url URL to get image from
-     * @return Fule or null
+     * @return File or null
      */
     protected fun getOfflineImageFile(url: URL?): File? {
         return getOfflineImageFile(url = url, maxImageWidth = displayWidth, maxImageHeight = displayHeight)
