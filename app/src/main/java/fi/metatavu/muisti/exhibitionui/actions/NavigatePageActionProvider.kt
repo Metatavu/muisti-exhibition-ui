@@ -31,7 +31,11 @@ class NavigatePageActionProvider(properties: Array<ExhibitionPageEventProperty>)
             val currentActivity = application.getCurrentActivity()
 
             if (currentActivity is PageActivity) {
-                currentActivity.goToPage(pageId, currentActivity.transitionElements)
+                if (currentActivity.pageId != pageId) {
+                    currentActivity.goToPage(pageId, currentActivity.transitionElements)
+                } else {
+                    Log.d(this.javaClass.name, "Tried to navigate to same page $pageId again.")
+                }
             }
         } else {
             Log.d(this.javaClass.name, "Tried to navigate to null page")
