@@ -11,7 +11,7 @@ class PageViewContainer {
 
     companion object {
 
-        private val pageViews= mutableMapOf<UUID, PageView>()
+        private val pageViews = mutableMapOf<UUID, PageView>()
         private var livePages = MutableLiveData<List<PageView>>()
 
         /**

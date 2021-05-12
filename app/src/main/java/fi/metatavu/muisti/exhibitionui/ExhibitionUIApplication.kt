@@ -20,6 +20,7 @@ import fi.metatavu.muisti.exhibitionui.visitors.VisibleTagsContainer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.lang.Exception
+import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -72,6 +73,21 @@ class ExhibitionUIApplication : Application() {
 
         UpdateRfidAntenna.addAntennaUpdateListener {
             restartProximityListening()
+        }
+    }
+
+    /**
+     * Returns current page id or null
+     *
+     * @return current page id or null
+     */
+    fun getCurrentPageId(): UUID? {
+        val activity = currentActivity
+
+        return if (activity is PageActivity) {
+            activity.pageId
+        } else {
+            null
         }
     }
 

@@ -2,6 +2,7 @@ package fi.metatavu.muisti.exhibitionui.views
 
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.widget.Button
@@ -22,6 +23,9 @@ import kotlin.math.roundToInt
  */
 class PageActivity : MuistiActivity() {
 
+    var pageId: UUID? = null
+        private set
+
     private val showWarningAtSecondsLeft = 5000
 
     private var logoutWarning : TextView? = null
@@ -29,11 +33,26 @@ class PageActivity : MuistiActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val pageId: String? = intent.getStringExtra("pageId")
+        val pageIdParam: String? = intent.getStringExtra("pageId")
+        if (pageIdParam == null) {
+            Log.d(javaClass.name, "Missing pageId intent parameter")
+            return
+        }
 
-        val pageView = PageViewContainer.getPageView(UUID.fromString(pageId))
-                ?: // TODO: Handle error
-                return
+        val pageId = try {
+            UUID.fromString(pageIdParam)
+        } catch (e: IllegalArgumentException) {
+            Log.d(javaClass.name, "Invalid page id $pageIdParam")
+            null
+        } ?: return
+
+        val pageView = PageViewContainer.getPageView(pageId)
+        if (pageView == null) {
+            Log.d(javaClass.name, "Could not find page view with id $pageId")
+            return
+        }
+
+        this.pageId = pageId
 
         applyPageTransitions(pageView)
 
@@ -168,6 +187,7 @@ class PageActivity : MuistiActivity() {
             indexButtonClick()
         }
     }
+
 }
 
 /**
