@@ -1,153 +1,142 @@
 package fi.metatavu.muisti.exhibitionui.views
 
-import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
-import android.view.View
-import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import fi.metatavu.muisti.api.client.models.VisitorSession
+import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
-import kotlinx.android.synthetic.main.activity_main.*
-
+import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
+import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
+import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
+import kotlinx.android.synthetic.main.activity_page.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import java.util.*
 
 /**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
+ * Main activity class
  */
-class MainActivity : AppCompatActivity() {
+class MainActivity : MuistiActivity() {
 
     private var mViewModel: MainViewModel? = null
+    private var handler: Handler = Handler()
 
-    private val mHideHandler = Handler()
-    private val mHidePart2Runnable = Runnable {
-        // Delayed removal of status and navigation bar
-
-        // Note that some of these constants are new as of API 16 (Jelly Bean)
-        // and API 19 (KitKat). It is safe to use them, as they are inlined
-        // at compile-time and do nothing on earlier devices.
-        fullscreen_content.systemUiVisibility =
-            View.SYSTEM_UI_FLAG_LOW_PROFILE or
-                    View.SYSTEM_UI_FLAG_FULLSCREEN or
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-    }
-    private val mShowPart2Runnable = Runnable {
-        // Delayed display of UI elements
-        supportActionBar?.show()
-        fullscreen_content_controls.visibility = View.VISIBLE
-    }
-    private var mVisible: Boolean = false
-    private val mHideRunnable = Runnable { hide() }
-    /**
-     * Touch listener to use for in-layout UI controls to delay hiding the
-     * system UI. This is to prevent the jarring behavior of controls going away
-     * while interacting with activity UI.
-     */
-    private val mDelayHideTouchListener = View.OnTouchListener { _, _ ->
-        if (AUTO_HIDE) {
-            delayedHide(AUTO_HIDE_DELAY_MILLIS)
-        }
-        false
-    }
-
-    private val mNappiClick = View.OnClickListener {
-        val intent = Intent(this, TestActivity::class.java)
-        this.startActivity(intent)
-    }
-
-    private val mSettingsClick = View.OnClickListener {
-        val intent = Intent(this, SettingsActivity::class.java)
-        this.startActivity(intent)
+    private val visitorSessionObserver = Observer<VisitorSession?> {
+        onVisitorSessionChange(it)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        VisitorSessionContainer.getLiveVisitorSession().observe(this, visitorSessionObserver)
+        GlobalScope.launch {
+            val exhibitionId = DeviceSettings.getExhibitionId()
+            val deviceId = DeviceSettings.getExhibitionDeviceId()
 
-        setContentView(R.layout.activity_main)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            if (exhibitionId == null || deviceId == null) {
+                startSettingsActivity()
+            } else {
+                val idlePage = when (val pageId = mViewModel?.getIdlePageId()) {
+                    null -> null
+                    else -> PageViewContainer.getPageView(pageId)
+                }
 
-        mVisible = true
+                runOnUiThread {
+                    if (idlePage != null) {
+                        setContentView(R.layout.activity_page)
+                        openView(idlePage)
+                    } else {
+                        setContentView(R.layout.activity_main)
+                    }
+                    if (ExhibitionUIApplication.instance.forcedPortraitMode == true) {
+                        setForcedPortraitMode()
+                    }
 
-        // Set up the user interaction to manually show or hide the system UI.
-        fullscreen_content.setOnClickListener { toggle() }
-
-        // Upon interacting with UI controls, delay any scheduled hide()
-        // operations to prevent the jarring behavior of controls going away
-        // while interacting with the UI.
-        dummy_button.setOnTouchListener(mDelayHideTouchListener)
-        nappi.setOnClickListener(mNappiClick)
-        settings.setOnClickListener(mSettingsClick)
-    }
-
-    override fun onPostCreate(savedInstanceState: Bundle?) {
-        super.onPostCreate(savedInstanceState)
-
-        // Trigger the initial hide() shortly after the activity has been
-        // created, to briefly hint to the user that UI controls
-        // are available.
-        delayedHide(100)
-    }
-
-    private fun toggle() {
-        if (mVisible) {
-            hide()
-        } else {
-            show()
+                    setImmersiveMode()
+                    listenLoginButton(login_button)
+                    listenSettingsButton(settings_button)
+                    waitForForcedPortraitMode(idlePage?.orientation)
+                }
+            }
         }
     }
 
-    private fun hide() {
-        // Hide UI first
-        supportActionBar?.hide()
-        fullscreen_content_controls.visibility = View.GONE
-        mVisible = false
-
-        // Schedule a runnable to remove the status and navigation bar after a delay
-        mHideHandler.removeCallbacks(mShowPart2Runnable)
-        mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY.toLong())
+    override fun onDestroy() {
+        VisitorSessionContainer.getLiveVisitorSession().removeObserver(visitorSessionObserver)
+        removeSettingsAndIndexListeners()
+        super.onDestroy()
     }
 
-    private fun show() {
-        // Show the system bar
-        fullscreen_content.systemUiVisibility =
-            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-        mVisible = true
+    override fun onPause() {
+        super.onPause()
+        handler.removeCallbacksAndMessages(null)
+    }
 
-        // Schedule a runnable to display UI elements after a delay
-        mHideHandler.removeCallbacks(mHidePart2Runnable)
-        mHideHandler.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY.toLong())
+    override fun onResume() {
+        super.onResume()
+        ExhibitionUIApplication.instance.readApiValues()
+    }
+
+    private suspend fun startVisitorSession(visitorSession: VisitorSession) {
+        val language = visitorSession.language
+        val frontPage = mViewModel?.getFrontPage(
+            language = language,
+            visitorSession = visitorSession
+        )
+
+        if (frontPage != null) {
+            waitForPage(frontPage)
+        }
     }
 
     /**
-     * Schedules a call to hide() in [delayMillis], canceling any
-     * previously scheduled calls.
+     * Checks if page is constructed in the PageViewContainer and either navigates to it or keeps waiting
+     *
+     * @param pageId page id to navigate to once it is ready
      */
-    private fun delayedHide(delayMillis: Int) {
-        mHideHandler.removeCallbacks(mHideRunnable)
-        mHideHandler.postDelayed(mHideRunnable, delayMillis.toLong())
+    private fun waitForPage(pageId: UUID) {
+        handler.postDelayed({
+            if (PageViewContainer.contains(pageId)) {
+                goToPage(pageId)
+            } else {
+                waitForPage(pageId)
+            }
+        }, 500)
     }
 
-    companion object {
-        /**
-         * Whether or not the system UI should be auto-hidden after
-         * [AUTO_HIDE_DELAY_MILLIS] milliseconds.
-         */
-        private val AUTO_HIDE = true
-
-        /**
-         * If [AUTO_HIDE] is set, the number of milliseconds to wait after
-         * user interaction before hiding the system UI.
-         */
-        private val AUTO_HIDE_DELAY_MILLIS = 3000
-
-        /**
-         * Some older devices needs a small delay between UI widget updates
-         * and a change of the status and navigation bar.
-         */
-        private val UI_ANIMATION_DELAY = 300
+    /**
+     * Checks if forced portrait mode setting is loaded,
+     * if true forcces portrait otherwise sets the specified orientation.
+     *
+     * @param orientation orientation to set if portrait mode is not forced.
+     */
+    private fun waitForForcedPortraitMode(orientation: Int?) {
+        handler.postDelayed({
+            if (ExhibitionUIApplication.instance.forcedPortraitMode == null) {
+                waitForForcedPortraitMode(orientation)
+            } else {
+                if(ExhibitionUIApplication.instance.forcedPortraitMode == true) {
+                    setForcedPortraitMode()
+                } else {
+                    requestedOrientation = orientation ?: return@postDelayed
+                }
+            }
+        }, 500)
     }
+
+    /**
+     * Handler for visitor session changes
+     *
+     * @param visitorSession visitor session
+     */
+    private fun onVisitorSessionChange(visitorSession: VisitorSession?) {
+        visitorSession ?: return
+
+        GlobalScope.launch {
+            startVisitorSession(visitorSession)
+        }
+    }
+
 }

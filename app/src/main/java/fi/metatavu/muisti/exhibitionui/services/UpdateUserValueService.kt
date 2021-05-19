@@ -1,16 +1,16 @@
 package fi.metatavu.muisti.exhibitionui.services
 
 import android.content.Intent
+import android.util.Log
 import androidx.core.app.JobIntentService
-import fi.metatavu.muisti.api.client.models.VisitorSession
-import fi.metatavu.muisti.api.client.models.VisitorSessionVariable
+import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
 import fi.metatavu.muisti.exhibitionui.persistence.repository.UpdateUserValueTaskRepository
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.*
+import java.lang.Exception
 import fi.metatavu.muisti.exhibitionui.persistence.model.UpdateUserValueTask as UpdateUserValueTask1
 
 /**
@@ -30,19 +30,24 @@ class UpdateUserValueService : JobIntentService() {
 
     override fun onHandleWork(intent: Intent) {
         GlobalScope.launch {
-            val updateUserValueTasks = updateUserValueTaskRepository.list(1)
-            if (!updateUserValueTasks.isEmpty()) {
-                val updateUserValueTask = updateUserValueTasks.get(0)
-                val visitorSession = findVisitorSession(updateUserValueTask)
-
-                if (visitorSession != null) {
-                    updateVisitorSessionVariable(visitorSession, updateUserValueTask.key, updateUserValueTask.value)
-                    updateUserValueTaskRepository.delete(updateUserValueTask)
+            try {
+                val updateUserValueTasks = updateUserValueTaskRepository.list(1)
+                if (updateUserValueTasks.isNotEmpty()) {
+                    val updateUserValueTask = updateUserValueTasks.get(0)
+                    val visitorSession = UpdateUserValue.findVisitorSession(updateUserValueTask)
+                    if (visitorSession != null) {
+                        UpdateUserValue.updateVisitorSessionVariable(visitorSession, updateUserValueTask.name, updateUserValueTask.value)
+                        updateUserValueTaskRepository.delete(updateUserValueTask)
+                    }
                 }
+            } catch (e: Exception) {
+                Log.e(javaClass.name, "Visitor session updating failed", e)
             }
         }
     }
+}
 
+object UpdateUserValue {
     /**
      * Updates a visitor session variable into the API
      *
@@ -50,16 +55,19 @@ class UpdateUserValueService : JobIntentService() {
      * @param key key
      * @param value value
      */
-    private suspend fun updateVisitorSessionVariable(visitorSession: VisitorSession, key: String, value: String) {
-        var variables = visitorSession.variables
-        if (variables == null) {
-            variables = arrayOf()
+    suspend fun updateVisitorSessionVariable(visitorSession: VisitorSession, key: String, value: String) {
+        try {
+            val variables = (visitorSession.variables ?: arrayOf()).filter { !it.name.equals(key) }.toTypedArray()
+            val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
+
+            visitorSessionsApi.updateVisitorSession(
+                visitorSession.exhibitionId!!,
+                visitorSession.id!!,
+                visitorSession.copy(variables = variables.plus(VisitorSessionVariable(key, value)))
+            )
+        } catch (e: Exception) {
+            Log.e(javaClass.name, "Failed to update visitor session variable", e)
         }
-
-        variables = variables.filter { !it.name.equals(key) }.toTypedArray()
-        val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
-
-        visitorSessionsApi.updateVisitorSession(visitorSession.exhibitionId!!, visitorSession.id!!, visitorSession.copy(variables = variables.plus(VisitorSessionVariable(key, value))))
     }
 
     /**
@@ -68,16 +76,21 @@ class UpdateUserValueService : JobIntentService() {
      * @param updateUserValueTask task
      * @return a visitor session for a task
      */
-    private suspend fun findVisitorSession(updateUserValueTask: UpdateUserValueTask1): VisitorSession? {
-        val exhibitionId = DeviceSettings.getExhibitionId()
-        val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
-        val visitorSessionId = UUID.fromString(updateUserValueTask.sessionId)
+    suspend fun findVisitorSession(updateUserValueTask: UpdateUserValueTask1): VisitorSession? {
+        try {
+            val exhibitionId = DeviceSettings.getExhibitionId()
+            val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
+            val visitorSessionId = updateUserValueTask.sessionId
 
-        if (exhibitionId == null) {
-            return null
+            if (exhibitionId == null) {
+                return null
+            }
+
+            return visitorSessionsApi.findVisitorSession(exhibitionId, visitorSessionId)
+        } catch (e: Exception) {
+            Log.e(javaClass.name, "Failed to retrieve visitor session", e)
         }
 
-        return visitorSessionsApi.findVisitorSession(exhibitionId, visitorSessionId)
+        return null
     }
-
 }

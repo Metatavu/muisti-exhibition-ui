@@ -2,23 +2,39 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="fi.metatavu.muisti.exhibitionui">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <application android:label="@string/app_name"
-        android:name=".ExhibitionUIApplication">
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-feature android:required="false" android:name="android.hardware.faketouch"/>
+    <uses-feature android:required="false" android:name="android.hardware.touchscreen"/>
+    <application
+        android:name=".ExhibitionUIApplication"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.AppCompat"
+        android:icon="@mipmap/ic_launcher">
+        <activity
+            android:name=".views.PreviewActivity"
+            android:label="@string/title_activity_preview"
+            android:screenOrientation="behind"/>
 
         <activity
-            android:name=".views.TestActivity"
+            android:name=".views.PageActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_test"
-            android:theme="@style/FullscreenTheme" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="behind" />
 
         <activity
             android:name=".views.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_main"
-            android:theme="@style/FullscreenTheme">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="behind">
+        </activity>
+
+        <activity
+            android:name=".views.LoadingActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="behind">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,8 +44,7 @@
 
         <activity
             android:name=".views.SettingsActivity"
-            android:label="@string/title_activity_settings"
-            android:theme="@style/AppTheme"/>
+            android:label="@string/device_settings" />
 
         <service
             android:name=".services.UpdateUserValueService"
@@ -40,6 +55,14 @@
             android:name=".services.UpdateKeycloakTokenService"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <service android:name=".services.UpdateRfidAntennaService" />
+
+        <service
+            android:name=".services.VisitorsService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
     </application>
 
 </manifest>
