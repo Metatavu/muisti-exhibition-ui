@@ -49,6 +49,8 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
         if (activeIndexPages.size > 1) {
             Log.w(javaClass.name, "Several matching index pages found, returning first one")
+        } else if (activeIndexPages.isEmpty()) {
+            Log.w(javaClass.name, "Could not find index page for visitor session ${visitorSession.id}")
         }
 
         return activeIndexPages.firstOrNull()?.pageId

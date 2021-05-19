@@ -1,6 +1,5 @@
 package fi.metatavu.muisti.exhibitionui.views
 
-import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import androidx.lifecycle.Observer
@@ -89,8 +88,6 @@ class MainActivity : MuistiActivity() {
 
         if (frontPage != null) {
             waitForPage(frontPage)
-        } else {
-            startPreviewActivity()
         }
     }
 
@@ -127,14 +124,6 @@ class MainActivity : MuistiActivity() {
                 }
             }
         }, 500)
-    }
-
-    /**
-     * Starts a preview activity
-     */
-    private fun startPreviewActivity() {
-        val intent = Intent(this, PreviewActivity::class.java)
-        this.startActivity(intent)
     }
 
     /**
