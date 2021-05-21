@@ -41,8 +41,8 @@ android {
         applicationId "fi.metatavu.muisti.exhibitionui"
         minSdkVersion 27
         targetSdkVersion 29
-        versionCode 15
-        versionName "1.0"
+        versionCode 100001
+        versionName "1.0.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -194,6 +194,10 @@ dependencies {
     testImplementation "fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrs_functional_test_builder_version"
     testImplementation 'io.appium:java-client:3.3.0'
     testImplementation project(':api-test-builder')
+
+    // Kapt
+
+    compileOnly 'com.github.pengrad:jdk9-deps:1.0'
 }
 
 

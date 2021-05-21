@@ -3,6 +3,7 @@ package fi.metatavu.muisti.exhibitionui.views
 import android.content.Intent
 import android.os.Bundle
 import android.util.DisplayMetrics
+import android.view.View
 import android.widget.ArrayAdapter
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -61,7 +62,7 @@ class SettingsActivity : MuistiActivity() {
     /**
      * Exits the settings activity
      */
-    fun exitSettings() {
+    fun exitSettings(view: View?) {
         val intent = Intent(this, LoadingActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         startActivity(intent)
@@ -69,7 +70,7 @@ class SettingsActivity : MuistiActivity() {
     }
 
     override fun onBackPressed() {
-        exitSettings()
+        exitSettings(null)
     }
 }
 
