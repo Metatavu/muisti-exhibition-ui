@@ -29,6 +29,11 @@ enum class DeviceSettingName {
     /**
      * Setting for storing device rotation flip boolean
      */
-    DEVICE_ROTATE_FLIP
+    DEVICE_ROTATE_FLIP,
+
+    /**
+     * Setting for storing force video play boolean
+     */
+    FORCE_VIDEO_PLAY
 
 }

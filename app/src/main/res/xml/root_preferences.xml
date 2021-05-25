@@ -22,23 +22,32 @@
         <ListPreference
             app:key="exhibition"
             app:summary="@string/exhibition_perference_loading"
-            app:title="@string/exhibition_perference_title" />
+            app:title="@string/exhibition_perference_title"
+        />
 
         <ListPreference
             app:summary="@string/exhibition_perference_loading"
             app:key="exhibition_device"
-            app:title="@string/exhibition_device_perference_title" />
+            app:title="@string/exhibition_device_perference_title"
+        />
 
         <EditTextPreference
             app:summary="@string/exhibition_perference_not_set"
             app:title="@string/exhibition_rfid_antennas_perference_title"
             android:inputType="text"
             android:enabled="false"
-            app:key="rfid_antennas" />
+            app:key="rfid_antennas"
+        />
 
         <CheckBoxPreference
             app:title="@string/flip_forced_rotation_title"
-            app:key="flip_forced_rotation" />
+            app:key="flip_forced_rotation"
+        />
+
+        <CheckBoxPreference
+            app:title="@string/force_video_play_title"
+            app:key="force_video_play"
+        />
 
     </PreferenceCategory>
 

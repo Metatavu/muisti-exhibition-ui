@@ -1,5 +1,4 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
-
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
@@ -24,9 +23,9 @@ import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleListener
+import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import org.xmlpull.v1.XmlPullParser
-
 /**
  * Component container for player view
  *
@@ -168,6 +167,7 @@ private class PlayerPageViewLifecycleListener(
     val autoPlay: Boolean,
     val autoPlayDelay: Long
 ): PageViewLifecycleListener {
+    var hasPlayedOnce = false
 
     override fun onPageActivate(activity: MuistiActivity) {
         val context: Context = activity
@@ -197,6 +197,28 @@ private class PlayerPageViewLifecycleListener(
         }
 
         playerView.player = player
+        if (DeviceSettings.getForceVideoPlay()) {
+            player.createMessage { _: Int, _: Any? ->
+                hasPlayedOnce = true
+            }
+                .setLooper(Looper.getMainLooper())
+                .setPosition(player.contentDuration)
+                .setDeleteAfterDelivery(true)
+                .send()
+            blockLogout()
+        }
+    }
+
+    /**
+     * Blocks logout if force video play variable is set to true and video hasn't finished yet
+     */
+    fun blockLogout() {
+        if (!hasPlayedOnce) {
+            ExhibitionUIApplication.instance.resetVisitorSessionEndTimer()
+            Handler(Looper.getMainLooper()).postDelayed({
+                blockLogout()
+            }, 1000)
+        }
     }
 
     override fun onPageDeactivate(activity: MuistiActivity) {

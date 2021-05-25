@@ -122,6 +122,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
             mViewModel?.setRotationFlip(newValue as Boolean)
             true
         }
+
+        val forceVideoPlay: CheckBoxPreference = findPreference("force_video_play")!!
+        forceVideoPlay.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            mViewModel?.setForceVideoPlay(newValue as Boolean)
+            true
+        }
     }
 
     override fun onResume() {
