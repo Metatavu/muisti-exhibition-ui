@@ -247,7 +247,7 @@ class ExhibitionUIApplication : Application() {
     /**
      * Resets visitor session end timer
      */
-    private fun resetVisitorSessionEndTimer() {
+    fun resetVisitorSessionEndTimer() {
         visitorSessionHandler.removeCallbacksAndMessages(null)
 
         visitorSessionHandler.postDelayed({

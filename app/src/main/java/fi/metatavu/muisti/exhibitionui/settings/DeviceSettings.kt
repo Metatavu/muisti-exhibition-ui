@@ -19,6 +19,7 @@ class DeviceSettings {
     companion object {
 
         private var flipScreenRotate: Boolean? = null
+        private var forceVideoPlay: Boolean? = null
         private var deviceSettingRepository: DeviceSettingRepository? = null
         private val listType = Types.newParameterizedType(MutableList::class.java, RfidAntenna::class.java)
         private val jsonAdapter: JsonAdapter<List<RfidAntenna>> = moshi.adapter<List<RfidAntenna>>(listType)
@@ -52,6 +53,16 @@ class DeviceSettings {
         }
 
         /**
+         * Sets force video play setting
+         *
+         * @param value value of setting
+         */
+        suspend fun setForceVideoPlay(value: Boolean) {
+            forceVideoPlay = value
+            setSettingValue(DeviceSettingName.FORCE_VIDEO_PLAY, value.toString())
+        }
+
+        /**
          * Gets rotation flip boolean setting
          *
          * @return Boolean value of the setting, defaults to false
@@ -60,6 +71,19 @@ class DeviceSettings {
             return flipScreenRotate ?: false.also {
                 GlobalScope.launch {
                     flipScreenRotate = getSettingValue(DeviceSettingName.DEVICE_ROTATE_FLIP)?.toBoolean()
+                }
+            }
+        }
+
+        /**
+         * Gets force video play boolean setting
+         *
+         * @return Boolean value of the setting, defaults to false
+         */
+        fun getForceVideoPlay(): Boolean {
+            return forceVideoPlay ?: false.also {
+                GlobalScope.launch {
+                    forceVideoPlay = getSettingValue(DeviceSettingName.FORCE_VIDEO_PLAY)?.toBoolean()
                 }
             }
         }
