@@ -32,7 +32,7 @@ class ExhibitionUIApplication : Application() {
     private var currentActivity: Activity? = null
     private val visitorSessionHandler = Handler()
     private val unseenTagsHandler = Handler()
-    private var visitorSessionEndTimeout = 5000L
+    var visitorSessionEndTimeout = 5000L
     private var allowVisitorSessionCreation = false
     private var antennaListeners = emptyList<MqttTopicListener<*>>()
 

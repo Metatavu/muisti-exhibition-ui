@@ -167,6 +167,9 @@ private class PlayerPageViewLifecycleListener(
     val autoPlay: Boolean,
     val autoPlayDelay: Long
 ): PageViewLifecycleListener {
+    var hasPlayedOnce = false
+    val handler = Handler(Looper.getMainLooper())
+    var playerInstance: SimpleExoPlayer? = null
 
     override fun onPageActivate(activity: MuistiActivity) {
         val context: Context = activity
@@ -196,12 +199,65 @@ private class PlayerPageViewLifecycleListener(
         }
 
         playerView.player = player
+        playerInstance = player
+
+        if (DeviceSettings.getForceVideoPlay()) {
+            startBlockLogout()
+        }
+    }
+
+    /**
+     * Starts block logout runnable
+     */
+    fun startBlockLogout() {
+        handler.postDelayed(blockLogoutRunnable, 1000)
+    }
+
+    /**
+     * Stops block logout runnable
+     */
+    fun stopBlockLogout() {
+        hasPlayedOnce = false
+        handler.removeCallbacks(blockLogoutRunnable)
+    }
+
+    /**
+     * Runnable for blocking logout if force video play variable is set to true and video hasn't finished yet
+     */
+    val blockLogoutRunnable: Runnable = object : Runnable {
+        override fun run() {
+            val duration = view.playerView.player?.contentDuration
+            val position = view.playerView.player?.contentPosition
+            val timeout = ExhibitionUIApplication.instance.visitorSessionEndTimeout
+            var showLogoutWarning = false
+
+            if (position != null && duration != null) {
+                showLogoutWarning = position > (duration - timeout)
+            }
+
+            if (!hasPlayedOnce && !showLogoutWarning) {
+                ExhibitionUIApplication.instance.resetVisitorSessionEndTimer()
+            }
+
+            if (duration != null && duration > 0 && playerInstance != null) {
+                playerInstance!!.createMessage { _: Int, _: Any? ->
+                    stopBlockLogout()
+                }
+                    .setLooper(Looper.getMainLooper())
+                    .setPosition(duration)
+                    .setDeleteAfterDelivery(true)
+                    .send()
+            }
+
+            startBlockLogout()
+        }
     }
 
     override fun onPageDeactivate(activity: MuistiActivity) {
         activity.runOnUiThread {
             view.playerView.player?.release()
         }
+        stopBlockLogout()
     }
 
     override fun onLowMemory() {
