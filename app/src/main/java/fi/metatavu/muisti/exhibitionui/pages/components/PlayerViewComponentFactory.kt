@@ -237,6 +237,7 @@ private class PlayerPageViewLifecycleListener(
 
             if (!hasPlayedOnce && !showLogoutWarning) {
                 ExhibitionUIApplication.instance.resetVisitorSessionEndTimer()
+                startBlockLogout()
             }
 
             if (duration != null && duration > 0 && playerInstance != null) {
@@ -249,7 +250,6 @@ private class PlayerPageViewLifecycleListener(
                     .send()
             }
 
-            startBlockLogout()
         }
     }
 
