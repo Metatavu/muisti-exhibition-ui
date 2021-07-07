@@ -54,7 +54,7 @@ class ExhibitionUIApplication : Application() {
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateKeycloakTokenServiceTask() }, 1, 5, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 5, 1, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorsServiceTask() }, 5, 5, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorsServiceTask() }, 5, 60 * 5, TimeUnit.SECONDS)
 
         VisibleTagsContainer.getLiveVisibleTags().observeForever {
             onVisibleTagsChange(it)
@@ -73,6 +73,21 @@ class ExhibitionUIApplication : Application() {
 
         UpdateRfidAntenna.addAntennaUpdateListener {
             restartProximityListening()
+        }
+
+        val visitorListeners = mapOf(
+            "visitors/create" to MqttVisitorCreate::class.java,
+            "visitors/update" to MqttVisitorUpdate::class.java,
+            "visitors/delete" to MqttVisitorDelete::class.java,
+            "visitorsessions/create" to MqttExhibitionVisitorSessionCreate::class.java,
+            "visitorsessions/update" to MqttExhibitionVisitorSessionUpdate::class.java,
+            "visitorsessions/delete" to MqttExhibitionVisitorSessionDelete::class.java
+        )
+
+        visitorListeners.forEach {
+            MqttClientController.addListener(MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/${it.key}", it.value) {
+                enqueueUpdateVisitorsServiceTask()
+            })
         }
     }
 
@@ -240,6 +255,7 @@ class ExhibitionUIApplication : Application() {
      * Enqueues update visitors service task
      */
     private fun enqueueUpdateVisitorsServiceTask() {
+        Log.d(javaClass.name, "Updating visitor and visitor session lists")
         val serviceIntent = Intent().apply { }
         JobIntentService.enqueueWork(this, VisitorsService::class.java, 6, serviceIntent)
     }
@@ -247,7 +263,7 @@ class ExhibitionUIApplication : Application() {
     /**
      * Resets visitor session end timer
      */
-    private fun resetVisitorSessionEndTimer() {
+    fun resetVisitorSessionEndTimer() {
         visitorSessionHandler.removeCallbacksAndMessages(null)
 
         visitorSessionHandler.postDelayed({

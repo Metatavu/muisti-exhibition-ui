@@ -1,5 +1,4 @@
 package fi.metatavu.muisti.exhibitionui.pages.components
-
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
@@ -24,9 +23,9 @@ import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleListener
+import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import org.xmlpull.v1.XmlPullParser
-
 /**
  * Component container for player view
  *
@@ -200,7 +199,9 @@ private class PlayerPageViewLifecycleListener(
     }
 
     override fun onPageDeactivate(activity: MuistiActivity) {
-        view.playerView.player?.release()
+        activity.runOnUiThread {
+            view.playerView.player?.release()
+        }
     }
 
     override fun onLowMemory() {
