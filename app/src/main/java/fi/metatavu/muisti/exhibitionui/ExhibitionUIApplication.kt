@@ -314,7 +314,7 @@ class ExhibitionUIApplication : Application() {
      * @param visitorSession visitor session
      * @return tags associated with given visitor session
      */
-    private fun getVisitorSessionTags(visitorSession: VisitorSession): List<String> {
+    private fun getVisitorSessionTags(visitorSession: VisitorSessionV2): List<String> {
         return visitorSession.visitorIds
             .mapNotNull { ExhibitionVisitorsContainer.findVisitorById(it) }
             .map(Visitor::tagId)
@@ -370,7 +370,7 @@ class ExhibitionUIApplication : Application() {
      *
      * @param visitorSession visitor session
      */
-    private fun onVisitorSessionChange(visitorSession: VisitorSession?) {
+    private fun onVisitorSessionChange(visitorSession: VisitorSessionV2?) {
         if (visitorSession == null) {
             endVisitorSession()
             Log.d(javaClass.name, "Visitor session has ended")

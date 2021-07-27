@@ -3,7 +3,7 @@ package fi.metatavu.muisti.exhibitionui.views
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import fi.metatavu.muisti.api.client.models.VisitorSession
+import fi.metatavu.muisti.api.client.models.VisitorSessionV2
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
 import fi.metatavu.muisti.exhibitionui.persistence.repository.PageRepository
@@ -31,7 +31,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
      */
     suspend fun getFrontPage(
         language: String,
-        visitorSession: VisitorSession
+        visitorSession: VisitorSessionV2
     ) : UUID? {
         val indexPages = pageRepository.listIndexPages(
             language = language

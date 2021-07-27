@@ -39,10 +39,17 @@ class VisitorsService : JobIntentService() {
     private fun updateVisitorSessions() = GlobalScope.launch {
         try {
             val exhibitionId = DeviceSettings.getExhibitionId() ?: return@launch
-            val visitorSessionList = MuistiApiFactory.getVisitorSessionsApi().listVisitorSessions(exhibitionId = exhibitionId, tagId = null)
+            val visitorSessionList = MuistiApiFactory.getVisitorSessionsApi().listVisitorSessionsV2(
+                exhibitionId = exhibitionId,
+                tagId = null,
+                modifiedAfter = null // TODO
+            )
+
             ExhibitionVisitorsContainer.setVisitorSessions(visitorSessionList)
         } catch (e: Exception) {
             Log.e(javaClass.name, "Error updating Exhibition visitor session list: $e")
         }
     }
+
+
 }

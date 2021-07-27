@@ -2,7 +2,7 @@ package fi.metatavu.muisti.exhibitionui.pages
 
 import android.os.Bundle
 import android.view.View
-import fi.metatavu.muisti.api.client.models.VisitorSession
+import fi.metatavu.muisti.api.client.models.VisitorSessionV2
 import fi.metatavu.muisti.exhibitionui.persistence.model.Page
 import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
@@ -110,7 +110,7 @@ interface PageViewVisitorSessionListener {
      * @param pageActivity page activity instance
      * @param visitorSession visitor session
      */
-    suspend fun prepareVisitorSessionChange (pageActivity: PageActivity, visitorSession: VisitorSession)
+    suspend fun prepareVisitorSessionChange (pageActivity: PageActivity, visitorSession: VisitorSessionV2)
 
     /**
      * Method to be invoked when performing visitor session changes.
@@ -120,7 +120,7 @@ interface PageViewVisitorSessionListener {
      * @param pageActivity page activity instance
      * @param visitorSession visitor session
      */
-    fun performVisitorSessionChange (pageActivity: PageActivity, visitorSession: VisitorSession)
+    fun performVisitorSessionChange (pageActivity: PageActivity, visitorSession: VisitorSessionV2)
 }
 
 /**
@@ -128,11 +128,11 @@ interface PageViewVisitorSessionListener {
  */
 abstract class PageViewVisitorSessionAdapter: PageViewVisitorSessionListener {
 
-    override suspend fun prepareVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
+    override suspend fun prepareVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSessionV2) {
 
     }
 
-    override fun performVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
+    override fun performVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSessionV2) {
 
     }
 

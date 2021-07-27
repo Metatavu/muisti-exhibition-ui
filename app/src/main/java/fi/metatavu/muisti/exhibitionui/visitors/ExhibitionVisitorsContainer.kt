@@ -1,7 +1,7 @@
 package fi.metatavu.muisti.exhibitionui.visitors
 
 import fi.metatavu.muisti.api.client.models.Visitor
-import fi.metatavu.muisti.api.client.models.VisitorSession
+import fi.metatavu.muisti.api.client.models.VisitorSessionV2
 import java.util.*
 
 /**
@@ -13,7 +13,7 @@ class ExhibitionVisitorsContainer {
 
         private var visitors: Array<Visitor> = arrayOf()
 
-        private var visitorSessions: Array<VisitorSession> = arrayOf()
+        private var visitorSessions: Array<VisitorSessionV2> = arrayOf()
 
         /**
          * Sets visitors
@@ -29,7 +29,7 @@ class ExhibitionVisitorsContainer {
          *
          * @param updatedVisitorSessions visitor sessions to set
          */
-        fun setVisitorSessions(updatedVisitorSessions: Array<VisitorSession>) {
+        fun setVisitorSessions(updatedVisitorSessions: Array<VisitorSessionV2>) {
             visitorSessions = updatedVisitorSessions
         }
 
@@ -59,7 +59,7 @@ class ExhibitionVisitorsContainer {
          * @param tag Tag to find visitor session with
          * @return Visitor Session or null
          */
-        fun findVisitorSessionByTag(tag: String): VisitorSession? {
+        fun findVisitorSessionByTag(tag: String): VisitorSessionV2? {
             val matchingVisitor = visitors.firstOrNull {
                 it.tagId == tag
             } ?: return null
@@ -75,7 +75,7 @@ class ExhibitionVisitorsContainer {
          * @param tags List of tags that the visitor session should contain
          * @return Found visitor session or null
          */
-        fun findVisitorSessionByTags(tags: List<String>): VisitorSession? {
+        fun findVisitorSessionByTags(tags: List<String>): VisitorSessionV2? {
             val matchingVisitors = visitors.filter {
                 tags.contains(it.tagId)
             }

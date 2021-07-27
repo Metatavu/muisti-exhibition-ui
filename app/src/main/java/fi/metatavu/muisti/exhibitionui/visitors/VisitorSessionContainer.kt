@@ -3,7 +3,7 @@ package fi.metatavu.muisti.exhibitionui.visitors
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import fi.metatavu.muisti.api.client.models.VisitorSession
+import fi.metatavu.muisti.api.client.models.VisitorSessionV2
 import fi.metatavu.muisti.api.client.models.VisitorSessionVariable
 
 /**
@@ -14,14 +14,14 @@ class VisitorSessionContainer {
     companion object {
 
         private var currentVisitorSessionTags: List<String> = listOf()
-        private var liveVisitorSession = MutableLiveData<VisitorSession?>(null)
+        private var liveVisitorSession = MutableLiveData<VisitorSessionV2?>(null)
 
         /**
          * Returns live data instance for current visitor session
          *
          * @return live data instance for current visitor session
          */
-        fun getLiveVisitorSession(): LiveData<VisitorSession?> {
+        fun getLiveVisitorSession(): LiveData<VisitorSessionV2?> {
             return liveVisitorSession
         }
 
@@ -31,7 +31,7 @@ class VisitorSessionContainer {
          * @param visitorSession visitor session
          * @param visitorSessionTags visitor session's tags
          */
-        fun startVisitorSession(visitorSession: VisitorSession, visitorSessionTags: List<String> ) {
+        fun startVisitorSession(visitorSession: VisitorSessionV2, visitorSessionTags: List<String> ) {
             Log.d(VisitorSessionContainer::class.java.name, "Visitor session ${visitorSession.id} started")
             this.currentVisitorSessionTags = visitorSessionTags
             this.setVisitorSession(visitorSession)
@@ -50,7 +50,7 @@ class VisitorSessionContainer {
          *
          * @return current visitor session
          */
-        fun getVisitorSession(): VisitorSession? {
+        fun getVisitorSession(): VisitorSessionV2? {
             return liveVisitorSession.value
         }
 
@@ -89,7 +89,7 @@ class VisitorSessionContainer {
          *
          * @param visitorSession visitor session
          */
-        private fun setVisitorSession(visitorSession: VisitorSession?) {
+        private fun setVisitorSession(visitorSession: VisitorSessionV2?) {
             if (getVisitorSession()?.id != visitorSession?.id) {
                 liveVisitorSession.postValue(visitorSession)
             }

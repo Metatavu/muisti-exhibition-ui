@@ -339,7 +339,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      */
     protected fun getScriptedResource(
         buildContext: ComponentBuildContext,
-        visitorSession: VisitorSession,
+        visitorSession: VisitorSessionV2,
         propertyName: String,
         returnNotScripted: Boolean
     ): String? {
@@ -393,18 +393,18 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     private fun initializeScriptedListener(buildContext: ComponentBuildContext, view: T) {
         buildContext.addVisitorSessionListener(object : PageViewVisitorSessionListener {
 
-            override suspend fun prepareVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
+            override suspend fun prepareVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSessionV2) {
                 prepareBackgroundImage(visitorSession)
             }
 
-            override fun performVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
+            override fun performVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSessionV2) {
                 updateBackgroundImage(visitorSession)
             }
 
             /**
              * Prepares background image for scripted resources
              */
-            private fun prepareBackgroundImage(visitorSession: VisitorSession) {
+            private fun prepareBackgroundImage(visitorSession: VisitorSessionV2) {
                 val url = getUrl(getScriptedResource(buildContext, visitorSession, "backgroundImage", false))
                 if (url != null) {
                     getOfflineFile(url = url)
@@ -414,7 +414,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             /**
              * Updates background image for scripted resources
              */
-            private fun updateBackgroundImage(visitorSession: VisitorSession) {
+            private fun updateBackgroundImage(visitorSession: VisitorSessionV2) {
                 val url = getUrl(getScriptedResource(buildContext, visitorSession, "backgroundImage", false))
                 if (url != null) {
                     setBackgroundImage(view = view, url = url)
@@ -451,7 +451,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param visitorSession visitor session
      * @return Evaluated resource value
      */
-    private fun evaluateResourceScript(resource: ExhibitionPageResource?, visitorSession: VisitorSession): String? {
+    private fun evaluateResourceScript(resource: ExhibitionPageResource?, visitorSession: VisitorSessionV2): String? {
         resource ?: return null
         val data = resource.data
 
@@ -470,7 +470,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @return evaluated data
      */
     private fun evaluateDynamic(
-        visitorSession: VisitorSession,
+        visitorSession: VisitorSessionV2,
         data: String
     ): String? {
         val moshi = Moshi.Builder()
@@ -512,7 +512,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @return evaluated data
      */
     private fun evaluateDynamicSwitch(
-        visitorSession: VisitorSession,
+        visitorSession: VisitorSessionV2,
         params: DynamicPageResourceSwitch
     ): String? {
         when (params.dataSource) {
@@ -539,7 +539,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @return evaluated data
      */
     private fun evaluateScripted(
-        visitorSession: VisitorSession,
+        visitorSession: VisitorSessionV2,
         data: String
     ): String? {
         val userValues = visitorSession.variables?.map { it.name to it.value }?.toMap() ?: emptyMap()

@@ -6,7 +6,7 @@ import android.view.View
 import android.widget.ImageView
 import fi.metatavu.muisti.api.client.models.DeviceImageLoadStrategy
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
-import fi.metatavu.muisti.api.client.models.VisitorSession
+import fi.metatavu.muisti.api.client.models.VisitorSessionV2
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.files.OfflineFileController
 import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleAdapter
@@ -43,11 +43,11 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
         }
 
         buildContext.addVisitorSessionListener(object : PageViewVisitorSessionAdapter() {
-            override suspend fun prepareVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
+            override suspend fun prepareVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSessionV2) {
                 prepareImage(visitorSession)
             }
 
-            override fun performVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
+            override fun performVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSessionV2) {
                 updateImage(visitorSession)
             }
 
@@ -56,7 +56,7 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
              *
              * @param visitorSession Visitor session that triggered the preparation
              */
-            private fun prepareImage(visitorSession: VisitorSession) {
+            private fun prepareImage(visitorSession: VisitorSessionV2) {
                 val url = getUrl(getScriptedResource(buildContext,  visitorSession, "src", false))
                 if (url != null) {
                     getOfflineFile(url = url)
@@ -68,7 +68,7 @@ class ImageViewComponentFactory : AbstractComponentFactory<ImageView>() {
              *
              * @param visitorSession Visitor session that triggered the update
              */
-            private fun updateImage(visitorSession: VisitorSession) {
+            private fun updateImage(visitorSession: VisitorSessionV2) {
                 val url = getUrl(getScriptedResource(buildContext, visitorSession,"src", false))
                 if (url != null) {
                     updateImageSource(imageView = imageView, url = url)
