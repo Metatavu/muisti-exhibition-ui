@@ -55,6 +55,7 @@ class ExhibitionUIApplication : Application() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateKeycloakTokenServiceTask() }, 1, 5, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 5, 1, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorsServiceTask() }, 5, 60 * 5, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorSessionsServiceTask() }, 5, 60 * 5, TimeUnit.SECONDS)
 
         VisibleTagsContainer.getLiveVisibleTags().observeForever {
             onVisibleTagsChange(it)
@@ -78,7 +79,10 @@ class ExhibitionUIApplication : Application() {
         val visitorListeners = mapOf(
             "visitors/create" to MqttVisitorCreate::class.java,
             "visitors/update" to MqttVisitorUpdate::class.java,
-            "visitors/delete" to MqttVisitorDelete::class.java,
+            "visitors/delete" to MqttVisitorDelete::class.java
+        )
+
+        val visitorSessionListeners = mapOf(
             "visitorsessions/create" to MqttExhibitionVisitorSessionCreate::class.java,
             "visitorsessions/update" to MqttExhibitionVisitorSessionUpdate::class.java,
             "visitorsessions/delete" to MqttExhibitionVisitorSessionDelete::class.java
@@ -87,6 +91,12 @@ class ExhibitionUIApplication : Application() {
         visitorListeners.forEach {
             MqttClientController.addListener(MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/${it.key}", it.value) {
                 enqueueUpdateVisitorsServiceTask()
+            })
+        }
+
+        visitorSessionListeners.forEach {
+            MqttClientController.addListener(MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/${it.key}", it.value) {
+                enqueueUpdateVisitorSessionsServiceTask()
             })
         }
     }
@@ -252,12 +262,25 @@ class ExhibitionUIApplication : Application() {
     }
 
     /**
+     * Enqueues update visitor sessions service task
+     */
+    private fun enqueueUpdateVisitorSessionsServiceTask() {
+        Log.d(javaClass.name, "Updating visitor sessions")
+        val serviceIntent = Intent().apply { }
+        JobIntentService.enqueueWork(this, VisitorSessionsService::class.java, 3, serviceIntent)
+    }
+
+    /**
      * Enqueues update visitors service task
      */
     private fun enqueueUpdateVisitorsServiceTask() {
-        Log.d(javaClass.name, "Updating visitor and visitor session lists")
-        val serviceIntent = Intent().apply { }
-        JobIntentService.enqueueWork(this, VisitorsService::class.java, 6, serviceIntent)
+        if (allowVisitorSessionCreation) {
+            Log.d(javaClass.name, "Updating visitor and visitor session lists")
+            val serviceIntent = Intent().apply { }
+            JobIntentService.enqueueWork(this, VisitorsService::class.java, 6, serviceIntent)
+        } else {
+            Log.d(javaClass.name, "Visitors list is only updated on devices allowing visitor session creation.")
+        }
     }
 
     /**
@@ -315,9 +338,7 @@ class ExhibitionUIApplication : Application() {
      * @return tags associated with given visitor session
      */
     private fun getVisitorSessionTags(visitorSession: VisitorSessionV2): List<String> {
-        return visitorSession.visitorIds
-            .mapNotNull { ExhibitionVisitorsContainer.findVisitorById(it) }
-            .map(Visitor::tagId)
+        return visitorSession.tags?.asList() ?: emptyList()
     }
 
     /**
@@ -376,7 +397,7 @@ class ExhibitionUIApplication : Application() {
             Log.d(javaClass.name, "Visitor session has ended")
         } else {
             resetVisitorSessionEndTimer()
-            Log.d(javaClass.name, "Visitor session ${visitorSession.id} still active")
+            Log.d(javaClass.name, "Visitor session ${visitorSession.id} still active")
         }
     }
 

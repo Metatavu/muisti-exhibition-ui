@@ -2,7 +2,7 @@ package fi.metatavu.muisti.exhibitionui.visitors
 
 import fi.metatavu.muisti.api.client.models.Visitor
 import fi.metatavu.muisti.api.client.models.VisitorSessionV2
-import java.util.*
+import java.time.OffsetDateTime
 
 /**
  * Container for exhibition visitors
@@ -13,7 +13,7 @@ class ExhibitionVisitorsContainer {
 
         private var visitors: Array<Visitor> = arrayOf()
 
-        private var visitorSessions: Array<VisitorSessionV2> = arrayOf()
+        private var visitorSessions: List<VisitorSessionV2> = listOf()
 
         /**
          * Sets visitors
@@ -25,12 +25,34 @@ class ExhibitionVisitorsContainer {
         }
 
         /**
-         * Sets visitor sessions
+         * Removes expired visitor sessions from visitor session list
          *
-         * @param updatedVisitorSessions visitor sessions to set
+         * @return returns count of removed sessions
          */
-        fun setVisitorSessions(updatedVisitorSessions: Array<VisitorSessionV2>) {
+        fun removeExpiredVisitorSessions(): Int {
+            val updatedVisitorSessions = visitorSessions.filter { visitorSession ->
+                OffsetDateTime.now().isBefore(OffsetDateTime.parse(visitorSession.expiresAt))
+            }
+
+            val count = visitorSessions.size - updatedVisitorSessions.size
             visitorSessions = updatedVisitorSessions
+            return count
+        }
+
+        /**
+         * Adds new visitor sessions to visitor sessions list.
+         *
+         * Duplicates are removed automatically
+         *
+         * @param newVisitorSessions new visitor sessions
+         * @return updated visitor session list
+         */
+        fun addVisitorSessions(newVisitorSessions: Array<VisitorSessionV2>): List<VisitorSessionV2> {
+            visitorSessions = visitorSessions
+                .plus(newVisitorSessions)
+                .distinctBy(VisitorSessionV2::id)
+
+            return visitorSessions
         }
 
         /**
@@ -44,28 +66,14 @@ class ExhibitionVisitorsContainer {
         }
 
         /**
-         * Finds a visitor by Id
-         *
-         * @param visitorId Visitor id to find visitor with
-         * @return Visitor or null
-         */
-        fun findVisitorById(visitorId: UUID): Visitor? {
-            return visitors.firstOrNull{ it.id == visitorId }
-        }
-
-        /**
          * Finds a visitor session by the specified tag
          *
          * @param tag Tag to find visitor session with
          * @return Visitor Session or null
          */
         fun findVisitorSessionByTag(tag: String): VisitorSessionV2? {
-            val matchingVisitor = visitors.firstOrNull {
-                it.tagId == tag
-            } ?: return null
-
-            return visitorSessions.firstOrNull {
-                it.visitorIds.contains(matchingVisitor.id)
+            return visitorSessions.find { visitorSession ->
+                visitorSession.tags?.contains(tag) ?: false
             }
         }
 
@@ -76,12 +84,8 @@ class ExhibitionVisitorsContainer {
          * @return Found visitor session or null
          */
         fun findVisitorSessionByTags(tags: List<String>): VisitorSessionV2? {
-            val matchingVisitors = visitors.filter {
-                tags.contains(it.tagId)
-            }
-
-            return visitorSessions.firstOrNull { visitorSession ->
-                matchingVisitors.any { visitorSession.visitorIds.contains(it.id) }
+            return visitorSessions.find { visitorSession ->
+                visitorSession.tags?.any { tags.contains(it) } ?: false
             }
         }
     }
