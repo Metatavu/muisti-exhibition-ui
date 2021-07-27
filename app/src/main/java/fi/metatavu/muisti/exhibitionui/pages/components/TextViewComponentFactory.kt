@@ -7,7 +7,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.TextView
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
-import fi.metatavu.muisti.api.client.models.VisitorSession
+import fi.metatavu.muisti.api.client.models.VisitorSessionV2
 import fi.metatavu.muisti.exhibitionui.pages.PageViewVisitorSessionAdapter
 import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
@@ -31,7 +31,7 @@ class TextViewComponentFactory : AbstractComponentFactory<TextView>() {
 
         buildContext.addVisitorSessionListener(object : PageViewVisitorSessionAdapter() {
 
-            override fun performVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
+            override fun performVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSessionV2) {
                 val resourceData = getScriptedResource(buildContext, visitorSession,"text", false)
                 if (resourceData != null) {
                     textView.text = parseHtml(resourceData)

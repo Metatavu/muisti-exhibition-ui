@@ -28,9 +28,9 @@ class StartVisitorSessionPageActionProvider(properties: Array<ExhibitionPageEven
                 val visitorIds = visitors.mapNotNull(Visitor::id).toTypedArray()
                 val visitorTags = visitors.mapNotNull(Visitor::tagId)
 
-                val visitorSession = MuistiApiFactory.getVisitorSessionsApi().createVisitorSession(
+                val visitorSession = MuistiApiFactory.getVisitorSessionsApi().createVisitorSessionV2(
                     exhibitionId = exhibitionId,
-                    visitorSession = VisitorSession(
+                    visitorSessionV2 = VisitorSessionV2(
                         state = VisitorSessionState.aCTIVE,
                         language = language,
                         visitorIds = visitorIds

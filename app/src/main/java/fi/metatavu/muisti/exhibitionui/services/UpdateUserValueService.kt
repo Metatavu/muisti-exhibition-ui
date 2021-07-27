@@ -55,12 +55,12 @@ object UpdateUserValue {
      * @param key key
      * @param value value
      */
-    suspend fun updateVisitorSessionVariable(visitorSession: VisitorSession, key: String, value: String) {
+    suspend fun updateVisitorSessionVariable(visitorSession: VisitorSessionV2, key: String, value: String) {
         try {
             val variables = (visitorSession.variables ?: arrayOf()).filter { !it.name.equals(key) }.toTypedArray()
             val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
 
-            visitorSessionsApi.updateVisitorSession(
+            visitorSessionsApi.updateVisitorSessionV2(
                 visitorSession.exhibitionId!!,
                 visitorSession.id!!,
                 visitorSession.copy(variables = variables.plus(VisitorSessionVariable(key, value)))
@@ -76,7 +76,7 @@ object UpdateUserValue {
      * @param updateUserValueTask task
      * @return a visitor session for a task
      */
-    suspend fun findVisitorSession(updateUserValueTask: UpdateUserValueTask1): VisitorSession? {
+    suspend fun findVisitorSession(updateUserValueTask: UpdateUserValueTask1): VisitorSessionV2? {
         try {
             val exhibitionId = DeviceSettings.getExhibitionId()
             val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
@@ -86,7 +86,7 @@ object UpdateUserValue {
                 return null
             }
 
-            return visitorSessionsApi.findVisitorSession(exhibitionId, visitorSessionId)
+            return visitorSessionsApi.findVisitorSessionV2(exhibitionId, visitorSessionId)
         } catch (e: Exception) {
             Log.e(javaClass.name, "Failed to retrieve visitor session", e)
         }
