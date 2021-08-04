@@ -598,7 +598,7 @@ abstract class MuistiActivity : AppCompatActivity() {
     private fun debugLogin() {
         VisibleTagsContainer.tagSeen(
                 tag = BuildConfig.KEYCLOAK_DEMO_TAG,
-                visitorSessionEndTimeout = 30
+                expireSlack = 1000L
         )
     }
 
