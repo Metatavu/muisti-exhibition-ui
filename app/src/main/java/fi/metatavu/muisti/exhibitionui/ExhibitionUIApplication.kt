@@ -138,6 +138,8 @@ class ExhibitionUIApplication : Application() {
      * Logs out the current visitor session
      */
     private fun endVisitorSession() {
+        Log.d(javaClass.name, "Ending visitor session")
+
         visitorSessionHandler.removeCallbacksAndMessages(null)
         VisitorSessionContainer.endVisitorSession()
         startLogoutGracePeriod()
@@ -241,7 +243,7 @@ class ExhibitionUIApplication : Application() {
     private fun handleProximityUpdate(antenna: RfidAntenna, proximityUpdate: MqttProximityUpdate) {
         if (proximityUpdate.strength > antenna.visitorSessionStartThreshold || VisitorSessionContainer.getVisitorSession() != null &&
                 proximityUpdate.strength > antenna.visitorSessionEndThreshold) {
-            VisibleTagsContainer.tagSeen(tag = proximityUpdate.tag, visitorSessionEndTimeout = visitorSessionEndTimeout)
+            VisibleTagsContainer.tagSeen(tag = proximityUpdate.tag, expireSlack = tagsPollInterval)
         }
     }
 
@@ -286,7 +288,9 @@ class ExhibitionUIApplication : Application() {
     /**
      * Resets visitor session end timer
      */
-    fun resetVisitorSessionEndTimer() {
+    private fun resetVisitorSessionEndTimer() {
+        Log.d(javaClass.name, "Resetting visitor session timeout")
+
         visitorSessionHandler.removeCallbacksAndMessages(null)
 
         visitorSessionHandler.postDelayed({
@@ -374,6 +378,8 @@ class ExhibitionUIApplication : Application() {
      * @param tags tags currently visible to the device
      */
     private fun onVisibleTagsChange(tags: List<String>) {
+        Log.d(javaClass.name, "Visible tags changed, new tags ${tags.joinToString(",")}")
+
         GlobalScope.launch {
             val exhibitionId = DeviceSettings.getExhibitionId()
             if (exhibitionId != null) {
