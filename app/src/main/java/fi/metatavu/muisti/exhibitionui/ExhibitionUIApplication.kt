@@ -84,7 +84,6 @@ class ExhibitionUIApplication : Application() {
 
         val visitorSessionListeners = mapOf(
             "visitorsessions/create" to MqttExhibitionVisitorSessionCreate::class.java,
-            "visitorsessions/update" to MqttExhibitionVisitorSessionUpdate::class.java,
             "visitorsessions/delete" to MqttExhibitionVisitorSessionDelete::class.java
         )
 
@@ -99,6 +98,18 @@ class ExhibitionUIApplication : Application() {
                 enqueueUpdateVisitorSessionsServiceTask()
             })
         }
+
+        MqttClientController.addListener(MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/visitorsessions/update", MqttExhibitionVisitorSessionUpdate::class.java) {
+            onVisitorSessionUpdate(
+                exhibitionId = it.exhibitionId,
+                visitorSessionId = it.id
+            )
+        })
+
+        /**
+         *
+        "" to MqttExhibitionVisitorSessionUpdate::class.java,
+         */
     }
 
     /**
@@ -270,6 +281,32 @@ class ExhibitionUIApplication : Application() {
         Log.d(javaClass.name, "Updating visitor sessions")
         val serviceIntent = Intent().apply { }
         JobIntentService.enqueueWork(this, VisitorSessionsService::class.java, 3, serviceIntent)
+    }
+
+    /**
+     * Event handler for visitor session update event
+     *
+     * @param exhibitionId exhibition id
+     * @param visitorSessionId visitor session id
+     */
+    private fun onVisitorSessionUpdate(exhibitionId: UUID, visitorSessionId: UUID) = GlobalScope.launch {
+        Log.d(javaClass.name, "Updating visitor session $visitorSessionId from exhibition $exhibitionId")
+
+        val visitorSession = MuistiApiFactory.getVisitorSessionsApi().findVisitorSessionV2(
+            exhibitionId = exhibitionId,
+            visitorSessionId = visitorSessionId
+        )
+
+        if (visitorSession == null) {
+            Log.w(javaClass.name, "Could not find updated visitor session $visitorSessionId from exhibition $exhibitionId")
+            return@launch
+        }
+
+        ExhibitionVisitorsContainer.updateVisitorSession(
+            visitorSession = visitorSession
+        )
+
+        Log.d(javaClass.name, "Visitor session $visitorSessionId from exhibition $exhibitionId updated.")
     }
 
     /**

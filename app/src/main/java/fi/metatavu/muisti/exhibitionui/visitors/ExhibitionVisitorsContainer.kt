@@ -56,6 +56,17 @@ class ExhibitionVisitorsContainer {
         }
 
         /**
+         * Updates existing visitor session on visitor session list
+         *
+         * @param visitorSession visitor session
+         */
+        fun updateVisitorSession(visitorSession: VisitorSessionV2) {
+            visitorSessions = visitorSessions
+                .filter { it.id != visitorSession.id }
+                .plus(visitorSession)
+        }
+
+        /**
          * Finds a visitor by tag
          *
          * @param tag tag to find visitor with
