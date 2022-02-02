@@ -155,11 +155,17 @@ class OfflineFileController {
             return File(file.absolutePath)
         }
 
+        /**
+         * Returns offline file filename. Name is calculated from external URL
+         * so the method will yield same result regardless of whether file has been
+         * already offlined or not.
+         *
+         * @return offline file filename
+         */
         private fun getOfflineFilename(urlExternal: String): String {
             val urlHash: String = md5(urlExternal)
             val extension: String = urlExternal.substring(urlExternal.lastIndexOf("."))
-            val fileName = "$urlHash$extension"
-            return fileName
+            return "$urlHash$extension"
         }
 
         /**
