@@ -33,12 +33,17 @@ class OfflineFileController {
          * Returns offlined file for given URL
          *
          * @param url URL
+         * @param download whether the method should download the file or just return offlined file as is
          * @return offlined file or null if not available
          */
-        @Synchronized fun getOfflineFile(url: URL): File? {
+        @Synchronized fun getOfflineFile(url: URL, download: Boolean = true): File? {
             val urlExternal = url.toExternalForm()
             try {
-                return download(urlExternal)
+                if (download) {
+                    return download(urlExternal)
+                } else {
+                    return File(downloadsDir, getOfflineFilename(urlExternal))
+                }
             } catch (e: SocketTimeoutException) {
                 Log.e(OfflineFileController::class.java.name, "Socket timeout while downloading $urlExternal")
             } catch (e: Exception) {
@@ -56,7 +61,7 @@ class OfflineFileController {
          * @param maxImageHeight image height
          * @return offline file or null if file is not image
          */
-        @Synchronized fun getOfflineImageFile(url: URL, maxImageWidth: Int, maxImageHeight: Int): File? {
+        @Synchronized fun getScaledOfflineImageFile(url: URL, maxImageWidth: Int, maxImageHeight: Int): File? {
             val urlExternal = url.toExternalForm()
             val urlHash: String = md5(urlExternal)
             val extension: String = urlExternal.substring(urlExternal.lastIndexOf("."))
@@ -97,10 +102,7 @@ class OfflineFileController {
          * @return offlined file if download has succeeded or null if not
          */
         private fun download(urlExternal: String): File? {
-            val urlHash: String = md5(urlExternal)
-            val extension: String = urlExternal.substring(urlExternal.lastIndexOf("."))
-            val fileName = "$urlHash$extension"
-
+            val fileName = getOfflineFilename(urlExternal)
             val file = File(downloadsDir, fileName)
             val request = buildRequest(file, urlExternal)
             val response = httpClient.newCall(request).execute()
@@ -151,6 +153,13 @@ class OfflineFileController {
             Log.d(OfflineFileController::class.java.name, "Downloaded $urlExternal")
 
             return File(file.absolutePath)
+        }
+
+        private fun getOfflineFilename(urlExternal: String): String {
+            val urlHash: String = md5(urlExternal)
+            val extension: String = urlExternal.substring(urlExternal.lastIndexOf("."))
+            val fileName = "$urlHash$extension"
+            return fileName
         }
 
         /**
