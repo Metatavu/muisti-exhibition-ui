@@ -44,7 +44,7 @@ class WebViewContainer(buildContext: ComponentBuildContext, val data: String?, v
      * @param script script
      * @param resultCallback result callback
      */
-    fun evaluateJavascript(script: String?, resultCallback: ValueCallback<String>?) {
+    fun evaluateJavascript(script: String, resultCallback: ValueCallback<String>?) {
         webView?.evaluateJavascript(script, resultCallback)
     }
 
