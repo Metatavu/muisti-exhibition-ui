@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.os.Handler
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import fi.metatavu.muisti.api.client.models.VisitorSession
+import fi.metatavu.muisti.api.client.models.VisitorSessionV2
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
@@ -23,7 +23,7 @@ class MainActivity : MuistiActivity() {
     private var mViewModel: MainViewModel? = null
     private var handler: Handler = Handler()
 
-    private val visitorSessionObserver = Observer<VisitorSession?> {
+    private val visitorSessionObserver = Observer<VisitorSessionV2?> {
         onVisitorSessionChange(it)
     }
 
@@ -79,7 +79,7 @@ class MainActivity : MuistiActivity() {
         ExhibitionUIApplication.instance.readApiValues()
     }
 
-    private suspend fun startVisitorSession(visitorSession: VisitorSession) {
+    private suspend fun startVisitorSession(visitorSession: VisitorSessionV2) {
         val language = visitorSession.language
         val frontPage = mViewModel?.getFrontPage(
             language = language,
@@ -131,7 +131,7 @@ class MainActivity : MuistiActivity() {
      *
      * @param visitorSession visitor session
      */
-    private fun onVisitorSessionChange(visitorSession: VisitorSession?) {
+    private fun onVisitorSessionChange(visitorSession: VisitorSessionV2?) {
         visitorSession ?: return
 
         GlobalScope.launch {

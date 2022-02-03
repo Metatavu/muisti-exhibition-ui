@@ -339,7 +339,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      */
     protected fun getScriptedResource(
         buildContext: ComponentBuildContext,
-        visitorSession: VisitorSession,
+        visitorSession: VisitorSessionV2,
         propertyName: String,
         returnNotScripted: Boolean
     ): String? {
@@ -393,18 +393,18 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     private fun initializeScriptedListener(buildContext: ComponentBuildContext, view: T) {
         buildContext.addVisitorSessionListener(object : PageViewVisitorSessionListener {
 
-            override suspend fun prepareVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
+            override suspend fun prepareVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSessionV2) {
                 prepareBackgroundImage(visitorSession)
             }
 
-            override fun performVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSession) {
+            override fun performVisitorSessionChange(pageActivity: PageActivity, visitorSession: VisitorSessionV2) {
                 updateBackgroundImage(visitorSession)
             }
 
             /**
              * Prepares background image for scripted resources
              */
-            private fun prepareBackgroundImage(visitorSession: VisitorSession) {
+            private fun prepareBackgroundImage(visitorSession: VisitorSessionV2) {
                 val url = getUrl(getScriptedResource(buildContext, visitorSession, "backgroundImage", false))
                 if (url != null) {
                     getOfflineFile(url = url)
@@ -414,7 +414,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
             /**
              * Updates background image for scripted resources
              */
-            private fun updateBackgroundImage(visitorSession: VisitorSession) {
+            private fun updateBackgroundImage(visitorSession: VisitorSessionV2) {
                 val url = getUrl(getScriptedResource(buildContext, visitorSession, "backgroundImage", false))
                 if (url != null) {
                     setBackgroundImage(view = view, url = url)
@@ -451,7 +451,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param visitorSession visitor session
      * @return Evaluated resource value
      */
-    private fun evaluateResourceScript(resource: ExhibitionPageResource?, visitorSession: VisitorSession): String? {
+    private fun evaluateResourceScript(resource: ExhibitionPageResource?, visitorSession: VisitorSessionV2): String? {
         resource ?: return null
         val data = resource.data
 
@@ -470,7 +470,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @return evaluated data
      */
     private fun evaluateDynamic(
-        visitorSession: VisitorSession,
+        visitorSession: VisitorSessionV2,
         data: String
     ): String? {
         val moshi = Moshi.Builder()
@@ -512,7 +512,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @return evaluated data
      */
     private fun evaluateDynamicSwitch(
-        visitorSession: VisitorSession,
+        visitorSession: VisitorSessionV2,
         params: DynamicPageResourceSwitch
     ): String? {
         when (params.dataSource) {
@@ -539,7 +539,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @return evaluated data
      */
     private fun evaluateScripted(
-        visitorSession: VisitorSession,
+        visitorSession: VisitorSessionV2,
         data: String
     ): String? {
         val userValues = visitorSession.variables?.map { it.name to it.value }?.toMap() ?: emptyMap()
@@ -591,13 +591,13 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     }
 
     /**
-     * Sets background image
+     * Sets background image.
      *
      * @param view view component
      * @param url url
      */
     private fun setBackgroundImage(view: View, url: URL?) {
-        val bitmap = getOfflineBitmap(url = url)
+        val bitmap = getScaledOfflineBitmap(url = url)
         if (bitmap != null) {
             view.background = BitmapDrawable(Resources.getSystem(), bitmap)
         }
@@ -651,49 +651,75 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     }
 
     /**
-     * Returns offlined image from URL
+     * Returns offlined image as bitmap from URL as original or a scaled image
+     * if size exceeds display's width or height
      *
      * @param url URL to get image from
      * @return Bitmap or null
      */
-    protected fun getOfflineBitmap(url: URL?): Bitmap? {
-        return getOfflineBitmap(url = url, maxImageWidth = displayWidth, maxImageHeight = displayHeight)
+    protected fun getScaledOfflineBitmap(url: URL?): Bitmap? {
+        return getScaledOfflineBitmap(
+            url = url,
+            maxImageWidth = displayWidth,
+            maxImageHeight = displayHeight
+        )
     }
 
     /**
-     * Returns offlined image file from URL
+     * Returns offlined image file from URL as original or a scaled image
+     * if size exceeds display's width or height
      *
      * @param url URL to get image from
      * @return File or null
      */
-    protected fun getOfflineImageFile(url: URL?): File? {
-        return getOfflineImageFile(url = url, maxImageWidth = displayWidth, maxImageHeight = displayHeight)
+    protected fun getScaledOfflineImageFile(url: URL?): File? {
+        return getScaledOfflineImageFile(url = url, maxImageWidth = displayWidth, maxImageHeight = displayHeight)
     }
 
     /**
-     * Returns offlined image from URL as original or a scaled image if size exceeds 80MB
+     * Returns offlined image as bitmap from URL as original or a scaled image
+     * if size exceeds given width or height
      *
      * @param url URL to get image from
      * @param maxImageWidth maximum width of returned image. Defaults to device width
      * @param maxImageHeight maximum height of returned image. Defaults to device height
      * @return Bitmap or null
      */
-    private fun getOfflineBitmap(url: URL?, maxImageWidth: Int, maxImageHeight: Int): Bitmap? {
-        val offlineImageFile = getOfflineImageFile(url = url, maxImageWidth = maxImageWidth, maxImageHeight = maxImageHeight) ?: return null
+    private fun getScaledOfflineBitmap(
+        url: URL?,
+        maxImageWidth: Int,
+        maxImageHeight: Int
+    ): Bitmap? {
+        val offlineImageFile = getScaledOfflineImageFile(
+            url = url,
+            maxImageWidth = maxImageWidth,
+            maxImageHeight = maxImageHeight
+        ) ?: return null
+
         return BitmapFactory.decodeFile(offlineImageFile.absolutePath) ?: return null
     }
 
     /**
-     * Returns offlined image file from URL as original or a scaled image if size exceeds 80MB
+     * Returns offlined image file from URL as original or a scaled image
+     * if size exceeds given width or height
      *
      * @param url URL to get image from
      * @param maxImageWidth maximum width of returned image. Defaults to device width
      * @param maxImageHeight maximum height of returned image. Defaults to device height
      * @return File or null
      */
-    private fun getOfflineImageFile(url: URL?, maxImageWidth: Int, maxImageHeight: Int): File? {
+    private fun getScaledOfflineImageFile(
+        url: URL?,
+        maxImageWidth: Int,
+        maxImageHeight: Int
+    ): File? {
         url ?: return null
-        return OfflineFileController.getOfflineImageFile(url = url, maxImageWidth = maxImageWidth, maxImageHeight = maxImageHeight)
+
+        return OfflineFileController.getScaledOfflineImageFile(
+            url = url,
+            maxImageWidth = maxImageWidth,
+            maxImageHeight = maxImageHeight
+        )
     }
 
     /**

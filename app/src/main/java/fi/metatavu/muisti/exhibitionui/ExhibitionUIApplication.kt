@@ -55,6 +55,7 @@ class ExhibitionUIApplication : Application() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateKeycloakTokenServiceTask() }, 1, 5, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 5, 1, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorsServiceTask() }, 5, 60 * 5, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorSessionsServiceTask() }, 5, 60 * 5, TimeUnit.SECONDS)
 
         VisibleTagsContainer.getLiveVisibleTags().observeForever {
             onVisibleTagsChange(it)
@@ -78,9 +79,11 @@ class ExhibitionUIApplication : Application() {
         val visitorListeners = mapOf(
             "visitors/create" to MqttVisitorCreate::class.java,
             "visitors/update" to MqttVisitorUpdate::class.java,
-            "visitors/delete" to MqttVisitorDelete::class.java,
+            "visitors/delete" to MqttVisitorDelete::class.java
+        )
+
+        val visitorSessionListeners = mapOf(
             "visitorsessions/create" to MqttExhibitionVisitorSessionCreate::class.java,
-            "visitorsessions/update" to MqttExhibitionVisitorSessionUpdate::class.java,
             "visitorsessions/delete" to MqttExhibitionVisitorSessionDelete::class.java
         )
 
@@ -89,6 +92,24 @@ class ExhibitionUIApplication : Application() {
                 enqueueUpdateVisitorsServiceTask()
             })
         }
+
+        visitorSessionListeners.forEach {
+            MqttClientController.addListener(MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/${it.key}", it.value) {
+                enqueueUpdateVisitorSessionsServiceTask()
+            })
+        }
+
+        MqttClientController.addListener(MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/visitorsessions/update", MqttExhibitionVisitorSessionUpdate::class.java) {
+            onVisitorSessionUpdate(
+                exhibitionId = it.exhibitionId,
+                visitorSessionId = it.id
+            )
+        })
+
+        /**
+         *
+        "" to MqttExhibitionVisitorSessionUpdate::class.java,
+         */
     }
 
     /**
@@ -128,6 +149,8 @@ class ExhibitionUIApplication : Application() {
      * Logs out the current visitor session
      */
     private fun endVisitorSession() {
+        Log.d(javaClass.name, "Ending visitor session")
+
         visitorSessionHandler.removeCallbacksAndMessages(null)
         VisitorSessionContainer.endVisitorSession()
         startLogoutGracePeriod()
@@ -231,7 +254,7 @@ class ExhibitionUIApplication : Application() {
     private fun handleProximityUpdate(antenna: RfidAntenna, proximityUpdate: MqttProximityUpdate) {
         if (proximityUpdate.strength > antenna.visitorSessionStartThreshold || VisitorSessionContainer.getVisitorSession() != null &&
                 proximityUpdate.strength > antenna.visitorSessionEndThreshold) {
-            VisibleTagsContainer.tagSeen(tag = proximityUpdate.tag, visitorSessionEndTimeout = visitorSessionEndTimeout)
+            VisibleTagsContainer.tagSeen(tag = proximityUpdate.tag, expireSlack = tagsPollInterval)
         }
     }
 
@@ -252,18 +275,59 @@ class ExhibitionUIApplication : Application() {
     }
 
     /**
+     * Enqueues update visitor sessions service task
+     */
+    private fun enqueueUpdateVisitorSessionsServiceTask() {
+        Log.d(javaClass.name, "Updating visitor sessions")
+        val serviceIntent = Intent().apply { }
+        JobIntentService.enqueueWork(this, VisitorSessionsService::class.java, 3, serviceIntent)
+    }
+
+    /**
+     * Event handler for visitor session update event
+     *
+     * @param exhibitionId exhibition id
+     * @param visitorSessionId visitor session id
+     */
+    private fun onVisitorSessionUpdate(exhibitionId: UUID, visitorSessionId: UUID) = GlobalScope.launch {
+        Log.d(javaClass.name, "Updating visitor session $visitorSessionId from exhibition $exhibitionId")
+
+        val visitorSession = MuistiApiFactory.getVisitorSessionsApi().findVisitorSessionV2(
+            exhibitionId = exhibitionId,
+            visitorSessionId = visitorSessionId
+        )
+
+        if (visitorSession == null) {
+            Log.w(javaClass.name, "Could not find updated visitor session $visitorSessionId from exhibition $exhibitionId")
+            return@launch
+        }
+
+        ExhibitionVisitorsContainer.updateVisitorSession(
+            visitorSession = visitorSession
+        )
+
+        Log.d(javaClass.name, "Visitor session $visitorSessionId from exhibition $exhibitionId updated.")
+    }
+
+    /**
      * Enqueues update visitors service task
      */
     private fun enqueueUpdateVisitorsServiceTask() {
-        Log.d(javaClass.name, "Updating visitor and visitor session lists")
-        val serviceIntent = Intent().apply { }
-        JobIntentService.enqueueWork(this, VisitorsService::class.java, 6, serviceIntent)
+        if (allowVisitorSessionCreation) {
+            Log.d(javaClass.name, "Updating visitor and visitor session lists")
+            val serviceIntent = Intent().apply { }
+            JobIntentService.enqueueWork(this, VisitorsService::class.java, 6, serviceIntent)
+        } else {
+            Log.d(javaClass.name, "Visitors list is only updated on devices allowing visitor session creation.")
+        }
     }
 
     /**
      * Resets visitor session end timer
      */
-    fun resetVisitorSessionEndTimer() {
+    private fun resetVisitorSessionEndTimer() {
+        Log.d(javaClass.name, "Resetting visitor session timeout")
+
         visitorSessionHandler.removeCallbacksAndMessages(null)
 
         visitorSessionHandler.postDelayed({
@@ -314,10 +378,8 @@ class ExhibitionUIApplication : Application() {
      * @param visitorSession visitor session
      * @return tags associated with given visitor session
      */
-    private fun getVisitorSessionTags(visitorSession: VisitorSession): List<String> {
-        return visitorSession.visitorIds
-            .mapNotNull { ExhibitionVisitorsContainer.findVisitorById(it) }
-            .map(Visitor::tagId)
+    private fun getVisitorSessionTags(visitorSession: VisitorSessionV2): List<String> {
+        return visitorSession.tags?.asList() ?: emptyList()
     }
 
     /**
@@ -353,6 +415,8 @@ class ExhibitionUIApplication : Application() {
      * @param tags tags currently visible to the device
      */
     private fun onVisibleTagsChange(tags: List<String>) {
+        Log.d(javaClass.name, "Visible tags changed, new tags ${tags.joinToString(",")}")
+
         GlobalScope.launch {
             val exhibitionId = DeviceSettings.getExhibitionId()
             if (exhibitionId != null) {
@@ -370,13 +434,13 @@ class ExhibitionUIApplication : Application() {
      *
      * @param visitorSession visitor session
      */
-    private fun onVisitorSessionChange(visitorSession: VisitorSession?) {
+    private fun onVisitorSessionChange(visitorSession: VisitorSessionV2?) {
         if (visitorSession == null) {
             endVisitorSession()
             Log.d(javaClass.name, "Visitor session has ended")
         } else {
             resetVisitorSessionEndTimer()
-            Log.d(javaClass.name, "Visitor session ${visitorSession.id} still active")
+            Log.d(javaClass.name, "Visitor session ${visitorSession.id} still active")
         }
     }
 

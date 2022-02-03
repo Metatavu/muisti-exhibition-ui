@@ -24,10 +24,10 @@ class VisibleTagsContainer {
          * Updates tag seen status
          *
          * @param tag tag
-         * @param visitorSessionEndTimeout timeout when the tag will be determined to be gone
+         * @param expireSlack slack time in millis for tag seen expire
          */
-        fun tagSeen(tag: String, visitorSessionEndTimeout: Long) {
-            setRecentlySeenTags(recentlySeenTags.filter { it.tag != tag }.plus(RecentlySeenTag(expireTime = System.currentTimeMillis() + visitorSessionEndTimeout, tag = tag)))
+        fun tagSeen(tag: String, expireSlack: Long) {
+            setRecentlySeenTags(recentlySeenTags.filter { it.tag != tag }.plus(RecentlySeenTag(expireTime = System.currentTimeMillis() + expireSlack, tag = tag)))
         }
 
         /**

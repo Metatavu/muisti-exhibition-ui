@@ -11,17 +11,16 @@ import kotlinx.coroutines.launch
 import java.lang.Exception
 
 /**
- * Service for caching Visitors and Visitor sessions.
+ * Service for caching visitors.
  */
 class VisitorsService : JobIntentService() {
 
     override fun onHandleWork(intent: Intent) {
         updateVisitors()
-        updateVisitorSessions()
     }
 
     /**
-     * Updates the visitors list from the database
+     * Updates the visitors list from the API
      */
     private fun updateVisitors() = GlobalScope.launch {
         try {
@@ -33,16 +32,4 @@ class VisitorsService : JobIntentService() {
         }
     }
 
-    /**
-     * Updates the visitor sessions list from the database
-     */
-    private fun updateVisitorSessions() = GlobalScope.launch {
-        try {
-            val exhibitionId = DeviceSettings.getExhibitionId() ?: return@launch
-            val visitorSessionList = MuistiApiFactory.getVisitorSessionsApi().listVisitorSessions(exhibitionId = exhibitionId, tagId = null)
-            ExhibitionVisitorsContainer.setVisitorSessions(visitorSessionList)
-        } catch (e: Exception) {
-            Log.e(javaClass.name, "Error updating Exhibition visitor session list: $e")
-        }
-    }
 }
