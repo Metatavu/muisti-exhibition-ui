@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import fi.metatavu.muisti.api.client.models.VisitorSessionV2
 import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
+import fi.metatavu.muisti.exhibitionui.persistence.model.Page
 import fi.metatavu.muisti.exhibitionui.persistence.repository.PageRepository
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import java.util.*
@@ -37,15 +38,17 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
             language = language
         )
 
-        val activeIndexPages = indexPages.filter { indexPage ->
-            val activeConditionUserVariable = indexPage.activeConditionUserVariable
-            if (!activeConditionUserVariable.isNullOrEmpty()) {
-                val variable = visitorSession.variables?.find { variable -> variable.name == activeConditionUserVariable }
-                variable?.value == indexPage.activeConditionEquals
-            } else {
-                true
+        val activeIndexPages = indexPages
+            .sortedWith(nullsLast(compareBy(Page::activeConditionUserVariable)))
+            .filter { indexPage ->
+                val activeConditionUserVariable = indexPage.activeConditionUserVariable
+                if (!activeConditionUserVariable.isNullOrEmpty()) {
+                    val variable = visitorSession.variables?.find { variable -> variable.name == activeConditionUserVariable }
+                    variable?.value == indexPage.activeConditionEquals
+                } else {
+                    true
+                }
             }
-        }
 
         if (activeIndexPages.size > 1) {
             Log.w(javaClass.name, "Several matching index pages found, returning first one")
