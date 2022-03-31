@@ -17,7 +17,6 @@ import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.math.roundToInt
 
-
 /**
  * Activity for displaying pages from API
  */
@@ -29,6 +28,7 @@ class PageActivity : MuistiActivity() {
     private val showWarningAtSecondsLeft = 5000
 
     private var logoutWarning : TextView? = null
+    private var logoutTimer: CountDownTimer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,7 +87,7 @@ class PageActivity : MuistiActivity() {
      * @param timeUntilLogout time left until logout
      */
     fun logoutWarning(timeUntilLogout: Long) {
-        countDownTimer = object : CountDownTimer(timeUntilLogout, 1000) {
+        logoutTimer = object : CountDownTimer(timeUntilLogout, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 if (logoutWarning == null) {
                     logoutWarning = findViewById(R.id.logout_warning) ?: return
@@ -121,7 +121,7 @@ class PageActivity : MuistiActivity() {
      * Cancels current logout warning
      */
     fun cancelLogoutWarning() {
-        countDownTimer?.cancel()
+        logoutTimer?.cancel()
         val logoutWarning = findViewById<TextView>(R.id.logout_warning)
         logoutWarning?.visibility = View.INVISIBLE
     }

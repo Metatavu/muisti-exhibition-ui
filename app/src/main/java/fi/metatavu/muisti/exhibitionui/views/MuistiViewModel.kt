@@ -19,18 +19,18 @@ import java.util.*
  *
  * @param application application instance
  */
-class MainViewModel(application: Application): AndroidViewModel(application) {
+class MuistiViewModel(application: Application): AndroidViewModel(application) {
 
     private val pageRepository: PageRepository = PageRepository(ExhibitionUIDatabase.getDatabase().pageDao())
 
     /**
-     * Resolves a id of front page for given language
+     * Resolves a id of index page for given language
      *
      * @param language language
      * @param visitorSession visitor session
      * @return a front page id for given language or null if not found
      */
-    suspend fun getFrontPage(
+    suspend fun getIndexPage(
         language: String,
         visitorSession: VisitorSessionV2
     ) : UUID? {
