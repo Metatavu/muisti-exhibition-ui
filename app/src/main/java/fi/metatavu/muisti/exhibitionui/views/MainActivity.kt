@@ -3,7 +3,6 @@ package fi.metatavu.muisti.exhibitionui.views
 import android.os.Bundle
 import android.os.Handler
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import fi.metatavu.muisti.api.client.models.VisitorSessionV2
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
@@ -13,14 +12,12 @@ import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
 import kotlinx.android.synthetic.main.activity_page.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.*
 
 /**
  * Main activity class
  */
 class MainActivity : MuistiActivity() {
 
-    private var mViewModel: MainViewModel? = null
     private var handler: Handler = Handler()
 
     private val visitorSessionObserver = Observer<VisitorSessionV2?> {
@@ -29,7 +26,6 @@ class MainActivity : MuistiActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
         VisitorSessionContainer.getLiveVisitorSession().observe(this, visitorSessionObserver)
         GlobalScope.launch {
             val exhibitionId = DeviceSettings.getExhibitionId()
@@ -38,7 +34,7 @@ class MainActivity : MuistiActivity() {
             if (exhibitionId == null || deviceId == null) {
                 startSettingsActivity()
             } else {
-                val idlePage = when (val pageId = mViewModel?.getIdlePageId()) {
+                val idlePage = when (val pageId = muistiViewModel?.getIdlePageId()) {
                     null -> null
                     else -> PageViewContainer.getPageView(pageId)
                 }
@@ -79,33 +75,6 @@ class MainActivity : MuistiActivity() {
         ExhibitionUIApplication.instance.readApiValues()
     }
 
-    private suspend fun startVisitorSession(visitorSession: VisitorSessionV2) {
-        val language = visitorSession.language
-        val frontPage = mViewModel?.getFrontPage(
-            language = language,
-            visitorSession = visitorSession
-        )
-
-        if (frontPage != null) {
-            waitForPage(frontPage)
-        }
-    }
-
-    /**
-     * Checks if page is constructed in the PageViewContainer and either navigates to it or keeps waiting
-     *
-     * @param pageId page id to navigate to once it is ready
-     */
-    private fun waitForPage(pageId: UUID) {
-        handler.postDelayed({
-            if (PageViewContainer.contains(pageId)) {
-                goToPage(pageId)
-            } else {
-                waitForPage(pageId)
-            }
-        }, 500)
-    }
-
     /**
      * Checks if forced portrait mode setting is loaded,
      * if true forcces portrait otherwise sets the specified orientation.
@@ -135,7 +104,7 @@ class MainActivity : MuistiActivity() {
         visitorSession ?: return
 
         GlobalScope.launch {
-            startVisitorSession(visitorSession)
+            goToIndexPage(visitorSession)
         }
     }
 

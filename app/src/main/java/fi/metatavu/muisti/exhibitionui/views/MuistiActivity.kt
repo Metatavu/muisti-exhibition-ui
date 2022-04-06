@@ -15,7 +15,6 @@ import kotlinx.android.synthetic.main.activity_page.*
 import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
 import java.util.*
 import kotlin.math.max
-import android.os.CountDownTimer
 import android.os.PersistableBundle
 import android.transition.Fade
 import android.transition.Visibility
@@ -23,6 +22,7 @@ import android.util.Log
 import android.view.*
 import android.view.animation.*
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.ViewModelProvider
 import com.github.rongi.rotate_layout.layout.RotateLayout
 import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.api.client.models.Animation
@@ -32,6 +32,7 @@ import fi.metatavu.muisti.exhibitionui.actions.PageActionProvider
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProviderFactory
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
+import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import fi.metatavu.muisti.exhibitionui.visitors.VisibleTagsContainer
 import kotlinx.coroutines.GlobalScope
@@ -43,6 +44,7 @@ import kotlinx.coroutines.launch
  */
 abstract class MuistiActivity : AppCompatActivity() {
 
+    protected var muistiViewModel: MuistiViewModel? = null
     private val handler: Handler = Handler()
     private val deviceGroupEvents = mutableMapOf<String, Array<ExhibitionPageEvent>>()
     private val keyDownListeners = mutableListOf<KeyCodeListener>()
@@ -53,7 +55,6 @@ abstract class MuistiActivity : AppCompatActivity() {
     private val loginClickCounterHandler = Handler()
     protected var currentPageView: PageView? = null
     val transitionElements: MutableList<View> = mutableListOf()
-    var countDownTimer: CountDownTimer? = null
     var pageInteractable = false
     var transitionTime = 300L
 
@@ -66,6 +67,11 @@ abstract class MuistiActivity : AppCompatActivity() {
                 triggerEvents(events)
             }
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        muistiViewModel = ViewModelProvider(this).get(MuistiViewModel::class.java)
     }
 
     override fun onDestroy() {
@@ -132,6 +138,20 @@ abstract class MuistiActivity : AppCompatActivity() {
         triggerKeyListeners(keyCode, keyDown = false)
         super.onKeyUp(keyCode, event)
         return true
+    }
+
+    /**
+     * Navigates visitor to index page
+     *
+     * @param visitorSession visitor session
+     */
+    suspend fun goToIndexPage(visitorSession: VisitorSessionV2) {
+        val indexPage = muistiViewModel?.getIndexPage(
+            language = visitorSession.language,
+            visitorSession = visitorSession
+        ) ?: return
+
+        waitForPage(indexPage)
     }
 
     /**
@@ -656,5 +676,20 @@ abstract class MuistiActivity : AppCompatActivity() {
                 }, 1000)
             }
         }
+    }
+
+    /**
+     * Checks if page is constructed in the PageViewContainer and either navigates to it or keeps waiting
+     *
+     * @param pageId page id to navigate to once it is ready
+     */
+    private fun waitForPage(pageId: UUID) {
+        handler.postDelayed({
+            if (PageViewContainer.contains(pageId)) {
+                goToPage(pageId)
+            } else {
+                waitForPage(pageId)
+            }
+        }, 500)
     }
 }

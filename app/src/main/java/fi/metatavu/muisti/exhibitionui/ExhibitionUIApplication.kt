@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Application
 import android.content.Intent
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.core.app.JobIntentService
 import fi.metatavu.muisti.api.client.models.*
@@ -33,6 +34,8 @@ class ExhibitionUIApplication : Application() {
     private val visitorSessionHandler = Handler()
     private val unseenTagsHandler = Handler()
     private var visitorSessionEndTimeout = 5000L
+    private val indexPageHandler = Handler(Looper.getMainLooper())
+    private var indexPageTimeout: Long? = null
     private var allowVisitorSessionCreation = false
     private var antennaListeners = emptyList<MqttTopicListener<*>>()
 
@@ -105,11 +108,6 @@ class ExhibitionUIApplication : Application() {
                 visitorSessionId = it.id
             )
         })
-
-        /**
-         *
-        "" to MqttExhibitionVisitorSessionUpdate::class.java,
-         */
     }
 
     /**
@@ -151,6 +149,7 @@ class ExhibitionUIApplication : Application() {
     private fun endVisitorSession() {
         Log.d(javaClass.name, "Ending visitor session")
 
+        indexPageHandler.removeCallbacksAndMessages(null)
         visitorSessionHandler.removeCallbacksAndMessages(null)
         VisitorSessionContainer.endVisitorSession()
         startLogoutGracePeriod()
@@ -234,6 +233,7 @@ class ExhibitionUIApplication : Application() {
                 visitorSessionEndTimeout = group.visitorSessionEndTimeout
                 allowVisitorSessionCreation = group.allowVisitorSessionCreation
                 deviceImageLoadStrategy = device.imageLoadStrategy
+                indexPageTimeout = group.indexPageTimeout
 
                 Log.d(javaClass.name, "Device orientation is set to: ${device.screenOrientation}")
                 Log.d(javaClass.name, "Visitor session end timeout set to: $visitorSessionEndTimeout")
@@ -349,6 +349,7 @@ class ExhibitionUIApplication : Application() {
         }
 
         resetVisitorSessionEndTimer()
+        resetIndexPageTimer()
     }
 
     /**
@@ -440,7 +441,34 @@ class ExhibitionUIApplication : Application() {
             Log.d(javaClass.name, "Visitor session has ended")
         } else {
             resetVisitorSessionEndTimer()
+            resetIndexPageTimer()
             Log.d(javaClass.name, "Visitor session ${visitorSession.id} still active")
+        }
+    }
+
+    /**
+     * Resets index page timer
+     */
+    private fun resetIndexPageTimer() {
+        val timeout = indexPageTimeout ?: return
+        Log.d(javaClass.name, "Resetting home page timeout")
+        indexPageHandler.removeCallbacksAndMessages(null)
+
+        indexPageHandler.postDelayed({
+            goToIndexPage()
+        }, timeout)
+    }
+
+    /**
+     * Returns visitor to the index page
+     */
+    private fun goToIndexPage() {
+        val activity = getCurrentActivity()
+        if (activity is PageActivity) {
+            val visitorSession = VisitorSessionContainer.getVisitorSession() ?: return
+            GlobalScope.launch {
+                activity.goToIndexPage(visitorSession)
+            }
         }
     }
 
