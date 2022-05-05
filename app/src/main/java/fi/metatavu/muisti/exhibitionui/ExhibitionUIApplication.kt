@@ -451,7 +451,7 @@ class ExhibitionUIApplication : Application() {
      */
     private fun resetIndexPageTimer() {
         val timeout = indexPageTimeout ?: return
-        Log.d(javaClass.name, "Resetting home page timeout")
+        Log.d(javaClass.name, "Resetting index page timeout")
         indexPageHandler.removeCallbacksAndMessages(null)
 
         indexPageHandler.postDelayed({
@@ -463,6 +463,8 @@ class ExhibitionUIApplication : Application() {
      * Returns visitor to the index page
      */
     private fun goToIndexPage() {
+        Log.d(javaClass.name, "Returning visitor to the index page")
+
         val activity = getCurrentActivity()
         if (activity is PageActivity) {
             val visitorSession = VisitorSessionContainer.getVisitorSession() ?: return
