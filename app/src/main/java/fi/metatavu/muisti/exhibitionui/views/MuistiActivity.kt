@@ -149,7 +149,12 @@ abstract class MuistiActivity : AppCompatActivity() {
         val indexPage = muistiViewModel?.getIndexPage(
             language = visitorSession.language,
             visitorSession = visitorSession
-        ) ?: return
+        )
+
+        if (indexPage == null) {
+            Log.d(javaClass.name, "Could not find index page")
+            return
+        }
 
         waitForPage(indexPage)
     }
@@ -518,23 +523,45 @@ abstract class MuistiActivity : AppCompatActivity() {
      * @param sharedElements shared elements to morph during transition or null
      */
     fun goToPage(pageId: UUID, sharedElements: List<View>? = null) {
+        val currentPageId = getCurrentPageId()
+        if (pageId == currentPageId) {
+            Log.d(javaClass.name, "Trying to navigate to the same page")
+            return
+        }
+
         pageInteractable = false
         val intent = Intent(this, PageActivity::class.java).apply {
             putExtra("pageId", pageId.toString())
         }
 
+        val pageTransitionTime = max(window.exitTransition?.duration ?: 300, window.enterTransition?.duration  ?: 300)
         if (!sharedElements.isNullOrEmpty()) {
             val transitionElementPairs = sharedElements.map { Pair.create(it, it.transitionName ?: "") }.toTypedArray()
             val targetElements = transitionElementPairs.map { it.second }
             intent.apply { putStringArrayListExtra("elements", ArrayList(targetElements))}
             val options = ActivityOptions
                 .makeSceneTransitionAnimation(this, *transitionElementPairs)
-            intent.putExtra("pageTransitionTime", max(window.exitTransition?.duration ?: 300, window.enterTransition?.duration  ?: 300))
+            intent.putExtra("pageTransitionTime", pageTransitionTime)
             startActivity(intent, options.toBundle())
 
         } else {
-            intent.putExtra("pageTransitionTime", max(window.exitTransition?.duration ?: 300, window.enterTransition?.duration  ?: 300))
+            intent.putExtra("pageTransitionTime", pageTransitionTime)
             startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle())
+        }
+    }
+
+    /**
+     * Returns current page id
+     *
+     * @return current page id or null if not found
+     */
+    private fun getCurrentPageId(): UUID? {
+        val activity = this
+
+        return if (activity is PageActivity) {
+            activity.pageId
+        } else {
+            null
         }
     }
 
