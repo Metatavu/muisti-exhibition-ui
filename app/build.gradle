@@ -29,8 +29,8 @@ def readFile(fileName) {
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "29.0.3"
+    compileSdkVersion 33
+    buildToolsVersion "33.0.2"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -39,10 +39,10 @@ android {
 
     defaultConfig {
         applicationId "fi.metatavu.muisti.exhibitionui"
-        minSdkVersion 27
-        targetSdkVersion 30
-        versionCode 103040
-        versionName "1.3.4"
+        minSdkVersion 31
+        targetSdkVersion 33
+        versionCode 104000
+        versionName "1.4.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -91,9 +91,6 @@ android {
             buildConfigField("String", "MAP_BOX_ACCESS_TOKEN", "\"${System.getProperty('MAP_BOX_ACCESS_TOKEN')}\"")
         }
     }
-    lintOptions {
-        disable('AllowBackup', 'GoogleAppIndexingWarning', 'MissingApplicationIcon')
-    }
 
     testOptions {
         unitTests.all {
@@ -103,6 +100,10 @@ android {
                 showStandardStreams = true
             }
         }
+    }
+    namespace 'fi.metatavu.muisti.exhibitionui'
+    lint {
+        disable 'AllowBackup', 'GoogleAppIndexingWarning', 'MissingApplicationIcon'
     }
 }
 
