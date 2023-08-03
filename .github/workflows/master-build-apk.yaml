@@ -21,7 +21,9 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build APK
-        run: ./gradlew assemble
+        run: |
+          echo MUISTI_API_BASE_URL=${{ secrets.MUISTI_API_BASE_URL }} >> app/.env
+          ./gradlew assemble
 
       - name: Upload APK
         uses: shallwefootball/s3-upload-action@master
