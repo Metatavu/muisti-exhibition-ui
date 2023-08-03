@@ -6,15 +6,10 @@ apply plugin: 'kotlin-android-extensions'
 
 apply plugin: 'kotlin-kapt'
 
-apply plugin: 'docker-compose'
-
 kapt {
     correctErrorTypes true
 }
 
-dockerCompose {
-    captureContainersOutput = true
-}
 def readFile(fileName) {
     file(fileName).readLines().each() {
         if (!it.isEmpty() && !it.startsWith("#")) {
@@ -108,16 +103,6 @@ android {
     }
     lintOptions {
         disable('AllowBackup', 'GoogleAppIndexingWarning', 'MissingApplicationIcon')
-    }
-
-    testOptions {
-        unitTests.all {
-            dependsOn tasks.composeUp
-            finalizedBy tasks.composeDown
-            testLogging {
-                showStandardStreams = true
-            }
-        }
     }
 }
 
