@@ -23,6 +23,7 @@ jobs:
       - name: Build APK
         run: |
           echo MUISTI_API_BASE_URL=${{ secrets.MUISTI_API_BASE_URL }} >> app/.env
+          echo KEYCLOAK_URL=${{ secrets.KEYCLOAK_URL }} >> app/.env
           ./gradlew assemble
 
       - name: Upload APK
