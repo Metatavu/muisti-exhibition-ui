@@ -24,6 +24,17 @@ jobs:
         run: |
           echo MUISTI_API_BASE_URL=${{ secrets.MUISTI_API_BASE_URL }} >> app/.env
           echo KEYCLOAK_URL=${{ secrets.KEYCLOAK_URL }} >> app/.env
+          echo MQTT_BASE_TOPIC=${{ secrets.MQTT_BASE_TOPIC }} >> app/.env
+          echo KEYCLOAK_REALM=${{ secrets.KEYCLOAK_REALM }} >> app/.env
+          echo KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} >> app/.env
+          echo KEYCLOAK_USERNAME=${{ secrets.KEYCLOAK_USERNAME }} >> app/.env
+          echo KEYCLOAK_PASSWORD=${{ secrets.KEYCLOAK_PASSWORD }} >> app/.env
+          echo KEYCLOAK_DEMO_TAG=${{ secrets.KEYCLOAK_DEMO_TAG }} >> app/.env
+          echo DESTRUCTIVE_MIGRATIONS=${{ secrets.DESTRUCTIVE_MIGRATIONS }} >> app/.env
+          echo MQTT_BASE_URL=${{ secrets.MQTT_BASE_URL }} >> app/.env
+          echo MQTT_PASSWORD=${{ secrets.MQTT_PASSWORD }} >> app/.env
+          echo MQTT_USER=${{ secrets.MQTT_USER }} >> app/.env
+          echo MAP_BOX_ACCESS_TOKEN=${{ secrets.MAP_BOX_ACCESS_TOKEN }} >> app/.env
           ./gradlew assemble
 
       - name: Upload APK
