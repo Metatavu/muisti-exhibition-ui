@@ -83,6 +83,7 @@ android {
             buildConfigField("String", "MQTT_BASE_TOPIC", "\"${System.getProperty('MQTT_BASE_TOPIC')}\"")
             buildConfigField("String", "KEYCLOAK_DEMO_TAG", "\"${System.getProperty('KEYCLOAK_DEMO_TAG')}\"")
             buildConfigField("String", "MAP_BOX_ACCESS_TOKEN", "\"${System.getProperty('MAP_BOX_ACCESS_TOKEN')}\"")
+            buildConfigField("String", "UPDATE_URL", "\"${System.getProperty('UPDATE_URL')}\"")
         }
 
         debug {
@@ -99,6 +100,7 @@ android {
             buildConfigField("String", "MQTT_BASE_TOPIC", "\"${System.getProperty('MQTT_BASE_TOPIC')}\"")
             buildConfigField("String", "KEYCLOAK_DEMO_TAG", "\"${System.getProperty('KEYCLOAK_DEMO_TAG')}\"")
             buildConfigField("String", "MAP_BOX_ACCESS_TOKEN", "\"${System.getProperty('MAP_BOX_ACCESS_TOKEN')}\"")
+            buildConfigField("String", "UPDATE_URL", "\"${System.getProperty('UPDATE_URL')}\"")
         }
     }
     lintOptions {
