@@ -30,6 +30,7 @@ jobs:
           git add app/build.gradle
           git commit -m "Updated version"
           git checkout develop
+          git merge feature-199-app-updater
 
       - name: Bump version and push tag
         id: tag_version
