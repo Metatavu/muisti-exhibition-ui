@@ -254,16 +254,20 @@ class UpdateActivity : Activity()
      * Shows skip and update buttons
      */
     private fun showButtons() {
-        skipButton.visibility = View.VISIBLE
-        updateButton.visibility = View.VISIBLE
+        runOnUiThread {
+            skipButton.visibility = View.VISIBLE
+            updateButton.visibility = View.VISIBLE
+        }
     }
 
     /**
      * Hides skip and update buttons
      */
     private fun hideButtons() {
-        skipButton.visibility = View.INVISIBLE
-        updateButton.visibility = View.INVISIBLE
+        runOnUiThread {
+            skipButton.visibility = View.INVISIBLE
+            updateButton.visibility = View.INVISIBLE
+        }
     }
 
 
