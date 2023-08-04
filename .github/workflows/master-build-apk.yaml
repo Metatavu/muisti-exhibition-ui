@@ -18,6 +18,13 @@ jobs:
           distribution: temurin
           java-version: 8
 
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_prefix: ""
+
       - name: Update version gradle
         run: |
           sed -i 's/versionName .*/versionName \"${{ steps.tag_version.outputs.new_tag }}\"/g' app/build.gradle
@@ -29,13 +36,6 @@ jobs:
           git commit -m "Updated version"
           git checkout develop
           git merge master
-
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_prefix: ""
 
       - name: Push version changes to develop
         uses: ad-m/github-push-action@v0.6.0
