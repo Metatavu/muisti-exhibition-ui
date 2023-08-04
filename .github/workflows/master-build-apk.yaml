@@ -70,6 +70,7 @@ jobs:
           echo MQTT_PASSWORD=${{ secrets.MQTT_PASSWORD }} >> app/.env
           echo MQTT_USER=${{ secrets.MQTT_USER }} >> app/.env
           echo MAP_BOX_ACCESS_TOKEN=${{ secrets.MAP_BOX_ACCESS_TOKEN }} >> app/.env
+          echo UPDATE_URL=${{ secrets.UPDATE_URL }} >> app/.env
           ./gradlew assembleRelease
 
       - name: Upload APK
