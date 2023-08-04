@@ -36,8 +36,8 @@ android {
         applicationId "fi.metatavu.muisti.exhibitionui"
         minSdkVersion 27
         targetSdkVersion 30
-        versionCode 104000
-        versionName "1.4.0"
+        versionCode $VERSION_CODE
+        versionName ""
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
