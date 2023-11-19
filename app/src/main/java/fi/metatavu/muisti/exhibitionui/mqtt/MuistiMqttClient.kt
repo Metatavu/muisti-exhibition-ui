@@ -5,15 +5,16 @@ import org.eclipse.paho.client.mqttv3.MqttClient
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttMessage
 
-class MuistiMqttClient(serverURL : String) {
+class MuistiMqttClient(private val serverURLs : List<String>) {
 
-    private val mqttClient = MqttClient(serverURL, MqttClient.generateClientId(), null)
+    private val mqttClient = MqttClient(serverURLs.first(), MqttClient.generateClientId(), null)
 
     /**
      * Connect the client
      */
     fun connect() {
         val options = MqttConnectOptions()
+        options.serverURIs = serverURLs.toTypedArray()
         options.userName = BuildConfig.MQTT_USER
         options.password = BuildConfig.MQTT_PASSWORD.toCharArray()
         options.keepAliveInterval = 0

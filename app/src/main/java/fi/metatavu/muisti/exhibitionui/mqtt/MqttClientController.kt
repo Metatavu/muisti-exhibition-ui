@@ -1,6 +1,5 @@
 package fi.metatavu.muisti.exhibitionui.mqtt
 
-import android.util.Log
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fi.metatavu.muisti.api.client.infrastructure.UUIDAdapter
@@ -16,7 +15,7 @@ class MqttClientController {
 
     companion object {
 
-        private val client = MuistiMqttClient("tcp://${BuildConfig.MQTT_BASE_URL}")
+        private val client = MuistiMqttClient(BuildConfig.MQTT_URLS.split(","))
         private val listeners = mutableListOf<MqttTopicListener<*>>()
 
         private val trigger : (topic: String?, message : String) -> Unit = { topic, message ->
