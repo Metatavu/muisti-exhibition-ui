@@ -1,0 +1,48 @@
+name: Build APK (master)
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: master
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Envs
+        run: |
+          mkdir -p /tmp/envs
+          echo "SIGN_KEYSTORE": "${{ secrets.SIGN_KEYSTORE }}", >> /tmp/envs/envs.txt
+          echo "SIGN_STORE_PASSWORD": "${{ secrets.SIGN_STORE_PASSWORD }}", >> /tmp/envs/envs.txt
+          echo "SIGN_KEY_ALIAS": "${{ secrets.SIGN_KEY_ALIAS }}", >> /tmp/envs/envs.txt
+          echo "SIGN_KEY_PASSWORD": "${{ secrets.SIGN_KEY_PASSWORD }}", >> /tmp/envs/envs.txt
+          echo "MUISTI_API_BASE_URL": "${{ secrets.MUISTI_API_BASE_URL }}", >> /tmp/envs/envs.txt
+          echo "KEYCLOAK_URL": "${{ secrets.KEYCLOAK_URL }}", >> /tmp/envs/envs.txt
+          echo "MQTT_BASE_TOPIC": "${{ secrets.MQTT_BASE_TOPIC }}", >> /tmp/envs/envs.txt
+          echo "KEYCLOAK_REALM": "${{ secrets.KEYCLOAK_REALM }}", >> /tmp/envs/envs.txt
+          echo "KEYCLOAK_CLIENT_ID": "${{ secrets.KEYCLOAK_CLIENT_ID }}", >> /tmp/envs/envs.txt
+          echo "KEYCLOAK_USERNAME": "${{ secrets.KEYCLOAK_USERNAME }}", >> /tmp/envs/envs.txt
+          echo "KEYCLOAK_PASSWORD": "${{ secrets.KEYCLOAK_PASSWORD }}", >> /tmp/envs/envs.txt
+          echo "KEYCLOAK_DEMO_TAG": "${{ secrets.KEYCLOAK_DEMO_TAG }}", >> /tmp/envs/envs.txt
+          echo "DESTRUCTIVE_MIGRATIONS": "${{ secrets.DESTRUCTIVE_MIGRATIONS }}", >> /tmp/envs/envs.txt
+          echo "MQTT_URLS": "${{ secrets.MQTT_URLS }}", >> /tmp/envs/envs.txt
+          echo "MQTT_PASSWORD": "${{ secrets.MQTT_PASSWORD }}", >> /tmp/envs/envs.txt
+          echo "MQTT_USER": "${{ secrets.MQTT_USER }}", >> /tmp/envs/envs.txt
+          echo "MAP_BOX_ACCESS_TOKEN": "${{ secrets.MAP_BOX_ACCESS_TOKEN }}", >> /tmp/envs/envs.txt
+          echo "UPDATE_URL": "${{ secrets.UPDATE_URL }}", >> /tmp/envs/envs.txt
+          echo "UPDATES_BUCKET": "${{ secrets.UPDATES_BUCKET }}", >> /tmp/envs/envs.txt
+          echo "AWS_ACCESS_KEY_ID": "${{ secrets.AWS_ACCESS_KEY_ID }}", >> /tmp/envs/envs.txt
+          echo "AWS_SECRET_ACCESS_KEY": "${{ secrets.AWS_SECRET_ACCESS_KEY }}", >> /tmp/envs/envs.txt
+
+      - name: Upload APK
+        uses: shallwefootball/s3-upload-action@master
+        with:
+          aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_bucket: ${{ secrets.UPDATES_BUCKET }}
+          source_dir: /tmp/envs
+          destination_dir: ""
