@@ -6,37 +6,96 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: master
+    environment: develop
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
           fetch-depth: 0
 
-      - name: Envs
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 8
+
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_prefix: ""
+
+      - name: Update version gradle
         run: |
-          mkdir -p envs
-          echo "SIGN_KEYSTORE": "${{ secrets.SIGN_KEYSTORE }}", >> envs/envs.txt
-          echo "SIGN_STORE_PASSWORD": "${{ secrets.SIGN_STORE_PASSWORD }}", >> envs/envs.txt
-          echo "SIGN_KEY_ALIAS": "${{ secrets.SIGN_KEY_ALIAS }}", >> envs/envs.txt
-          echo "SIGN_KEY_PASSWORD": "${{ secrets.SIGN_KEY_PASSWORD }}", >> envs/envs.txt
-          echo "MUISTI_API_BASE_URL": "${{ secrets.MUISTI_API_BASE_URL }}", >> envs/envs.txt
-          echo "KEYCLOAK_URL": "${{ secrets.KEYCLOAK_URL }}", >> envs/envs.txt
-          echo "MQTT_BASE_TOPIC": "${{ secrets.MQTT_BASE_TOPIC }}", >> envs/envs.txt
-          echo "KEYCLOAK_REALM": "${{ secrets.KEYCLOAK_REALM }}", >> envs/envs.txt
-          echo "KEYCLOAK_CLIENT_ID": "${{ secrets.KEYCLOAK_CLIENT_ID }}", >> envs/envs.txt
-          echo "KEYCLOAK_USERNAME": "${{ secrets.KEYCLOAK_USERNAME }}", >> envs/envs.txt
-          echo "KEYCLOAK_PASSWORD": "${{ secrets.KEYCLOAK_PASSWORD }}", >> envs/envs.txt
-          echo "KEYCLOAK_DEMO_TAG": "${{ secrets.KEYCLOAK_DEMO_TAG }}", >> envs/envs.txt
-          echo "DESTRUCTIVE_MIGRATIONS": "${{ secrets.DESTRUCTIVE_MIGRATIONS }}", >> envs/envs.txt
-          echo "MQTT_URLS": "${{ secrets.MQTT_URLS }}", >> envs/envs.txt
-          echo "MQTT_PASSWORD": "${{ secrets.MQTT_PASSWORD }}", >> envs/envs.txt
-          echo "MQTT_USER": "${{ secrets.MQTT_USER }}", >> envs/envs.txt
-          echo "MAP_BOX_ACCESS_TOKEN": "${{ secrets.MAP_BOX_ACCESS_TOKEN }}", >> envs/envs.txt
-          echo "UPDATE_URL": "${{ secrets.UPDATE_URL }}", >> envs/envs.txt
-          echo "UPDATES_BUCKET": "${{ secrets.UPDATES_BUCKET }}", >> envs/envs.txt
-          echo "AWS_ACCESS_KEY_ID": "${{ secrets.AWS_ACCESS_KEY_ID }}", >> envs/envs.txt
-          echo "AWS_SECRET_ACCESS_KEY": "${{ secrets.AWS_SECRET_ACCESS_KEY }}", >> envs/envs.txt
+          VERSION_CODE=`echo "${{ steps.tag_version.outputs.new_tag }}" | awk -F. '{printf "%d%02d%03d\n", $1, $2, $3}'`
+          echo "Updating version to ${{ steps.tag_version.outputs.new_tag }}"
+          echo "Version code: $VERSION_CODE"
+          
+          sed -i 's/versionName .*/versionName \"${{ steps.tag_version.outputs.new_tag }}\"/g' app/build.gradle
+          sed -i "s/versionCode .*/versionCode $VERSION_CODE/g" app/build.gradle
+          
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add app/build.gradle
+          git commit -m "Updated version"
+
+      - name: Push version changes to develop
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: develop
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Import Secrets
+        id: import-secrets
+        uses: hashicorp/vault-action@v2
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          token: ${{ secrets.VAULT_TOKEN }}
+          secrets: |
+              ${{ secrets.VAULT_PATH }} SIGN_KEYSTORE | SIGN_KEYSTORE ;
+              ${{ secrets.VAULT_PATH }} SIGN_STORE_PASSWORD | SIGN_STORE_PASSWORD ;
+              ${{ secrets.VAULT_PATH }} SIGN_KEY_ALIAS | SIGN_KEY_ALIAS ;
+              ${{ secrets.VAULT_PATH }} SIGN_KEY_PASSWORD | SIGN_KEY_PASSWORD ;
+              ${{ secrets.VAULT_PATH }} MUISTI_API_BASE_URL | MUISTI_API_BASE_URL ;
+              ${{ secrets.VAULT_PATH }} KEYCLOAK_URL | KEYCLOAK_URL ;
+              ${{ secrets.VAULT_PATH }} MQTT_BASE_TOPIC | MQTT_BASE_TOPIC ;
+              ${{ secrets.VAULT_PATH }} KEYCLOAK_REALM | KEYCLOAK_REALM ;
+              ${{ secrets.VAULT_PATH }} KEYCLOAK_CLIENT_ID | KEYCLOAK_CLIENT_ID ;
+              ${{ secrets.VAULT_PATH }} KEYCLOAK_USERNAME | KEYCLOAK_USERNAME ;
+              ${{ secrets.VAULT_PATH }} KEYCLOAK_PASSWORD | KEYCLOAK_PASSWORD ;
+              ${{ secrets.VAULT_PATH }} KEYCLOAK_DEMO_TAG | KEYCLOAK_DEMO_TAG ;
+              ${{ secrets.VAULT_PATH }} DESTRUCTIVE_MIGRATIONS | DESTRUCTIVE_MIGRATIONS ;
+              ${{ secrets.VAULT_PATH }} MQTT_URLS | MQTT_URLS ;
+              ${{ secrets.VAULT_PATH }} MQTT_PASSWORD | MQTT_PASSWORD ;
+              ${{ secrets.VAULT_PATH }} MQTT_USER | MQTT_USER ;
+              ${{ secrets.VAULT_PATH }} MAP_BOX_ACCESS_TOKEN | MAP_BOX_ACCESS_TOKEN ;
+              ${{ secrets.VAULT_PATH }} UPDATE_URL | UPDATE_URL
+
+      - name: Build APK
+        run: |
+          echo ${{ env.SIGN_KEYSTORE }} > /tmp/upload-keystore.b64 && base64 -d -i /tmp/upload-keystore.b64 > /tmp/upload-keystore.jks
+          echo SIGN_STORE_PASSWORD=${{ env.SIGN_STORE_PASSWORD }} >> ~/.gradle/gradle.properties
+          echo SIGN_KEY_ALIAS=${{ env.SIGN_KEY_ALIAS }} >> ~/.gradle/gradle.properties
+          echo SIGN_KEY_PASSWORD=${{ env.SIGN_KEY_PASSWORD }} >> ~/.gradle/gradle.properties
+          echo SIGN_STORE_FILE=/tmp/upload-keystore.jks >> ~/.gradle/gradle.properties
+          echo MUISTI_API_BASE_URL=${{ env.MUISTI_API_BASE_URL }} >> app/.env
+          echo KEYCLOAK_URL=${{ env.KEYCLOAK_URL }} >> app/.env
+          echo MQTT_BASE_TOPIC=${{ env.MQTT_BASE_TOPIC }} >> app/.env
+          echo KEYCLOAK_REALM=${{ env.KEYCLOAK_REALM }} >> app/.env
+          echo KEYCLOAK_CLIENT_ID=${{ env.KEYCLOAK_CLIENT_ID }} >> app/.env
+          echo KEYCLOAK_USERNAME=${{ env.KEYCLOAK_USERNAME }} >> app/.env
+          echo KEYCLOAK_PASSWORD=${{ env.KEYCLOAK_PASSWORD }} >> app/.env
+          echo KEYCLOAK_DEMO_TAG=${{ env.KEYCLOAK_DEMO_TAG }} >> app/.env
+          echo DESTRUCTIVE_MIGRATIONS=${{ env.DESTRUCTIVE_MIGRATIONS }} >> app/.env
+          echo MQTT_URLS=${{ env.MQTT_URLS }} >> app/.env
+          echo MQTT_PASSWORD=${{ env.MQTT_PASSWORD }} >> app/.env
+          echo MQTT_USER=${{ env.MQTT_USER }} >> app/.env
+          echo MAP_BOX_ACCESS_TOKEN=${{ env.MAP_BOX_ACCESS_TOKEN }} >> app/.env
+          echo UPDATE_URL=${{ env.UPDATE_URL }} >> app/.env
+          ./gradlew assembleRelease
 
       - name: Upload APK
         uses: shallwefootball/s3-upload-action@master
@@ -44,5 +103,5 @@ jobs:
           aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_bucket: ${{ secrets.UPDATES_BUCKET }}
-          source_dir: envs
-          destination_dir: ""
+          source_dir: app/build/outputs/apk/release/
+          destination_dir: "muisti-exhibition-ui"
