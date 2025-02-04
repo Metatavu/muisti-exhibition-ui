@@ -8,12 +8,12 @@ SIGN_STORE_PASSWORD=$(echo $SECRETS|jq -r '.data.data.SIGN_STORE_PASSWORD')
 SIGN_KEY_ALIAS=$(echo $SECRETS|jq -r '.data.data.SIGN_KEY_ALIAS')
 SIGN_KEY_PASSWORD=$(echo $SECRETS|jq -r '.data.data.SIGN_KEY_PASSWORD')
 
-echo SIGN_STORE_PASSWORD=$SIGN_STORE_PASSWORD >> local.properties
-echo SIGN_KEY_ALIAS=$SIGN_KEY_ALIAS >> local.properties
-echo SIGN_KEY_PASSWORD=$SIGN_KEY_PASSWORD >> local.properties
+echo SIGN_STORE_PASSWORD=$SIGN_STORE_PASSWORD > app/local.properties
+echo SIGN_KEY_ALIAS=$SIGN_KEY_ALIAS >> app/local.properties
+echo SIGN_KEY_PASSWORD=$SIGN_KEY_PASSWORD >> app/local.properties
 
 echo $SIGN_KEYSTORE > /tmp/upload-keystore.b64 && base64 -d -i /tmp/upload-keystore.b64 > /tmp/upload-keystore.jks
-echo SIGN_STORE_FILE=/tmp/upload-keystore.jks >> local.properties
+echo SIGN_STORE_FILE=/tmp/upload-keystore.jks >> app/local.properties
 
 echo MUISTI_API_BASE_URL=$(echo $SECRETS|jq -r '.data.data.MUISTI_API_BASE_URL') > app/.env
 echo KEYCLOAK_URL=$(echo $SECRETS|jq -r '.data.data.KEYCLOAK_URL') >> app/.env
