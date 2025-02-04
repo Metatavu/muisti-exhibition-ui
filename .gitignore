@@ -11,3 +11,4 @@ app/.env
 app/.env_tests
 .env
 .idea/
+vault-secret.json
