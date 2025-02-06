@@ -34,9 +34,8 @@ def readLocalProperties() {
     Properties properties = new Properties()
     properties.load(project.file("local.properties").newDataInputStream())
     properties.each { key, value ->
-        if (System.getProperty(key) == null) {
-            System.setProperty(key, value)
-        }
+        println("Using $key from local.properties")
+        System.setProperty(key, value)
     }
 }
 android {
