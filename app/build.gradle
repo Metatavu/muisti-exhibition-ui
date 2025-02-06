@@ -25,7 +25,10 @@ def readFile(fileName) {
 
 def readLocalProperties() {
     if (project.file("local.properties").exists() == false) {
+        println("local.properties not found")
         return
+    } else {
+        println("Reading local.properties")
     }
 
     Properties properties = new Properties()
