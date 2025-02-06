@@ -83,7 +83,7 @@ jobs:
           echo SIGN_STORE_PASSWORD=${{ env.SIGN_STORE_PASSWORD }} > app/local.properties
           echo SIGN_KEY_ALIAS=${{ env.SIGN_KEY_ALIAS }} >> app/local.properties
           echo SIGN_KEY_PASSWORD=${{ env.SIGN_KEY_PASSWORD }} >> app/local.properties
-          echo SIGN_STORE_FILE=/tmp/upload-keystore.jks >> app/local.propertiess
+          echo SIGN_STORE_FILE=/tmp/upload-keystore.jks >> app/local.properties
           echo MUISTI_API_BASE_URL=${{ env.MUISTI_API_BASE_URL }} >> app/.env
           echo KEYCLOAK_URL=${{ env.KEYCLOAK_URL }} >> app/.env
           echo MQTT_BASE_TOPIC=${{ env.MQTT_BASE_TOPIC }} >> app/.env
