@@ -103,6 +103,15 @@ class MuistiApiFactory {
         }
 
         /**
+         * Returns initialized device data API
+         *
+         * @return initialized device data API
+         */
+        suspend fun getDeviceDataApi(): DeviceDataApi {
+            return DeviceDataApi(BuildConfig.MUISTI_API_BASE_URL)
+        }
+
+        /**
          * Waits for API client to have an access token
          *
          * @throws ClientException when access token waiting times out

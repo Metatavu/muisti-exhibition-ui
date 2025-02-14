@@ -26,8 +26,7 @@ data class Layout (
     @TypeConverters(UUIDConverter::class)
     val layoutId: UUID,
 
-    @NonNull
-    val name: String,
+    val name: String?,
 
     @TypeConverters(PageLayoutViewConverter::class)
     val data: PageLayoutView,

@@ -2,7 +2,8 @@ package fi.metatavu.muisti.exhibitionui.persistence.repository
 
 import android.content.pm.ActivityInfo
 import android.util.Log
-import fi.metatavu.muisti.api.client.models.PageLayout
+import fi.metatavu.muisti.api.client.models.DeviceLayout
+import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.api.client.models.ScreenOrientation
 import fi.metatavu.muisti.exhibitionui.persistence.dao.LayoutDao
 import fi.metatavu.muisti.exhibitionui.persistence.model.Layout
@@ -40,7 +41,7 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
      *
      * @param layouts an array of layouts to insert into the database if layout with same id exists it will be updated
      */
-    suspend fun updateLayouts(layouts: Array<PageLayout>) {
+    suspend fun updateLayouts(layouts: Array<DeviceLayout>) {
         layouts.forEach {
             val id = it.id
             val orientation = getOrientation(it.screenOrientation)
@@ -53,16 +54,16 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
             val existing = layoutDao.findByLayoutId(id.toString())
             if (existing == null) {
                 layoutDao.insert(Layout(
-                    name = it.name,
-                    data = it.data,
+                    name = null,
+                    data = it.data as PageLayoutView,
                     layoutId = id,
                     orientation = orientation,
                     modifiedAt = it.modifiedAt!!
                 ))
             } else {
                 layoutDao.update(existing.copy(
-                    name = it.name,
-                    data = it.data,
+                    name = null,
+                    data = it.data as PageLayoutView,
                     orientation = orientation,
                     modifiedAt = it.modifiedAt!!
                 ))
