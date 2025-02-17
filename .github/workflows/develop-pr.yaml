@@ -1,0 +1,74 @@
+name: Pull requests checks
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: develop
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 8
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Import Secrets
+        id: import-secrets
+        uses: hashicorp/vault-action@v2
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          token: ${{ secrets.VAULT_TOKEN }}
+          secrets: |
+              ${{ secrets.VAULT_PATH }} SIGN_KEYSTORE | SIGN_KEYSTORE ;
+              ${{ secrets.VAULT_PATH }} SIGN_STORE_PASSWORD | SIGN_STORE_PASSWORD ;
+              ${{ secrets.VAULT_PATH }} SIGN_KEY_ALIAS | SIGN_KEY_ALIAS ;
+              ${{ secrets.VAULT_PATH }} SIGN_KEY_PASSWORD | SIGN_KEY_PASSWORD ;
+              ${{ secrets.VAULT_PATH }} MUISTI_API_BASE_URL | MUISTI_API_BASE_URL ;
+              ${{ secrets.VAULT_PATH }} KEYCLOAK_URL | KEYCLOAK_URL ;
+              ${{ secrets.VAULT_PATH }} MQTT_BASE_TOPIC | MQTT_BASE_TOPIC ;
+              ${{ secrets.VAULT_PATH }} KEYCLOAK_REALM | KEYCLOAK_REALM ;
+              ${{ secrets.VAULT_PATH }} KEYCLOAK_CLIENT_ID | KEYCLOAK_CLIENT_ID ;
+              ${{ secrets.VAULT_PATH }} KEYCLOAK_USERNAME | KEYCLOAK_USERNAME ;
+              ${{ secrets.VAULT_PATH }} KEYCLOAK_PASSWORD | KEYCLOAK_PASSWORD ;
+              ${{ secrets.VAULT_PATH }} KEYCLOAK_DEMO_TAG | KEYCLOAK_DEMO_TAG ;
+              ${{ secrets.VAULT_PATH }} DESTRUCTIVE_MIGRATIONS | DESTRUCTIVE_MIGRATIONS ;
+              ${{ secrets.VAULT_PATH }} MQTT_URLS | MQTT_URLS ;
+              ${{ secrets.VAULT_PATH }} MQTT_PASSWORD | MQTT_PASSWORD ;
+              ${{ secrets.VAULT_PATH }} MQTT_USER | MQTT_USER ;
+              ${{ secrets.VAULT_PATH }} MAP_BOX_ACCESS_TOKEN | MAP_BOX_ACCESS_TOKEN ;
+              ${{ secrets.VAULT_PATH }} UPDATE_URL | UPDATE_URL ; 
+              ${{ secrets.VAULT_PATH }} AWS_ACCESS_KEY_ID | AWS_ACCESS_KEY_ID ;
+              ${{ secrets.VAULT_PATH }} AWS_SECRET_ACCESS_KEY | AWS_SECRET_ACCESS_KEY ;
+              ${{ secrets.VAULT_PATH }} UPDATES_BUCKET | UPDATES_BUCKET ;
+
+      - name: Build APK
+        run: |
+          echo ${{ env.SIGN_KEYSTORE }} > /tmp/upload-keystore.b64 && base64 -d -i /tmp/upload-keystore.b64 > /tmp/upload-keystore.jks
+          echo SIGN_STORE_PASSWORD=${{ env.SIGN_STORE_PASSWORD }} > app/local.properties
+          echo SIGN_KEY_ALIAS=${{ env.SIGN_KEY_ALIAS }} >> app/local.properties
+          echo SIGN_KEY_PASSWORD=${{ env.SIGN_KEY_PASSWORD }} >> app/local.properties
+          echo SIGN_STORE_FILE=/tmp/upload-keystore.jks >> app/local.properties
+          echo MUISTI_API_BASE_URL=${{ env.MUISTI_API_BASE_URL }} >> app/.env
+          echo KEYCLOAK_URL=${{ env.KEYCLOAK_URL }} >> app/.env
+          echo MQTT_BASE_TOPIC=${{ env.MQTT_BASE_TOPIC }} >> app/.env
+          echo KEYCLOAK_REALM=${{ env.KEYCLOAK_REALM }} >> app/.env
+          echo KEYCLOAK_CLIENT_ID=${{ env.KEYCLOAK_CLIENT_ID }} >> app/.env
+          echo KEYCLOAK_USERNAME=${{ env.KEYCLOAK_USERNAME }} >> app/.env
+          echo KEYCLOAK_PASSWORD=${{ env.KEYCLOAK_PASSWORD }} >> app/.env
+          echo KEYCLOAK_DEMO_TAG=${{ env.KEYCLOAK_DEMO_TAG }} >> app/.env
+          echo DESTRUCTIVE_MIGRATIONS=${{ env.DESTRUCTIVE_MIGRATIONS }} >> app/.env
+          echo MQTT_URLS=${{ env.MQTT_URLS }} >> app/.env
+          echo MQTT_PASSWORD=${{ env.MQTT_PASSWORD }} >> app/.env
+          echo MQTT_USER=${{ env.MQTT_USER }} >> app/.env
+          echo MAP_BOX_ACCESS_TOKEN=${{ env.MAP_BOX_ACCESS_TOKEN }} >> app/.env
+          echo UPDATE_URL=${{ env.UPDATE_URL }} >> app/.env
+          ./gradlew assembleRelease
