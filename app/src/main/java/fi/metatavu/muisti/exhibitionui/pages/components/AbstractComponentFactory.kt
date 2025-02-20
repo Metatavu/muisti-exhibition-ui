@@ -6,7 +6,6 @@ import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.graphics.Matrix
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.text.Html
@@ -15,14 +14,31 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
 import android.view.View
-import android.view.View.*
+import android.view.View.TEXT_ALIGNMENT_CENTER
+import android.view.View.TEXT_ALIGNMENT_GRAVITY
+import android.view.View.TEXT_ALIGNMENT_TEXT_START
+import android.view.View.TEXT_ALIGNMENT_VIEW_END
+import android.view.View.TEXT_ALIGNMENT_VIEW_START
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
-import android.widget.*
+import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
+import android.widget.TextView
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import fi.metatavu.muisti.api.client.models.*
+import fi.metatavu.muisti.api.client.models.DevicePageResource
+import fi.metatavu.muisti.api.client.models.DynamicPageResource
+import fi.metatavu.muisti.api.client.models.DynamicPageResourceDataSource
+import fi.metatavu.muisti.api.client.models.DynamicPageResourceSwitch
+import fi.metatavu.muisti.api.client.models.DynamicPageResourceType
+import fi.metatavu.muisti.api.client.models.ExhibitionPageResourceType
+import fi.metatavu.muisti.api.client.models.PageLayoutView
+import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
+import fi.metatavu.muisti.api.client.models.PageResourceMode
+import fi.metatavu.muisti.api.client.models.VisitorSessionV2
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.files.OfflineFileController
 import fi.metatavu.muisti.exhibitionui.pages.PageViewVisitorSessionListener
@@ -32,8 +48,6 @@ import uk.co.deanwild.flowtextview.FlowTextView
 import java.io.File
 import java.net.MalformedURLException
 import java.net.URL
-import kotlin.math.max
-import kotlin.math.min
 
 
 /**
@@ -148,7 +162,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param value property value
      * @return resource value for given property
      */
-    protected fun getResource(buildContext: ComponentBuildContext, value: String?): ExhibitionPageResource? {
+    protected fun getResource(buildContext: ComponentBuildContext, value: String?): DevicePageResource? {
         return getResource(resources = buildContext.page.resources, value = value)
     }
 
@@ -159,7 +173,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param value property value
      * @return resource value for given property
      */
-    protected fun getResource(resources: Array<ExhibitionPageResource>, value: String?): ExhibitionPageResource? {
+    protected fun getResource(resources: Array<DevicePageResource>, value: String?): DevicePageResource? {
         value ?: return null
         if (!value.startsWith("@resources/")) {
             return null
@@ -266,7 +280,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param value property value
      * @return resource value for given property
      */
-    private fun getResourceData(resources: Array<ExhibitionPageResource>, value: String?): String? {
+    private fun getResourceData(resources: Array<DevicePageResource>, value: String?): String? {
         val resource = getResource(resources, value)
         resource ?: return null
         return resource.data
@@ -278,7 +292,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param value property value
      * @return resource type for given property
      */
-    private fun getResourceType(resources: Array<ExhibitionPageResource>, value: String?): ExhibitionPageResourceType? {
+    private fun getResourceType(resources: Array<DevicePageResource>, value: String?): ExhibitionPageResourceType? {
         val resource = getResource(resources, value)
         resource ?: return null
         return resource.type
@@ -364,7 +378,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param resource resource
      * @return whether resource is considered to be scripted
      */
-    protected fun isScriptedResource(resource: ExhibitionPageResource?): Boolean {
+    protected fun isScriptedResource(resource: DevicePageResource?): Boolean {
         resource ?: return false
         return isScriptedResourceMode(resource.mode)
     }
@@ -451,7 +465,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param visitorSession visitor session
      * @return Evaluated resource value
      */
-    private fun evaluateResourceScript(resource: ExhibitionPageResource?, visitorSession: VisitorSessionV2): String? {
+    private fun evaluateResourceScript(resource: DevicePageResource?, visitorSession: VisitorSessionV2): String? {
         resource ?: return null
         val data = resource.data
 
@@ -517,7 +531,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
     ): String? {
         when (params.dataSource) {
             DynamicPageResourceDataSource.userValue -> {
-                val userValues = visitorSession.variables?.map { it.name to it.value }?.toMap() ?: emptyMap()
+                val userValues = visitorSession.variables?.associate { it.name to it.value } ?: emptyMap()
                 val userValue = userValues[params.key]
                 val value = params.`when`?.find { it.equals == userValue }?.value
 
@@ -542,7 +556,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
         visitorSession: VisitorSessionV2,
         data: String
     ): String? {
-        val userValues = visitorSession.variables?.map { it.name to it.value }?.toMap() ?: emptyMap()
+        val userValues = visitorSession.variables?.associate { it.name to it.value } ?: emptyMap()
         val result = ScriptController.executeInlineFunction(
             "function m(uv) { const userValues = {}; uv.forEach((k, v) => { userValues[k] = v }); return $data }",
             "m",
@@ -642,7 +656,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param value value
      * @return offlined file
      */
-    private fun getResourceOfflineFile(resources: Array<ExhibitionPageResource>, value: String?): File? {
+    private fun getResourceOfflineFile(resources: Array<DevicePageResource>, value: String?): File? {
         val resource = getResourceData(resources, value)
         val url = getUrl(resource ?: value)
         url ?: return null
@@ -878,7 +892,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param property property to be set
      */
     @Suppress("DEPRECATION")
-    protected fun setLayoutWidth(parent: View?, view: View, property: PageLayoutViewProperty) {
+    private fun setLayoutWidth(parent: View?, view: View, property: PageLayoutViewProperty) {
         if (parent == null) {
             return
         }
@@ -926,8 +940,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param view view component
      * @param property property to be set
      */
-    @Suppress("DEPRECATION")
-    protected fun setLayoutAlignParent(view: View, property: PageLayoutViewProperty) {
+    private fun setLayoutAlignParent(view: View, property: PageLayoutViewProperty) {
         val layoutParams = view.layoutParams
 
         if (property.value != "true") {
@@ -957,7 +970,7 @@ abstract class AbstractComponentFactory<T : View> : ComponentFactory<T> {
      * @param property property to be set
      */
     @Suppress("DEPRECATION")
-    protected fun setLayoutHeight(parent: View?, view: View, property: PageLayoutViewProperty) {
+    private fun setLayoutHeight(parent: View?, view: View, property: PageLayoutViewProperty) {
         if (parent == null) {
             return
         }

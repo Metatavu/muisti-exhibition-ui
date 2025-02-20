@@ -160,7 +160,7 @@ data class PageView (
 ) {
 
     override fun toString(): String {
-        return page.name
+        return page.name ?: ""
     }
 
 }

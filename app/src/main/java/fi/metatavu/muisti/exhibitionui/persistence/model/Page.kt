@@ -7,7 +7,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fi.metatavu.muisti.api.client.infrastructure.UUIDAdapter
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventTrigger
-import fi.metatavu.muisti.api.client.models.ExhibitionPageResource
+import fi.metatavu.muisti.api.client.models.DevicePageResource
 import fi.metatavu.muisti.api.client.models.ExhibitionPageTransition
 import fi.metatavu.muisti.exhibitionui.persistence.types.UUIDConverter
 import java.util.*
@@ -50,7 +50,7 @@ data class Page (
 
     @NonNull
     @TypeConverters(ExhibitionPageViewConverter::class)
-    val resources: Array<ExhibitionPageResource> = emptyArray(),
+    val resources: Array<DevicePageResource> = emptyArray(),
 
     @NonNull
     @TypeConverters(ExhibitionPageViewConverter::class)
@@ -75,8 +75,8 @@ class ExhibitionPageViewConverter {
         .add(UUIDAdapter())
         .build()
 
-    private val pageResourceJsonAdapter: JsonAdapter<Array<ExhibitionPageResource>> = moshi.adapter<Array<ExhibitionPageResource>>(
-        Array<ExhibitionPageResource>::class.java)
+    private val pageResourceJsonAdapter: JsonAdapter<Array<DevicePageResource>> = moshi.adapter<Array<DevicePageResource>>(
+        Array<DevicePageResource>::class.java)
 
     private val pageEventJsonAdapter: JsonAdapter<Array<ExhibitionPageEventTrigger>> = moshi.adapter<Array<ExhibitionPageEventTrigger>>(
         Array<ExhibitionPageEventTrigger>::class.java)
@@ -91,7 +91,7 @@ class ExhibitionPageViewConverter {
      * @return Exhibition page resource object
      */
     @TypeConverter
-    fun stringToExhibitionPageResource(data: String): Array<ExhibitionPageResource>? {
+    fun stringToExhibitionPageResource(data: String): Array<DevicePageResource>? {
         return pageResourceJsonAdapter.fromJson(data)
     }
 
@@ -102,7 +102,7 @@ class ExhibitionPageViewConverter {
      * @return json data of the Exhibition Page Resource
      */
     @TypeConverter
-    fun exhibitionPageResourceToJson(exhibitionPageResource: Array<ExhibitionPageResource>): String {
+    fun exhibitionPageResourceToJson(exhibitionPageResource: Array<DevicePageResource>): String {
         return pageResourceJsonAdapter.toJson(exhibitionPageResource)
     }
 
