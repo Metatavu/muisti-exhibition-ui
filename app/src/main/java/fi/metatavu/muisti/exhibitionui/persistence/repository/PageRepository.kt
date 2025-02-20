@@ -1,11 +1,9 @@
 package fi.metatavu.muisti.exhibitionui.persistence.repository
 
-import android.util.Log
-import fi.metatavu.muisti.api.client.models.ContentVersion
 import fi.metatavu.muisti.api.client.models.DevicePage
 import fi.metatavu.muisti.exhibitionui.persistence.dao.PageDao
 import fi.metatavu.muisti.exhibitionui.persistence.model.Page
-import java.util.*
+import java.util.UUID
 
 /**
  * Repository class for Page
@@ -49,11 +47,10 @@ class PageRepository(private val pageDao: PageDao) {
      * Sets an array of pages into the database and removes all other pages
      *
      * @param pages an array of pages to insert into the database if page with same id exists it will be updated
-     * @param contentVersions an array of content versions related to pages
      */
     suspend fun setPages(pages: Array<DevicePage>) {
         val existingPageIds = pageDao.listPageIds()
-        val deleteIds = existingPageIds.minus(pages.map { it.id!! })
+        val deleteIds = existingPageIds.minus(pages.map { it.id }.toSet())
 
         deleteIds.forEach { pageId -> deletePage(pageId = pageId) }
         pages.forEach { page -> updatePage(page = page) }
@@ -63,35 +60,26 @@ class PageRepository(private val pageDao: PageDao) {
      * Updates single page into the database
      *
      * @param page page
-     * @param contentVersion content version of the page or null
+     * @return updated pages
      */
-    suspend fun updatePage(page: DevicePage): Page? {
+    private suspend fun updatePage(page: DevicePage): Page {
         val id = page.id
-        if (id == null) {
-            Log.d(PageRepository::javaClass.name, "id was null")
-            return null
-        }
-
         val exhibitionId = page.exhibitionId
-        if (exhibitionId == null) {
-            Log.d(PageRepository::javaClass.name, "exhibitionId was null")
-            return null
-        }
 
         val updatePage = Page(
-            name = page.name,
+            name = page.name ?: "$id",
             pageId = id,
-            language = page.language ?: "",
+            language = page.language,
             orderNumber = page.orderNumber,
             exhibitionId = exhibitionId,
-            modifiedAt = page.modifiedAt!!,
+            modifiedAt = page.modifiedAt,
             resources = page.resources,
             activeConditionUserVariable = page.activeConditionUserVariable,
             activeConditionEquals = page.activeConditionEquals,
-            eventTriggers = page.eventTriggers,
+            eventTriggers = page.eventTriggers ?: emptyArray(),
             layoutId = page.layoutId,
-            enterTransitions = page.enterTransitions,
-            exitTransitions = page.exitTransitions
+            enterTransitions = page.enterTransitions ?: emptyArray(),
+            exitTransitions = page.exitTransitions ?: emptyArray()
         )
 
         if (pageDao.findByPageId(id) == null) {
@@ -99,6 +87,7 @@ class PageRepository(private val pageDao: PageDao) {
         } else {
             pageDao.update(updatePage)
         }
+
         return updatePage
     }
 }

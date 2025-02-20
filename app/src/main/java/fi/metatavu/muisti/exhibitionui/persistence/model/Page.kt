@@ -24,7 +24,8 @@ data class Page (
     @TypeConverters(UUIDConverter::class)
     val pageId: UUID,
 
-    val name: String?,
+    @NonNull
+    val name: String,
 
     @NonNull
     val language: String,
@@ -51,14 +52,17 @@ data class Page (
     @TypeConverters(ExhibitionPageViewConverter::class)
     val resources: Array<DevicePageResource> = emptyArray(),
 
+    @NonNull
     @TypeConverters(ExhibitionPageViewConverter::class)
-    val eventTriggers: Array<ExhibitionPageEventTrigger>? = emptyArray(),
+    val eventTriggers: Array<ExhibitionPageEventTrigger> = emptyArray(),
 
+    @NonNull
     @TypeConverters(ExhibitionPageViewConverter::class)
-    val enterTransitions: Array<ExhibitionPageTransition>? = emptyArray(),
+    val enterTransitions: Array<ExhibitionPageTransition> = emptyArray(),
 
+    @NonNull
     @TypeConverters(ExhibitionPageViewConverter::class)
-    val exitTransitions: Array<ExhibitionPageTransition>? = emptyArray()
+    val exitTransitions: Array<ExhibitionPageTransition> = emptyArray()
 )
 
 /**

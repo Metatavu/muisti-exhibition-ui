@@ -412,7 +412,7 @@ data class TabData (
 data class TabDataTab (
     val label: String,
     val properties: Array<PageLayoutViewProperty>,
-    val resources: Array<ExhibitionPageResource>
+    val resources: Array<DevicePageResource>
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

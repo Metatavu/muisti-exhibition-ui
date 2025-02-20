@@ -1,4 +1,3 @@
 include ':app'
 include ':api-client'
-include ':api-test-builder'
 rootProject.name='MuistiExhibitionUI'

@@ -1,13 +1,12 @@
 package fi.metatavu.muisti.exhibitionui.persistence.repository
 
 import android.content.pm.ActivityInfo
-import android.util.Log
 import fi.metatavu.muisti.api.client.models.DeviceLayout
 import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.api.client.models.ScreenOrientation
 import fi.metatavu.muisti.exhibitionui.persistence.dao.LayoutDao
 import fi.metatavu.muisti.exhibitionui.persistence.model.Layout
-import java.util.*
+import java.util.UUID
 
 /**
  * Repository class for Layout
@@ -46,26 +45,21 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
             val id = it.id
             val orientation = getOrientation(it.screenOrientation)
 
-            if (id == null) {
-                Log.d(LayoutRepository::javaClass.name, "id was null")
-                return
-            }
-
             val existing = layoutDao.findByLayoutId(id.toString())
             if (existing == null) {
                 layoutDao.insert(Layout(
-                    name = null,
+                    name = "$id",
                     data = it.data as PageLayoutView,
                     layoutId = id,
                     orientation = orientation,
-                    modifiedAt = it.modifiedAt!!
+                    modifiedAt = it.modifiedAt
                 ))
             } else {
                 layoutDao.update(existing.copy(
-                    name = null,
+                    name = "$id",
                     data = it.data as PageLayoutView,
                     orientation = orientation,
-                    modifiedAt = it.modifiedAt!!
+                    modifiedAt = it.modifiedAt
                 ))
             }
         }

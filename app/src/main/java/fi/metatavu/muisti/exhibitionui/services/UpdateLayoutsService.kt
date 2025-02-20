@@ -11,6 +11,7 @@ import fi.metatavu.muisti.exhibitionui.mqtt.MqttActionInterface
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
 import fi.metatavu.muisti.exhibitionui.persistence.repository.LayoutRepository
+import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import kotlinx.coroutines.*
 import java.util.*
 import java.lang.Exception
@@ -47,8 +48,9 @@ object UpdateLayouts : MqttActionInterface {
     /**
      ' Retrieves all layouts from the API and saves them into the local database
      */
-    fun updateAllLayouts(deviceId: UUID) = GlobalScope.launch {
+    fun updateAllLayouts() = GlobalScope.launch {
         try {
+            val deviceId = DeviceSettings.getExhibitionDeviceId() ?: return@launch
             val layouts = MuistiApiFactory.getDeviceDataApi().listDeviceDataLayouts(deviceId = deviceId)
             addLayouts(layouts)
         } catch (e: Exception) {
