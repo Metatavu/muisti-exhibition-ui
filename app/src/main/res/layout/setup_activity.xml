@@ -61,14 +61,6 @@
                 android:gravity="center"
                 android:text="Save setup" />
 
-            <Button
-                android:id="@+id/skipSetup"
-                android:layout_width="120dp"
-                android:layout_height="50dp"
-                android:layout_marginLeft="20dp"
-                android:gravity="center"
-                android:text="Skip setup" />
-
         </LinearLayout>
 
     </LinearLayout>

@@ -52,14 +52,31 @@ class DeviceSettings {
             setSettingValue(DeviceSettingName.DEVICE_ROTATE_FLIP, value.toString())
         }
 
+        /**
+         * Returns device id if set
+         *
+         * @return device id or null if not set
+         */
+        suspend fun getDeviceKey(): String? {
+            return getSettingValue(DeviceSettingName.DEVICE_ID)
+        }
 
         /**
          * Sets device key
          *
-         * @param deviceId id
+         * @param deviceKey device authorization key
          */
-        suspend fun setDeviceKey(deviceId: UUID) {
-            setSettingValue(DeviceSettingName.DEVICE_KEY, deviceId.toString())
+        suspend fun setDeviceKey(deviceKey: String) {
+            setSettingValue(DeviceSettingName.DEVICE_KEY, deviceKey)
+        }
+
+        /**
+         * Gets device id
+         *
+         * @return deviceId id
+         */
+        suspend fun getDeviceId(): UUID? {
+            return getUUID(getSettingValue(DeviceSettingName.DEVICE_ID))
         }
 
         /**
@@ -69,15 +86,6 @@ class DeviceSettings {
          */
         suspend fun setDeviceId(deviceId: UUID) {
             setSettingValue(DeviceSettingName.DEVICE_ID, deviceId.toString())
-        }
-
-        /**
-         * Returns device id if set
-         *
-         * @return device id or null if not set
-         */
-        suspend fun getDeviceId(): UUID? {
-            return getUUID(getSettingValue(DeviceSettingName.DEVICE_ID))
         }
 
         /**
