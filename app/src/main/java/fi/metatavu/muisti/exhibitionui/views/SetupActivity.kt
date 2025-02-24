@@ -22,7 +22,6 @@ class SetupActivity : MuistiActivity() {
         val deviceNameInput = findViewById<EditText>(R.id.deviceNameInput)
         val deviceDescriptionInput = findViewById<EditText>(R.id.deviceDescriptionInput)
         val saveSetupButton = findViewById<Button>(R.id.saveSetup)
-        val skipSetupButton = findViewById<Button>(R.id.skipSetup)
 
         saveSetupButton.setOnClickListener {
             val deviceName = deviceNameInput.text.toString()
@@ -30,8 +29,5 @@ class SetupActivity : MuistiActivity() {
 
         }
 
-        skipSetupButton.setOnClickListener {
-
-        }
     }
 }
