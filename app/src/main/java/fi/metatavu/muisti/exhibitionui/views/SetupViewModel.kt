@@ -12,9 +12,6 @@ import java.util.UUID
 /**
  * View model for settings activity
  *
- * @constructor
- * model constructor
- *
  * @param application application instance
  */
 class SetupViewModel(application: Application): AndroidViewModel(application) {
@@ -31,8 +28,8 @@ class SetupViewModel(application: Application): AndroidViewModel(application) {
      *
      * @param deviceId identifier of the device
      */
-    suspend fun setDeviceKey(deviceId: UUID) = viewModelScope.launch {
-        DeviceSettings.setDeviceKey(deviceId)
+    suspend fun setDeviceKey(deviceKey: String) = viewModelScope.launch {
+        DeviceSettings.setDeviceKey(deviceKey)
     }
 
     /**

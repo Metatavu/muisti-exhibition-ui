@@ -11,7 +11,6 @@ import fi.metatavu.muisti.exhibitionui.R
  */
 class SetupActivity : MuistiActivity() {
 
-
     private lateinit var mViewModel: SetupViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {

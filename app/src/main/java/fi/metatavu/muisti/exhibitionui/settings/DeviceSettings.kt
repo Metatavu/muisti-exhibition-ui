@@ -61,6 +61,7 @@ class DeviceSettings {
         suspend fun setDeviceKey(deviceId: UUID) {
             setSettingValue(DeviceSettingName.DEVICE_KEY, deviceId.toString())
         }
+
         /**
          * Sets device id
          *
@@ -69,6 +70,7 @@ class DeviceSettings {
         suspend fun setDeviceId(deviceId: UUID) {
             setSettingValue(DeviceSettingName.DEVICE_ID, deviceId.toString())
         }
+
         /**
          * Returns device id if set
          *
