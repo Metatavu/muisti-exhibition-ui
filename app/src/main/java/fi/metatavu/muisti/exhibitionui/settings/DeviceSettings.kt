@@ -52,6 +52,32 @@ class DeviceSettings {
             setSettingValue(DeviceSettingName.DEVICE_ROTATE_FLIP, value.toString())
         }
 
+
+        /**
+         * Sets device key
+         *
+         * @param deviceId id
+         */
+        suspend fun setDeviceKey(deviceId: UUID) {
+            setSettingValue(DeviceSettingName.DEVICE_KEY, deviceId.toString())
+        }
+        /**
+         * Sets device id
+         *
+         * @param deviceId id
+         */
+        suspend fun setDeviceId(deviceId: UUID) {
+            setSettingValue(DeviceSettingName.DEVICE_ID, deviceId.toString())
+        }
+        /**
+         * Returns device id if set
+         *
+         * @return device id or null if not set
+         */
+        suspend fun getDeviceId(): UUID? {
+            return getUUID(getSettingValue(DeviceSettingName.DEVICE_ID))
+        }
+
         /**
          * Sets force video play setting
          *
