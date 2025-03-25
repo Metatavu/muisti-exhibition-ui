@@ -1,6 +1,7 @@
 package fi.metatavu.muisti.exhibitionui.persistence.repository
 
 import android.content.pm.ActivityInfo
+import fi.metatavu.muisti.api.client.infrastructure.Serializer
 import fi.metatavu.muisti.api.client.models.DeviceLayout
 import fi.metatavu.muisti.api.client.models.PageLayoutView
 import fi.metatavu.muisti.api.client.models.ScreenOrientation
@@ -46,10 +47,11 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
             val orientation = getOrientation(it.screenOrientation)
 
             val existing = layoutDao.findByLayoutId(id.toString())
+            val layoutData = getLayoutData(it.data) ?: return@forEach
             if (existing == null) {
                 layoutDao.insert(Layout(
                     name = "$id",
-                    data = it.data as PageLayoutView,
+                    data = layoutData,
                     layoutId = id,
                     orientation = orientation,
                     modifiedAt = it.modifiedAt
@@ -57,7 +59,7 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
             } else {
                 layoutDao.update(existing.copy(
                     name = "$id",
-                    data = it.data as PageLayoutView,
+                    data = layoutData,
                     orientation = orientation,
                     modifiedAt = it.modifiedAt
                 ))
@@ -77,5 +79,19 @@ class LayoutRepository(private val layoutDao: LayoutDao) {
         }
 
         return ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    }
+
+    /**
+     * Converts layout data to a page layout view object
+     *
+     * @param layoutData layout data
+     * @return page layout view object
+     */
+    private fun getLayoutData(layoutData: Any): PageLayoutView?{
+        val pageLayoutViewAdapter = Serializer.moshi.adapter(PageLayoutView::class.java)
+        val mapAdapter = Serializer.moshi.adapter(Map::class.java)
+        val layoutJson = mapAdapter.toJson(layoutData as Map<*, *>)
+
+        return pageLayoutViewAdapter.fromJson(layoutJson)
     }
 }

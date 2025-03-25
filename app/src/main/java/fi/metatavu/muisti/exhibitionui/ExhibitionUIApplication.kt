@@ -217,25 +217,23 @@ class ExhibitionUIApplication : Application() {
      *  Reads visitor session end time out and forced portrait mode values from API
      */
     fun readApiValues() = GlobalScope.launch {
-        val exhibitionId = DeviceSettings.getExhibitionId()
-        val deviceId = DeviceSettings.getExhibitionDeviceId()
+        val deviceKey = DeviceSettings.getDeviceKey() ?: return@launch
+        val deviceDataApi = MuistiApiFactory.getDeviceDataApi(deviceKey = deviceKey)
+        val deviceId = DeviceSettings.getDeviceId()
 
-        if (exhibitionId == null) {
-            Log.e(javaClass.name, "Exhibition not configured. Using default visitor session end timeout")
-        } else if (deviceId == null) {
+        if (deviceId == null) {
             Log.e(javaClass.name, "Device not configured. Using default visitor session end timeout")
         } else {
             try {
-                val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
-                val group = MuistiApiFactory.getExhibitionDeviceGroupsApi().findExhibitionDeviceGroup(exhibitionId = exhibitionId, deviceGroupId = device.groupId)
+                val deviceSettings = deviceDataApi.listDeviceDataSettings(deviceId = deviceId)
+                    .associate { it.key to it.value }
 
-                forcedPortraitMode = device.screenOrientation == ScreenOrientation.forcedPortrait
-                visitorSessionEndTimeout = group.visitorSessionEndTimeout
-                allowVisitorSessionCreation = group.allowVisitorSessionCreation
-                deviceImageLoadStrategy = device.imageLoadStrategy
-                indexPageTimeout = group.indexPageTimeout
+                forcedPortraitMode = getScreenOrientation(deviceSettings[DeviceSettingKey.sCREENORIENTATION]) == ScreenOrientation.forcedPortrait
+                visitorSessionEndTimeout = deviceSettings[DeviceSettingKey.vISITORSESSIONENDTIMEOUT]?.toLongOrNull() ?: 50000L
+                allowVisitorSessionCreation = "true" == deviceSettings[DeviceSettingKey.aLLOWVISITORSESSIONCREATION]
+                deviceImageLoadStrategy = getDeviceImageLoadStrategy(deviceSettings[DeviceSettingKey.dEVICEIMAGELOADSTRATEGY])
+                indexPageTimeout = deviceSettings[DeviceSettingKey.iNDEXPAGETIMEOUT]?.toLongOrNull()
 
-                Log.d(javaClass.name, "Device orientation is set to: ${device.screenOrientation}")
                 Log.d(javaClass.name, "Visitor session end timeout set to: $visitorSessionEndTimeout")
                 Log.d(javaClass.name, "Allow visitor session creation is set to: $allowVisitorSessionCreation")
                 Log.d(javaClass.name, "Device image load strategy is set to: $deviceImageLoadStrategy")
@@ -243,6 +241,29 @@ class ExhibitionUIApplication : Application() {
                 Log.e(javaClass.name, "Could not read device settings from API", e)
             }
         }
+    }
+
+    /**
+     * Gets the device image load strategy
+     *
+     * @param settingValue setting value
+     * @return device image load strategy value while ignoring character case
+     */
+    private fun getDeviceImageLoadStrategy(settingValue: String?): DeviceImageLoadStrategy{
+        settingValue ?: return DeviceImageLoadStrategy.mEMORY
+        return DeviceImageLoadStrategy.values().find { it.value.equals(settingValue, ignoreCase = true) }
+            ?: DeviceImageLoadStrategy.mEMORY
+    }
+
+    /**
+     * Gets the screen orientation
+     *
+     * @param settingValue setting value
+     * @return screen orientation value
+     */
+    private fun getScreenOrientation(settingValue: String?): ScreenOrientation?{
+        settingValue ?: return null
+        return ScreenOrientation.valueOf(settingValue)
     }
 
     /**
@@ -389,6 +410,7 @@ class ExhibitionUIApplication : Application() {
      * @param tags tags
      */
     private fun refreshVisitorSessionState(tags: List<String>) {
+        Log.d(javaClass.name, "Visitor tags: ${tags}")
         val currentVisitorSession = VisitorSessionContainer.getVisitorSession()
         if (currentVisitorSession == null) {
             if (tags.isNotEmpty() && loginAllowed) {
@@ -419,14 +441,11 @@ class ExhibitionUIApplication : Application() {
         Log.d(javaClass.name, "Visible tags changed, new tags ${tags.joinToString(",")}")
 
         GlobalScope.launch {
-            val exhibitionId = DeviceSettings.getExhibitionId()
-            if (exhibitionId != null) {
                 VisibleVisitorsContainer.setVisibleVisitors(tags.mapNotNull { ExhibitionVisitorsContainer.findVisitorByTag(tag = it) })
 
                 if (!allowVisitorSessionCreation) {
                     refreshVisitorSessionState(tags = tags)
                 }
-            }
         }
     }
 

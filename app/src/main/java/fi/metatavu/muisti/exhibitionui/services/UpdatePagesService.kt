@@ -46,9 +46,12 @@ object UpdatePages : MqttActionInterface {
      */
     fun updateAllPages() = GlobalScope.launch {
         try {
-            val deviceId = DeviceSettings.getExhibitionDeviceId() ?: return@launch
-            val pages = MuistiApiFactory.getDeviceDataApi().listDeviceDataPages(deviceId = deviceId)
+            val deviceId = DeviceSettings.getDeviceId() ?: return@launch
+            val deviceKey = DeviceSettings.getDeviceKey() ?: return@launch
+            val pages = MuistiApiFactory.getDeviceDataApi(deviceKey = deviceKey).listDeviceDataPages(deviceId = deviceId)
             setPages(pages)
+            Log.d(javaClass.name, "Received ${pages.size}")
+            Log.d(javaClass.name, "Pages id: ${pages.map { it.id }}")
         } catch (e: Exception) {
             Log.e(javaClass.name, "Updating all pages failed", e)
         }

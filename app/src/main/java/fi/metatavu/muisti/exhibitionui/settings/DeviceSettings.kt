@@ -34,15 +34,6 @@ class DeviceSettings {
         }
 
         /**
-         * Sets exhibition id
-         *
-         * @param exhibitionId exhibition id
-         */
-        suspend fun setExhibitionId(exhibitionId: UUID?) {
-            setExhibitionId(exhibitionId?.toString())
-        }
-
-        /**
          * Sets rotation flip boolean setting
          *
          * @param value value of setting
@@ -53,12 +44,12 @@ class DeviceSettings {
         }
 
         /**
-         * Returns device id if set
+         * Returns device key if set
          *
-         * @return device id or null if not set
+         * @return device key or null if not set
          */
         suspend fun getDeviceKey(): String? {
-            return getSettingValue(DeviceSettingName.DEVICE_ID)
+            return getSettingValue(DeviceSettingName.DEVICE_KEY)
         }
 
         /**
@@ -112,19 +103,6 @@ class DeviceSettings {
         }
 
         /**
-         * Gets force video play boolean setting
-         *
-         * @return Boolean value of the setting, defaults to false
-         */
-        fun getForceVideoPlay(): Boolean {
-            return forceVideoPlay ?: false.also {
-                GlobalScope.launch {
-                    forceVideoPlay = getSettingValue(DeviceSettingName.FORCE_VIDEO_PLAY)?.toBoolean()
-                }
-            }
-        }
-
-        /**
          * Sets exhibition id
          *
          * @param exhibitionId exhibition id
@@ -141,7 +119,6 @@ class DeviceSettings {
         suspend fun getExhibitionDeviceId(): UUID? {
             return getUUID(getSettingValue(DeviceSettingName.EXHIBITION_DEVICE_ID))
         }
-
 
         /**
          * Returns Rfid Antenna list or empty list
@@ -185,15 +162,6 @@ class DeviceSettings {
         }
 
         /**
-         * Sets exhibition device id
-         *
-         * @param exhibitionDeviceId exhibition device id
-         */
-        suspend fun setExhibitionDeviceId(exhibitionDeviceId: UUID?) {
-            setExhibitionDeviceId(exhibitionDeviceId?.toString())
-        }
-
-        /**
          * Sets exhibition antenna list
          *
          * @param rfidAntennaList to set into settings
@@ -201,13 +169,6 @@ class DeviceSettings {
         suspend fun setExhibitionAntennaList(rfidAntennaList: List<RfidAntenna>) {
             val antennaJson = jsonAdapter.toJson(rfidAntennaList)
             setSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA, antennaJson)
-        }
-
-        /**
-         * Sets rfid Antenna list to null
-         */
-        suspend fun removeAllExhibitionRfidAntennas() {
-            setSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA, null)
         }
 
         /**

@@ -32,6 +32,7 @@ class MuistiApiFactory {
             waitForToken()
             return VisitorsApi(BuildConfig.MUISTI_API_BASE_URL)
         }
+
         /**
          * Returns initialized exhibitions API
          *
@@ -53,46 +54,6 @@ class MuistiApiFactory {
         }
 
         /**
-         * Returns initialized device groups API
-         *
-         * @return initialized device groups API
-         */
-        suspend fun getExhibitionDeviceGroupsApi(): ExhibitionDeviceGroupsApi {
-            waitForToken()
-            return ExhibitionDeviceGroupsApi(BuildConfig.MUISTI_API_BASE_URL)
-        }
-
-        /**
-         * Returns initialized page layouts API
-         *
-         * @return initialized page layouts API
-         */
-        suspend fun getPageLayoutsApi(): PageLayoutsApi {
-            waitForToken()
-            return PageLayoutsApi(BuildConfig.MUISTI_API_BASE_URL)
-        }
-
-        /**
-         * Returns initialized exhibition pages API
-         *
-         * @return initialized exhibition pages API
-         */
-        suspend fun getExhibitionPagesApi(): ExhibitionPagesApi {
-            waitForToken()
-            return ExhibitionPagesApi(BuildConfig.MUISTI_API_BASE_URL)
-        }
-
-        /**
-         * Returns initialized content versions API
-         *
-         * @return initialized content versions API
-         */
-        suspend fun getContentVersionsApi(): ContentVersionsApi {
-            waitForToken()
-            return ContentVersionsApi(BuildConfig.MUISTI_API_BASE_URL)
-        }
-
-        /**
          * Returns initialized exhibition pages API
          *
          * @return initialized exhibition pages API
@@ -107,8 +68,19 @@ class MuistiApiFactory {
          *
          * @return initialized device data API
          */
-        suspend fun getDeviceDataApi(): DeviceDataApi {
+        fun getDeviceDataApi(deviceKey: String): DeviceDataApi {
+            ApiClient.apiKey["X-DEVICE-KEY"] = deviceKey
             return DeviceDataApi(BuildConfig.MUISTI_API_BASE_URL)
+        }
+
+        /**
+         * Returns initialized devices API
+         *
+         * @return initialized devices API
+         */
+        fun getDevicesApi(deviceKey: String): DevicesApi {
+            ApiClient.apiKey["X-DEVICE-KEY"] = deviceKey
+            return DevicesApi(BuildConfig.MUISTI_API_BASE_URL)
         }
 
         /**

@@ -27,6 +27,7 @@ openApiGenerate {
     inputSpec = "$rootDir/noheva-api-spec/swagger.yaml".toString()
     outputDir = "$buildDir/generated".toString()
     packageName = "fi.metatavu.muisti.api.client"
+    templateDir = "$rootDir/api-client/openapi"
     configOptions = [
             library: "jvm-okhttp4",
             dateLibrary: "string"
