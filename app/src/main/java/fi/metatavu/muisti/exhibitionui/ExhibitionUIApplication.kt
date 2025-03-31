@@ -38,7 +38,7 @@ class ExhibitionUIApplication : Application() {
     private var indexPageTimeout: Long? = null
     private var allowVisitorSessionCreation = false
     private var antennaListeners = emptyList<MqttTopicListener<*>>()
-
+    var idlePageId: UUID? = null
     var forcedPortraitMode: Boolean? = null
         private set
     private var loginAllowed = true
@@ -55,9 +55,7 @@ class ExhibitionUIApplication : Application() {
     init {
         instance = this
 
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateKeycloakTokenServiceTask() }, 1, 5, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 5, 1, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorsServiceTask() }, 5, 60 * 5, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorSessionsServiceTask() }, 5, 60 * 5, TimeUnit.SECONDS)
 
         VisibleTagsContainer.getLiveVisibleTags().observeForever {
@@ -74,40 +72,6 @@ class ExhibitionUIApplication : Application() {
         MuistiMqttService()
         startProximityListening()
         pollUnseenTags()
-
-        UpdateRfidAntenna.addAntennaUpdateListener {
-            restartProximityListening()
-        }
-
-        val visitorListeners = mapOf(
-            "visitors/create" to MqttVisitorCreate::class.java,
-            "visitors/update" to MqttVisitorUpdate::class.java,
-            "visitors/delete" to MqttVisitorDelete::class.java
-        )
-
-        val visitorSessionListeners = mapOf(
-            "visitorsessions/create" to MqttExhibitionVisitorSessionCreate::class.java,
-            "visitorsessions/delete" to MqttExhibitionVisitorSessionDelete::class.java
-        )
-
-        visitorListeners.forEach {
-            MqttClientController.addListener(MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/${it.key}", it.value) {
-                enqueueUpdateVisitorsServiceTask()
-            })
-        }
-
-        visitorSessionListeners.forEach {
-            MqttClientController.addListener(MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/${it.key}", it.value) {
-                enqueueUpdateVisitorSessionsServiceTask()
-            })
-        }
-
-        MqttClientController.addListener(MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/visitorsessions/update", MqttExhibitionVisitorSessionUpdate::class.java) {
-            onVisitorSessionUpdate(
-                exhibitionId = it.exhibitionId,
-                visitorSessionId = it.id
-            )
-        })
     }
 
     /**
@@ -233,6 +197,7 @@ class ExhibitionUIApplication : Application() {
                 allowVisitorSessionCreation = "true" == deviceSettings[DeviceSettingKey.aLLOWVISITORSESSIONCREATION]
                 deviceImageLoadStrategy = getDeviceImageLoadStrategy(deviceSettings[DeviceSettingKey.dEVICEIMAGELOADSTRATEGY])
                 indexPageTimeout = deviceSettings[DeviceSettingKey.iNDEXPAGETIMEOUT]?.toLongOrNull()
+                idlePageId = getUUID(deviceSettings[DeviceSettingKey.iDLEPAGEID])
 
                 Log.d(javaClass.name, "Visitor session end timeout set to: $visitorSessionEndTimeout")
                 Log.d(javaClass.name, "Allow visitor session creation is set to: $allowVisitorSessionCreation")
@@ -267,6 +232,17 @@ class ExhibitionUIApplication : Application() {
     }
 
     /**
+     * Gets a UUID
+     *
+     * @param settingValue setting value
+     * @return UUID
+     */
+    private fun getUUID(settingValue: String?): UUID? {
+        settingValue ?: return null
+        return UUID.fromString(settingValue)
+    }
+
+    /**
      * Handles a proximity update message
      *
      * @param antenna antenna that reported the proximity update
@@ -277,14 +253,6 @@ class ExhibitionUIApplication : Application() {
                 proximityUpdate.strength > antenna.visitorSessionEndThreshold) {
             VisibleTagsContainer.tagSeen(tag = proximityUpdate.tag, expireSlack = tagsPollInterval)
         }
-    }
-
-    /**
-     * Enqueues update keycloak token task
-     */
-    private fun enqueueUpdateKeycloakTokenServiceTask() {
-        val serviceIntent = Intent().apply { }
-        JobIntentService.enqueueWork(this, UpdateKeycloakTokenService::class.java, 1, serviceIntent)
     }
 
     /**
@@ -302,45 +270,6 @@ class ExhibitionUIApplication : Application() {
         Log.d(javaClass.name, "Updating visitor sessions")
         val serviceIntent = Intent().apply { }
         JobIntentService.enqueueWork(this, VisitorSessionsService::class.java, 3, serviceIntent)
-    }
-
-    /**
-     * Event handler for visitor session update event
-     *
-     * @param exhibitionId exhibition id
-     * @param visitorSessionId visitor session id
-     */
-    private fun onVisitorSessionUpdate(exhibitionId: UUID, visitorSessionId: UUID) = GlobalScope.launch {
-        Log.d(javaClass.name, "Updating visitor session $visitorSessionId from exhibition $exhibitionId")
-
-        val visitorSession = MuistiApiFactory.getVisitorSessionsApi().findVisitorSessionV2(
-            exhibitionId = exhibitionId,
-            visitorSessionId = visitorSessionId
-        )
-
-        if (visitorSession == null) {
-            Log.w(javaClass.name, "Could not find updated visitor session $visitorSessionId from exhibition $exhibitionId")
-            return@launch
-        }
-
-        ExhibitionVisitorsContainer.updateVisitorSession(
-            visitorSession = visitorSession
-        )
-
-        Log.d(javaClass.name, "Visitor session $visitorSessionId from exhibition $exhibitionId updated.")
-    }
-
-    /**
-     * Enqueues update visitors service task
-     */
-    private fun enqueueUpdateVisitorsServiceTask() {
-        if (allowVisitorSessionCreation) {
-            Log.d(javaClass.name, "Updating visitor and visitor session lists")
-            val serviceIntent = Intent().apply { }
-            JobIntentService.enqueueWork(this, VisitorsService::class.java, 6, serviceIntent)
-        } else {
-            Log.d(javaClass.name, "Visitors list is only updated on devices allowing visitor session creation.")
-        }
     }
 
     /**

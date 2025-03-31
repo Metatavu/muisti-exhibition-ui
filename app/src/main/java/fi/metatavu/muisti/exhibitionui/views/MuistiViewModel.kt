@@ -4,12 +4,10 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import fi.metatavu.muisti.api.client.models.VisitorSessionV2
-import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
 import fi.metatavu.muisti.exhibitionui.persistence.model.Page
 import fi.metatavu.muisti.exhibitionui.persistence.repository.PageRepository
-import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
-import java.util.*
+import java.util.UUID
 
 /**
  * View model for main activity
@@ -57,18 +55,5 @@ class MuistiViewModel(application: Application): AndroidViewModel(application) {
         }
 
         return activeIndexPages.firstOrNull()?.pageId
-    }
-
-    /**
-     * Returns idle page id for the current device
-     *
-     * @return a idle page id for the current device or null if not found
-     */
-    suspend fun getIdlePageId() : UUID? {
-        val deviceId = DeviceSettings.getExhibitionDeviceId()
-        val exhibitionId = DeviceSettings.getExhibitionId()
-        val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId ?: return null, deviceId ?: return null)
-
-        return device.idlePageId
     }
 }

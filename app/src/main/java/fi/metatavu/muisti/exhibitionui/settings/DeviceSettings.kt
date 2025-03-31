@@ -25,15 +25,6 @@ class DeviceSettings {
         private val jsonAdapter: JsonAdapter<List<RfidAntenna>> = moshi.adapter<List<RfidAntenna>>(listType)
 
         /**
-         * Returns exhibition id if set
-         *
-         * @return exhibition id or null if not set
-         */
-        suspend fun getExhibitionId(): UUID? {
-            return getUUID(getSettingValue(DeviceSettingName.EXHIBITION_ID))
-        }
-
-        /**
          * Sets rotation flip boolean setting
          *
          * @param value value of setting
@@ -103,24 +94,6 @@ class DeviceSettings {
         }
 
         /**
-         * Sets exhibition id
-         *
-         * @param exhibitionId exhibition id
-         */
-        suspend fun setExhibitionId(exhibitionId: String?) {
-            setSettingValue(DeviceSettingName.EXHIBITION_ID, exhibitionId)
-        }
-
-        /**
-         * Returns exhibition device id if set
-         *
-         * @return exhibition device id or null if not set
-         */
-        suspend fun getExhibitionDeviceId(): UUID? {
-            return getUUID(getSettingValue(DeviceSettingName.EXHIBITION_DEVICE_ID))
-        }
-
-        /**
          * Returns Rfid Antenna list or empty list
          *
          * @return list of Rfid Antennas
@@ -150,15 +123,6 @@ class DeviceSettings {
         suspend fun hasRfidAntenna(rfidAntennaId: UUID): Boolean {
             val rfidAntennas = jsonAdapter.fromJson(getSettingValue(DeviceSettingName.EXHIBITION_RFID_ANTENNA) ?: return false)
             return rfidAntennas?.any { it.id == rfidAntennaId} ?: false
-        }
-
-        /**
-         * Sets exhibition device id
-         *
-         * @param exhibitionDeviceId exhibition device id
-         */
-        suspend fun setExhibitionDeviceId(exhibitionDeviceId: String?) {
-            setSettingValue(DeviceSettingName.EXHIBITION_DEVICE_ID, exhibitionDeviceId)
         }
 
         /**

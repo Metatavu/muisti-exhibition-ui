@@ -34,7 +34,7 @@ class MainActivity : MuistiActivity() {
             if (deviceId == null || deviceKey == null) {
                 startSetupActivity()
             } else {
-                val idlePage = when (val pageId = muistiViewModel?.getIdlePageId()) {
+                val idlePage = when (val pageId = ExhibitionUIApplication.instance.idlePageId) {
                     null -> null
                     else -> PageViewContainer.getPageView(pageId)
                 }
