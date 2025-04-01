@@ -228,7 +228,7 @@ class ExhibitionUIApplication : Application() {
      */
     private fun getScreenOrientation(settingValue: String?): ScreenOrientation?{
         settingValue ?: return null
-        return ScreenOrientation.valueOf(settingValue)
+        return ScreenOrientation.values().find { it.value.equals(settingValue, ignoreCase = true) }
     }
 
     /**
