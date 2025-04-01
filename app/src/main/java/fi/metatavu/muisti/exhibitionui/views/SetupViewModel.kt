@@ -76,7 +76,7 @@ class SetupViewModel(application: Application): AndroidViewModel(application) {
         try {
             val devicesApi = MuistiApiFactory.getDevicesApi(deviceKey)
             return devicesApi.getDeviceKey(deviceId = deviceId)
-        } catch(e:ClientException) {
+        } catch (e: ClientException) {
             return null
         }
     }

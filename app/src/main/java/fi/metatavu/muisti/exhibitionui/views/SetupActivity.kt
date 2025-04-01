@@ -132,13 +132,11 @@ class SetupActivity : MuistiActivity() {
      * Hides setup UI
      */
     private fun hideSetupUI() {
-
         deviceNameInput.visibility = View.GONE
         deviceDescriptionInput.visibility = View.GONE
         saveSetupButton.visibility = View.GONE
         deviceNameLabel.visibility = View.GONE
         deviceDescriptionLabel.visibility = View.GONE
-
     }
 
     /**
