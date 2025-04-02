@@ -20,7 +20,7 @@
             android:id="@+id/deviceNameLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Device name"
+            android:text="@string/deviceName"
             android:textSize="30sp" />
 
         <EditText
@@ -28,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="70dp"
             android:ems="10"
-            android:hint="Name of device"
+            android:hint="@string/name_of_device"
             android:inputType="text"
             android:textSize="18sp" />
 
@@ -36,8 +36,20 @@
             android:id="@+id/deviceDescriptionLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Device description"
+            android:text="@string/deviceDescription"
             android:textSize="30sp" />
+
+        <TextView
+            android:id="@+id/setupStatusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textColor="@android:color/white"
+            android:text=""
+            android:visibility="gone"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:layout_gravity="center_horizontal"/>
 
         <EditText
             android:id="@+id/deviceDescriptionInput"
@@ -45,7 +57,9 @@
             android:layout_height="70dp"
             android:ems="10"
             android:gravity="start|top"
-            android:hint="Description of device"
+            android:hint="@string/description_of_device"
+            android:nextFocusDown="@id/saveSetup"
+            android:importantForAccessibility="yes"
             android:inputType="textMultiLine" />
 
         <LinearLayout
@@ -59,7 +73,8 @@
                 android:layout_width="120dp"
                 android:layout_height="50dp"
                 android:gravity="center"
-                android:text="Save setup" />
+                android:importantForAccessibility="yes"
+                android:text="@string/saveSetup" />
 
         </LinearLayout>
 

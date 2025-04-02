@@ -25,6 +25,16 @@ class ExhibitionVisitorsContainer {
         }
 
         /**
+         * Sets visitor sessions
+         *
+         * @param updatedVisitorSessionsList visitor sessions to set
+         */
+
+        fun setVisitorSessions(updatedVisitorSessionsList: List<VisitorSessionV2>) {
+            visitorSessions = updatedVisitorSessionsList
+        }
+
+        /**
          * Removes expired visitor sessions from visitor session list
          *
          * @return returns count of removed sessions

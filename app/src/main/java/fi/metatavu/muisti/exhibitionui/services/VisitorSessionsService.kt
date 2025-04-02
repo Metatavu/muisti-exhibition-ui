@@ -1,16 +1,16 @@
 package fi.metatavu.muisti.exhibitionui.services
 
 import android.content.Intent
-import android.util.Log
 import androidx.core.app.JobIntentService
+import fi.metatavu.muisti.api.client.models.Visitor
+import fi.metatavu.muisti.api.client.models.VisitorSessionState
 import fi.metatavu.muisti.api.client.models.VisitorSessionV2
-import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
-import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
+import fi.metatavu.muisti.exhibitionui.BuildConfig
 import fi.metatavu.muisti.exhibitionui.visitors.ExhibitionVisitorsContainer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.lang.Exception
 import java.time.OffsetDateTime
+import java.util.UUID
 
 /**
  * Service for caching visitor sessions.
@@ -25,33 +25,26 @@ class VisitorSessionsService : JobIntentService() {
      * Updates the visitor sessions list from the API
      */
     private fun updateVisitorSessions() = GlobalScope.launch {
-        try {
-            Log.d(javaClass.name, "Updating visitor session list...")
-
-            val exhibitionId = DeviceSettings.getExhibitionId() ?: return@launch
-            val newVisitorSessions = MuistiApiFactory.getVisitorSessionsApi().listVisitorSessionsV2(
-                exhibitionId = exhibitionId,
-                tagId = null,
-                modifiedAfter = VISITOR_LIST_MODIFIED_AFTER?.toString()
-            )
-
-            val expiredCount = ExhibitionVisitorsContainer.removeExpiredVisitorSessions()
-            val visitorSessions = ExhibitionVisitorsContainer.addVisitorSessions(newVisitorSessions)
-            val lastModified = visitorSessions
-                .sortedBy(VisitorSessionV2::modifiedAt)
-                .lastOrNull()
-                ?.modifiedAt
-
-            VISITOR_LIST_MODIFIED_AFTER = if (lastModified != null) OffsetDateTime.parse(lastModified) else null
-
-            Log.d(javaClass.name, "Found ${newVisitorSessions.size} new and removed $expiredCount expired visitor sessions. Active visitor session count: ${visitorSessions.size}")
-        } catch (e: Exception) {
-            Log.e(javaClass.name, "Error updating Exhibition visitor session list: $e")
-        }
+        ExhibitionVisitorsContainer.setVisitorSessions(ADMIN_OVERRIDES)
+        ExhibitionVisitorsContainer.setVisitors(ADMIN_OVERRIDES_VISITORS)
     }
 
     companion object {
         var VISITOR_LIST_MODIFIED_AFTER: OffsetDateTime? = null
+        val ADMIN_OVERRIDES_VISITORS = arrayOf(Visitor(
+            id = UUID.randomUUID(),
+            language = "FI",
+            email = "admin@example.com",
+            tagId = BuildConfig.KEYCLOAK_DEMO_TAG
+        ))
+
+        val ADMIN_OVERRIDES = listOf(VisitorSessionV2(
+            tags = arrayOf(BuildConfig.KEYCLOAK_DEMO_TAG),
+            id = UUID.randomUUID(),
+            visitorIds = ADMIN_OVERRIDES_VISITORS.map { it.id!! }.toTypedArray(),
+            language = "FI",
+            state = VisitorSessionState.aCTIVE
+        ))
     }
 
 }

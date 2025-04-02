@@ -46,12 +46,13 @@ object UpdateLayouts : MqttActionInterface {
     }
 
     /**
-     ' Retrieves all layouts from the API and saves them into the local database
+     * Retrieves all layouts from the API and saves them into the local database
      */
     fun updateAllLayouts() = GlobalScope.launch {
         try {
-            val deviceId = DeviceSettings.getExhibitionDeviceId() ?: return@launch
-            val layouts = MuistiApiFactory.getDeviceDataApi().listDeviceDataLayouts(deviceId = deviceId)
+            val deviceId = DeviceSettings.getDeviceId() ?: return@launch
+            val deviceKey = DeviceSettings.getDeviceKey() ?: return@launch
+            val layouts = MuistiApiFactory.getDeviceDataApi(deviceKey = deviceKey).listDeviceDataLayouts(deviceId = deviceId)
             addLayouts(layouts)
         } catch (e: Exception) {
             Log.e(javaClass.name, "Failed to update all layouts", e)

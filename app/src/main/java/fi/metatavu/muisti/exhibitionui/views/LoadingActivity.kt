@@ -8,7 +8,6 @@ import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.services.ConstructPagesService
 import fi.metatavu.muisti.exhibitionui.services.UpdateLayouts
 import fi.metatavu.muisti.exhibitionui.services.UpdatePages
-import kotlinx.android.synthetic.main.activity_page.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -20,9 +19,6 @@ class LoadingActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_loading)
-        settings_button.setOnClickListener {
-            startSettingsActivity()
-        }
     }
 
     override fun onResume() {
@@ -55,13 +51,4 @@ class LoadingActivity : Activity() {
         val intent = Intent(this, MainActivity::class.java)
         this.startActivity(intent)
     }
-
-    /**
-     * Starts settings activity
-     */
-    private fun startSettingsActivity() {
-        val intent = Intent(this, SettingsActivity::class.java)
-        this.startActivity(intent)
-    }
-
 }

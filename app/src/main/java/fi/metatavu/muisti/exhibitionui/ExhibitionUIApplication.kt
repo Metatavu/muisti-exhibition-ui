@@ -38,7 +38,7 @@ class ExhibitionUIApplication : Application() {
     private var indexPageTimeout: Long? = null
     private var allowVisitorSessionCreation = false
     private var antennaListeners = emptyList<MqttTopicListener<*>>()
-
+    var idlePageId: UUID? = null
     var forcedPortraitMode: Boolean? = null
         private set
     private var loginAllowed = true
@@ -55,9 +55,7 @@ class ExhibitionUIApplication : Application() {
     init {
         instance = this
 
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateKeycloakTokenServiceTask() }, 1, 5, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateUserValueServiceTask() }, 5, 1, TimeUnit.SECONDS)
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorsServiceTask() }, 5, 60 * 5, TimeUnit.SECONDS)
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ enqueueUpdateVisitorSessionsServiceTask() }, 5, 60 * 5, TimeUnit.SECONDS)
 
         VisibleTagsContainer.getLiveVisibleTags().observeForever {
@@ -74,40 +72,6 @@ class ExhibitionUIApplication : Application() {
         MuistiMqttService()
         startProximityListening()
         pollUnseenTags()
-
-        UpdateRfidAntenna.addAntennaUpdateListener {
-            restartProximityListening()
-        }
-
-        val visitorListeners = mapOf(
-            "visitors/create" to MqttVisitorCreate::class.java,
-            "visitors/update" to MqttVisitorUpdate::class.java,
-            "visitors/delete" to MqttVisitorDelete::class.java
-        )
-
-        val visitorSessionListeners = mapOf(
-            "visitorsessions/create" to MqttExhibitionVisitorSessionCreate::class.java,
-            "visitorsessions/delete" to MqttExhibitionVisitorSessionDelete::class.java
-        )
-
-        visitorListeners.forEach {
-            MqttClientController.addListener(MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/${it.key}", it.value) {
-                enqueueUpdateVisitorsServiceTask()
-            })
-        }
-
-        visitorSessionListeners.forEach {
-            MqttClientController.addListener(MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/${it.key}", it.value) {
-                enqueueUpdateVisitorSessionsServiceTask()
-            })
-        }
-
-        MqttClientController.addListener(MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/visitorsessions/update", MqttExhibitionVisitorSessionUpdate::class.java) {
-            onVisitorSessionUpdate(
-                exhibitionId = it.exhibitionId,
-                visitorSessionId = it.id
-            )
-        })
     }
 
     /**
@@ -217,25 +181,24 @@ class ExhibitionUIApplication : Application() {
      *  Reads visitor session end time out and forced portrait mode values from API
      */
     fun readApiValues() = GlobalScope.launch {
-        val exhibitionId = DeviceSettings.getExhibitionId()
-        val deviceId = DeviceSettings.getExhibitionDeviceId()
+        val deviceKey = DeviceSettings.getDeviceKey() ?: return@launch
+        val deviceDataApi = MuistiApiFactory.getDeviceDataApi(deviceKey = deviceKey)
+        val deviceId = DeviceSettings.getDeviceId()
 
-        if (exhibitionId == null) {
-            Log.e(javaClass.name, "Exhibition not configured. Using default visitor session end timeout")
-        } else if (deviceId == null) {
+        if (deviceId == null) {
             Log.e(javaClass.name, "Device not configured. Using default visitor session end timeout")
         } else {
             try {
-                val device = MuistiApiFactory.getExhibitionDevicesApi().findExhibitionDevice(exhibitionId = exhibitionId, deviceId = deviceId)
-                val group = MuistiApiFactory.getExhibitionDeviceGroupsApi().findExhibitionDeviceGroup(exhibitionId = exhibitionId, deviceGroupId = device.groupId)
+                val deviceSettings = deviceDataApi.listDeviceDataSettings(deviceId = deviceId)
+                    .associate { it.key to it.value }
 
-                forcedPortraitMode = device.screenOrientation == ScreenOrientation.forcedPortrait
-                visitorSessionEndTimeout = group.visitorSessionEndTimeout
-                allowVisitorSessionCreation = group.allowVisitorSessionCreation
-                deviceImageLoadStrategy = device.imageLoadStrategy
-                indexPageTimeout = group.indexPageTimeout
+                forcedPortraitMode = getScreenOrientation(deviceSettings[DeviceSettingKey.sCREENORIENTATION]) == ScreenOrientation.forcedPortrait
+                visitorSessionEndTimeout = deviceSettings[DeviceSettingKey.vISITORSESSIONENDTIMEOUT]?.toLongOrNull() ?: 50000L
+                allowVisitorSessionCreation = "true" == deviceSettings[DeviceSettingKey.aLLOWVISITORSESSIONCREATION]
+                deviceImageLoadStrategy = getDeviceImageLoadStrategy(deviceSettings[DeviceSettingKey.dEVICEIMAGELOADSTRATEGY])
+                indexPageTimeout = deviceSettings[DeviceSettingKey.iNDEXPAGETIMEOUT]?.toLongOrNull()
+                idlePageId = getUUID(deviceSettings[DeviceSettingKey.iDLEPAGEID])
 
-                Log.d(javaClass.name, "Device orientation is set to: ${device.screenOrientation}")
                 Log.d(javaClass.name, "Visitor session end timeout set to: $visitorSessionEndTimeout")
                 Log.d(javaClass.name, "Allow visitor session creation is set to: $allowVisitorSessionCreation")
                 Log.d(javaClass.name, "Device image load strategy is set to: $deviceImageLoadStrategy")
@@ -243,6 +206,40 @@ class ExhibitionUIApplication : Application() {
                 Log.e(javaClass.name, "Could not read device settings from API", e)
             }
         }
+    }
+
+    /**
+     * Gets the device image load strategy
+     *
+     * @param settingValue setting value
+     * @return device image load strategy value while ignoring character case
+     */
+    private fun getDeviceImageLoadStrategy(settingValue: String?): DeviceImageLoadStrategy{
+        settingValue ?: return DeviceImageLoadStrategy.mEMORY
+        return DeviceImageLoadStrategy.values().find { it.value.equals(settingValue, ignoreCase = true) }
+            ?: DeviceImageLoadStrategy.mEMORY
+    }
+
+    /**
+     * Gets the screen orientation
+     *
+     * @param settingValue setting value
+     * @return screen orientation value
+     */
+    private fun getScreenOrientation(settingValue: String?): ScreenOrientation?{
+        settingValue ?: return null
+        return ScreenOrientation.values().find { it.value.equals(settingValue, ignoreCase = true) }
+    }
+
+    /**
+     * Gets a UUID
+     *
+     * @param settingValue setting value
+     * @return UUID
+     */
+    private fun getUUID(settingValue: String?): UUID? {
+        settingValue ?: return null
+        return UUID.fromString(settingValue)
     }
 
     /**
@@ -256,14 +253,6 @@ class ExhibitionUIApplication : Application() {
                 proximityUpdate.strength > antenna.visitorSessionEndThreshold) {
             VisibleTagsContainer.tagSeen(tag = proximityUpdate.tag, expireSlack = tagsPollInterval)
         }
-    }
-
-    /**
-     * Enqueues update keycloak token task
-     */
-    private fun enqueueUpdateKeycloakTokenServiceTask() {
-        val serviceIntent = Intent().apply { }
-        JobIntentService.enqueueWork(this, UpdateKeycloakTokenService::class.java, 1, serviceIntent)
     }
 
     /**
@@ -281,45 +270,6 @@ class ExhibitionUIApplication : Application() {
         Log.d(javaClass.name, "Updating visitor sessions")
         val serviceIntent = Intent().apply { }
         JobIntentService.enqueueWork(this, VisitorSessionsService::class.java, 3, serviceIntent)
-    }
-
-    /**
-     * Event handler for visitor session update event
-     *
-     * @param exhibitionId exhibition id
-     * @param visitorSessionId visitor session id
-     */
-    private fun onVisitorSessionUpdate(exhibitionId: UUID, visitorSessionId: UUID) = GlobalScope.launch {
-        Log.d(javaClass.name, "Updating visitor session $visitorSessionId from exhibition $exhibitionId")
-
-        val visitorSession = MuistiApiFactory.getVisitorSessionsApi().findVisitorSessionV2(
-            exhibitionId = exhibitionId,
-            visitorSessionId = visitorSessionId
-        )
-
-        if (visitorSession == null) {
-            Log.w(javaClass.name, "Could not find updated visitor session $visitorSessionId from exhibition $exhibitionId")
-            return@launch
-        }
-
-        ExhibitionVisitorsContainer.updateVisitorSession(
-            visitorSession = visitorSession
-        )
-
-        Log.d(javaClass.name, "Visitor session $visitorSessionId from exhibition $exhibitionId updated.")
-    }
-
-    /**
-     * Enqueues update visitors service task
-     */
-    private fun enqueueUpdateVisitorsServiceTask() {
-        if (allowVisitorSessionCreation) {
-            Log.d(javaClass.name, "Updating visitor and visitor session lists")
-            val serviceIntent = Intent().apply { }
-            JobIntentService.enqueueWork(this, VisitorsService::class.java, 6, serviceIntent)
-        } else {
-            Log.d(javaClass.name, "Visitors list is only updated on devices allowing visitor session creation.")
-        }
     }
 
     /**
@@ -389,6 +339,7 @@ class ExhibitionUIApplication : Application() {
      * @param tags tags
      */
     private fun refreshVisitorSessionState(tags: List<String>) {
+        Log.d(javaClass.name, "Visitor tags: ${tags}")
         val currentVisitorSession = VisitorSessionContainer.getVisitorSession()
         if (currentVisitorSession == null) {
             if (tags.isNotEmpty() && loginAllowed) {
@@ -419,14 +370,11 @@ class ExhibitionUIApplication : Application() {
         Log.d(javaClass.name, "Visible tags changed, new tags ${tags.joinToString(",")}")
 
         GlobalScope.launch {
-            val exhibitionId = DeviceSettings.getExhibitionId()
-            if (exhibitionId != null) {
                 VisibleVisitorsContainer.setVisibleVisitors(tags.mapNotNull { ExhibitionVisitorsContainer.findVisitorByTag(tag = it) })
 
                 if (!allowVisitorSessionCreation) {
                     refreshVisitorSessionState(tags = tags)
                 }
-            }
         }
     }
 

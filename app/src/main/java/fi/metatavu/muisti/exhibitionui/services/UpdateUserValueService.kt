@@ -3,14 +3,11 @@ package fi.metatavu.muisti.exhibitionui.services
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.JobIntentService
-import fi.metatavu.muisti.api.client.models.*
-import fi.metatavu.muisti.exhibitionui.api.MuistiApiFactory
+import fi.metatavu.muisti.api.client.models.VisitorSessionV2
 import fi.metatavu.muisti.exhibitionui.persistence.ExhibitionUIDatabase
 import fi.metatavu.muisti.exhibitionui.persistence.repository.UpdateUserValueTaskRepository
-import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.lang.Exception
 import fi.metatavu.muisti.exhibitionui.persistence.model.UpdateUserValueTask as UpdateUserValueTask1
 
 /**
@@ -57,14 +54,7 @@ object UpdateUserValue {
      */
     suspend fun updateVisitorSessionVariable(visitorSession: VisitorSessionV2, key: String, value: String) {
         try {
-            val variables = (visitorSession.variables ?: arrayOf()).filter { !it.name.equals(key) }.toTypedArray()
-            val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
-
-            visitorSessionsApi.updateVisitorSessionV2(
-                visitorSession.exhibitionId!!,
-                visitorSession.id!!,
-                visitorSession.copy(variables = variables.plus(VisitorSessionVariable(key, value)))
-            )
+            Log.d(javaClass.name, "Visitor sessions feature is disabled. Cannot update visitor session")
         } catch (e: Exception) {
             Log.e(javaClass.name, "Failed to update visitor session variable", e)
         }
@@ -77,20 +67,6 @@ object UpdateUserValue {
      * @return a visitor session for a task
      */
     suspend fun findVisitorSession(updateUserValueTask: UpdateUserValueTask1): VisitorSessionV2? {
-        try {
-            val exhibitionId = DeviceSettings.getExhibitionId()
-            val visitorSessionsApi = MuistiApiFactory.getVisitorSessionsApi()
-            val visitorSessionId = updateUserValueTask.sessionId
-
-            if (exhibitionId == null) {
-                return null
-            }
-
-            return visitorSessionsApi.findVisitorSessionV2(exhibitionId, visitorSessionId)
-        } catch (e: Exception) {
-            Log.e(javaClass.name, "Failed to retrieve visitor session", e)
-        }
-
         return null
     }
 }
