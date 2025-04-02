@@ -52,7 +52,7 @@ android {
         minSdkVersion 27
         targetSdkVersion 30
         versionCode 104015
-        versionName "1.4.15-develop.14"
+        versionName "1.4.15-digimatka.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
