@@ -18,32 +18,32 @@ jobs:
           distribution: temurin
           java-version: 8
 
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_prefix: ""
+      # - name: Bump version and push tag
+      #   id: tag_version
+      #   uses: mathieudutour/github-tag-action@v6.1
+      #   with:
+      #    github_token: ${{ secrets.GITHUB_TOKEN }}
+      #    tag_prefix: ""
 
-      - name: Update version gradle
-        run: |
-          VERSION_CODE=`echo "${{ steps.tag_version.outputs.new_tag }}" | awk -F. '{printf "%d%02d%03d\n", $1, $2, $3}'`
-          echo "Updating version to ${{ steps.tag_version.outputs.new_tag }}"
-          echo "Version code: $VERSION_CODE"
-          
-          sed -i 's/versionName .*/versionName \"${{ steps.tag_version.outputs.new_tag }}\"/g' app/build.gradle
-          sed -i "s/versionCode .*/versionCode $VERSION_CODE/g" app/build.gradle
-          
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add app/build.gradle
-          git commit -m "Updated version"
+      # - name: Update version gradle
+      #  run: |
+      #    VERSION_CODE=`echo "${{ steps.tag_version.outputs.new_tag }}" | awk -F. '{printf "%d%02d%03d\n", $1, $2, $3}'`
+      #    echo "Updating version to ${{ steps.tag_version.outputs.new_tag }}"
+      #    echo "Version code: $VERSION_CODE"
+      #    
+      #    sed -i 's/versionName .*/versionName \"${{ steps.tag_version.outputs.new_tag }}\"/g' app/build.gradle
+      #    sed -i "s/versionCode .*/versionCode $VERSION_CODE/g" app/build.gradle
+      #    
+      #    git config --local user.email "github-actions[bot]@users.noreply.github.com"
+      #    git config --local user.name "github-actions[bot]"
+      #    git add app/build.gradle
+      #    git commit -m "Updated version"
 
-      - name: Push version changes to develop
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: develop
+      # - name: Push version changes to develop
+      #  uses: ad-m/github-push-action@v0.6.0
+      #  with:
+      #    github_token: ${{ secrets.GITHUB_TOKEN }}
+      #    branch: develop
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
