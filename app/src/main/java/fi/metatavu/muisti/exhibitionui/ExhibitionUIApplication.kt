@@ -199,6 +199,7 @@ class ExhibitionUIApplication : Application() {
                 indexPageTimeout = deviceSettings[DeviceSettingKey.iNDEXPAGETIMEOUT]?.toLongOrNull()
                 idlePageId = getUUID(deviceSettings[DeviceSettingKey.iDLEPAGEID])
 
+                Log.d(javaClass.name, "Device id: $deviceId")
                 Log.d(javaClass.name, "Visitor session end timeout set to: $visitorSessionEndTimeout")
                 Log.d(javaClass.name, "Allow visitor session creation is set to: $allowVisitorSessionCreation")
                 Log.d(javaClass.name, "Device image load strategy is set to: $deviceImageLoadStrategy")
@@ -339,7 +340,6 @@ class ExhibitionUIApplication : Application() {
      * @param tags tags
      */
     private fun refreshVisitorSessionState(tags: List<String>) {
-        Log.d(javaClass.name, "Visitor tags: ${tags}")
         val currentVisitorSession = VisitorSessionContainer.getVisitorSession()
         if (currentVisitorSession == null) {
             if (tags.isNotEmpty() && loginAllowed) {
@@ -367,7 +367,6 @@ class ExhibitionUIApplication : Application() {
      * @param tags tags currently visible to the device
      */
     private fun onVisibleTagsChange(tags: List<String>) {
-        Log.d(javaClass.name, "Visible tags changed, new tags ${tags.joinToString(",")}")
 
         GlobalScope.launch {
                 VisibleVisitorsContainer.setVisibleVisitors(tags.mapNotNull { ExhibitionVisitorsContainer.findVisitorByTag(tag = it) })
