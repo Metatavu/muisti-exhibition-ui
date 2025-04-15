@@ -27,7 +27,7 @@ class WebViewContainer(buildContext: ComponentBuildContext, val data: String?, v
             override fun onPageActivate(activity: MuistiActivity) {
                 val view = WebView(buildContext.context)
                 if (data != null) {
-                    view.loadDataWithBaseURL(null, data, contentType, "UTF-8", null)
+                    view.loadUrl(data)
                     view.settings.javaScriptEnabled = true
                 }
 
