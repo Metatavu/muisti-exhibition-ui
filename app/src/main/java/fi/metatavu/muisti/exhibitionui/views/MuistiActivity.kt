@@ -6,38 +6,56 @@ import android.app.ActivityOptions
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
-import android.widget.Button
-import androidx.appcompat.app.AppCompatActivity
-import android.util.Pair
-import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
-import fi.metatavu.muisti.exhibitionui.pages.PageView
-import kotlinx.android.synthetic.main.activity_page.*
-import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
-import java.util.*
-import kotlin.math.max
 import android.os.PersistableBundle
 import android.transition.Fade
 import android.transition.Visibility
 import android.util.Log
-import android.view.*
-import android.view.animation.*
+import android.util.Pair
+import android.view.KeyEvent
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
+import android.view.Window
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.AnticipateInterpolator
+import android.view.animation.AnticipateOvershootInterpolator
+import android.view.animation.BounceInterpolator
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.LinearInterpolator
+import android.view.animation.OvershootInterpolator
+import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.ViewModelProvider
 import com.github.rongi.rotate_layout.layout.RotateLayout
-import fi.metatavu.muisti.api.client.models.*
 import fi.metatavu.muisti.api.client.models.Animation
+import fi.metatavu.muisti.api.client.models.AnimationTimeInterpolation
+import fi.metatavu.muisti.api.client.models.ExhibitionPageEvent
+import fi.metatavu.muisti.api.client.models.ExhibitionPageEventTrigger
+import fi.metatavu.muisti.api.client.models.ExhibitionPageTransition
+import fi.metatavu.muisti.api.client.models.ExhibitionPageTransitionOptionsMorphView
+import fi.metatavu.muisti.api.client.models.MqttTriggerDeviceGroupEvent
+import fi.metatavu.muisti.api.client.models.Transition
+import fi.metatavu.muisti.api.client.models.VisitorSessionV2
 import fi.metatavu.muisti.exhibitionui.BuildConfig
+import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProvider
 import fi.metatavu.muisti.exhibitionui.actions.PageActionProviderFactory
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttTopicListener
+import fi.metatavu.muisti.exhibitionui.pages.PageView
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import fi.metatavu.muisti.exhibitionui.visitors.VisibleTagsContainer
+import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
+import kotlinx.android.synthetic.main.activity_page.root
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Locale
+import java.util.UUID
+import kotlin.math.max
 
 /**
  * Muisti activity abstract class
@@ -486,28 +504,6 @@ abstract class MuistiActivity : AppCompatActivity() {
     }
 
     /**
-     * Starts listening for settings button click
-     *
-     * @param button button
-     */
-    protected fun listenSettingsButton(button: Button) {
-        button.setOnClickListener{
-            settingsButtonClick()
-        }
-    }
-
-    /**
-     * Starts listening for login button click
-     *
-     * @param button button
-     */
-    protected fun listenLoginButton(button: Button) {
-        button.setOnClickListener{
-            loginButtonClick()
-        }
-    }
-
-    /**
      * Removes settings and index page listeners
      */
     protected fun removeSettingsAndIndexListeners() {
@@ -642,29 +638,11 @@ abstract class MuistiActivity : AppCompatActivity() {
     /**
      * Logs in with debug account
      */
-    private fun debugLogin() {
+    protected fun debugLogin() {
         VisibleTagsContainer.tagSeen(
                 tag = BuildConfig.KEYCLOAK_DEMO_TAG,
                 expireSlack = 1000L
         )
-    }
-
-    /**
-     * Handler for settings button click
-     *
-     * Increases settings click count and navigates to settings if it has been clicked 5 times.
-     * Counter resets to zero after 1 sec
-     */
-    private fun settingsButtonClick() {
-        settingsClickCounterHandler.removeCallbacksAndMessages(null)
-        buttonClickCounter += 1
-        if (buttonClickCounter > 4) {
-            startSetupActivity()
-        } else {
-            settingsClickCounterHandler.postDelayed({
-                buttonClickCounter = 0
-            }, 1000)
-        }
     }
 
     /**
@@ -682,26 +660,6 @@ abstract class MuistiActivity : AppCompatActivity() {
             indexClickCounterHandler.postDelayed({
                 buttonClickCounter = 0
             }, 1000)
-        }
-    }
-
-    /**
-     * Handler for login button click
-     *
-     * Increases settings click count and logs in if it has been clicked 5 times.
-     * Counter resets to zero after 1 sec
-     */
-    protected fun loginButtonClick() {
-        loginClickCounterHandler.removeCallbacksAndMessages(null)
-        buttonClickCounter += 1
-        if (buttonClickCounter > 4) {
-            debugLogin()
-        } else {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                loginClickCounterHandler.postDelayed({
-                    buttonClickCounter = 0
-                }, 1000)
-            }
         }
     }
 
