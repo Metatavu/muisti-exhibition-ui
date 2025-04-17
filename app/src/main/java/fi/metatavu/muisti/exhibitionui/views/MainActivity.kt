@@ -9,8 +9,12 @@ import fi.metatavu.muisti.exhibitionui.R
 import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
-import kotlinx.android.synthetic.main.activity_page.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -19,6 +23,7 @@ import kotlinx.coroutines.launch
 class MainActivity : MuistiActivity() {
 
     private var handler: Handler = Handler()
+    private var loginJob: Job? = null
 
     private val visitorSessionObserver = Observer<VisitorSessionV2?> {
         onVisitorSessionChange(it)
@@ -51,9 +56,9 @@ class MainActivity : MuistiActivity() {
                     }
 
                     setImmersiveMode()
-                    listenLoginButton(login_button)
-                    listenSettingsButton(settings_button)
                     waitForForcedPortraitMode(idlePage?.orientation)
+                    doLogin()
+
                 }
             }
         }
@@ -93,6 +98,19 @@ class MainActivity : MuistiActivity() {
                 }
             }
         }, 500)
+    }
+
+    /**
+     * Method logs admin user every second in
+     */
+    private fun doLogin() {
+        loginJob?.cancel()
+        loginJob = CoroutineScope(Dispatchers.IO).launch {
+            while (isActive) {
+                delay(1000L)
+                debugLogin()
+            }
+        }
     }
 
     /**
