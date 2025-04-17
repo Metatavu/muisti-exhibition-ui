@@ -59,7 +59,6 @@ class PageActivity : MuistiActivity() {
         setContentView(R.layout.activity_page)
         logoutWarning = findViewById(R.id.logout_warning)
 
-        listenSettingsButton(settings_button)
         listenIndexButton(index_page_button)
         setImmersiveMode()
 
