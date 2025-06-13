@@ -114,7 +114,7 @@ class SetupActivity : MuistiActivity() {
             val device = mViewModel.createDevice(
                 name = deviceName,
                 description = deviceDescription,
-                deviceType = DeviceType.cUSTOM,
+                deviceType = DeviceType.mUISTIANDROID,
                 serialNumber = serialNumber,
                 version = currentVersionCode.toString()
             )
