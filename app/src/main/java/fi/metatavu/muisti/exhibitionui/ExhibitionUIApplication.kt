@@ -39,6 +39,7 @@ class ExhibitionUIApplication : Application() {
     private var allowVisitorSessionCreation = false
     private var antennaListeners = emptyList<MqttTopicListener<*>>()
     var idlePageId: UUID? = null
+    var deviceGroupId: UUID? = null
     var forcedPortraitMode: Boolean? = null
         private set
     private var loginAllowed = true
@@ -198,11 +199,13 @@ class ExhibitionUIApplication : Application() {
                 deviceImageLoadStrategy = getDeviceImageLoadStrategy(deviceSettings[DeviceSettingKey.dEVICEIMAGELOADSTRATEGY])
                 indexPageTimeout = deviceSettings[DeviceSettingKey.iNDEXPAGETIMEOUT]?.toLongOrNull()
                 idlePageId = getUUID(deviceSettings[DeviceSettingKey.iDLEPAGEID])
+                deviceGroupId = getUUID(deviceSettings[DeviceSettingKey.dEVICEGROUPID])
 
                 Log.d(javaClass.name, "Device id: $deviceId")
                 Log.d(javaClass.name, "Visitor session end timeout set to: $visitorSessionEndTimeout")
                 Log.d(javaClass.name, "Allow visitor session creation is set to: $allowVisitorSessionCreation")
                 Log.d(javaClass.name, "Device image load strategy is set to: $deviceImageLoadStrategy")
+                Log.d(javaClass.name, "Device group id: $deviceGroupId")
             } catch (e: Exception) {
                 Log.e(javaClass.name, "Could not read device settings from API", e)
             }
