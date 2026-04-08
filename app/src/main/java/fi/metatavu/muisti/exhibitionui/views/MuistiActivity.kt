@@ -76,16 +76,8 @@ abstract class MuistiActivity : AppCompatActivity() {
     var pageInteractable = false
     var transitionTime = 300L
 
-    // TODO: Listen only device group messages
-    private val mqttTriggerDeviceGroupEventListener = MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/deviceGroupId", MqttTriggerDeviceGroupEvent::class.java) {
-        val key = it.event
-        if (key != null) {
-            val events = deviceGroupEvents.get(key)
-            if (events != null) {
-                triggerEvents(events)
-            }
-        }
-    }
+
+    private var mqttTriggerDeviceGroupEventListener: MqttTopicListener<MqttTriggerDeviceGroupEvent>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -236,7 +228,27 @@ abstract class MuistiActivity : AppCompatActivity() {
             requestedOrientation = pageView.orientation
         }
 
-        MqttClientController.addListener(mqttTriggerDeviceGroupEventListener)
+        val deviceGroupId = ExhibitionUIApplication.instance.deviceGroupId
+        if (deviceGroupId != null) {
+            val listener = MqttTopicListener(
+                "${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/$deviceGroupId",
+                MqttTriggerDeviceGroupEvent::class.java
+            ) {
+                val key = it.event
+                if (key != null) {
+                    val events = deviceGroupEvents[key]
+                    if (events != null) {
+                        triggerEvents(events)
+                    }
+                }
+            }
+
+            mqttTriggerDeviceGroupEventListener = listener
+            MqttClientController.addListener(listener)
+        } else {
+            Log.w(javaClass.name, "Device group id not set, cannot listen for device group events")
+        }
+        Log.d("MQTT_DEBUG", "Listener active on topic = ${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/$deviceGroupId")
         pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
         applyEventTriggers(pageView.page.eventTriggers)
     }
@@ -247,7 +259,11 @@ abstract class MuistiActivity : AppCompatActivity() {
      * Method cancels all pending scheduled events
      */
     private fun closeView() {
-        MqttClientController.removeListener(mqttTriggerDeviceGroupEventListener)
+        mqttTriggerDeviceGroupEventListener?.let {
+            MqttClientController.removeListener(it)
+            mqttTriggerDeviceGroupEventListener = null
+        }
+
         handler.removeCallbacksAndMessages(null)
         currentPageView?.lifecycleListeners?.forEach { it.onPageDeactivate(this) }
         removeSettingsAndIndexListeners()
