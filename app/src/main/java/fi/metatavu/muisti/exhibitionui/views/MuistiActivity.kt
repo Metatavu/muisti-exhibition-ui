@@ -27,6 +27,7 @@ import android.view.animation.OvershootInterpolator
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.github.rongi.rotate_layout.layout.RotateLayout
 import fi.metatavu.muisti.api.client.models.Animation
 import fi.metatavu.muisti.api.client.models.AnimationTimeInterpolation
@@ -50,6 +51,7 @@ import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import fi.metatavu.muisti.exhibitionui.visitors.VisibleTagsContainer
 import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
 import kotlinx.android.synthetic.main.activity_page.root
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -121,7 +123,7 @@ abstract class MuistiActivity : AppCompatActivity() {
 
         currentPageView?.lifecycleListeners?.forEach { it.onResume() }
         val activity = this
-        GlobalScope.launch {
+        lifecycleScope.launch(Dispatchers.Main) {
             val previous = getCurrentActivity()
             delay(transitionTime)
             previous?.finish()
@@ -228,8 +230,12 @@ abstract class MuistiActivity : AppCompatActivity() {
             requestedOrientation = pageView.orientation
         }
 
+        pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
+        applyEventTriggers(pageView.page.eventTriggers)
+
         val deviceGroupId = ExhibitionUIApplication.instance.deviceGroupId
         if (deviceGroupId != null) {
+            val topic = "${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/$deviceGroupId"
             val listener = MqttTopicListener(
                 "${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/$deviceGroupId",
                 MqttTriggerDeviceGroupEvent::class.java
@@ -238,19 +244,19 @@ abstract class MuistiActivity : AppCompatActivity() {
                 if (key != null) {
                     val events = deviceGroupEvents[key]
                     if (events != null) {
-                        triggerEvents(events)
+                        runOnUiThread {
+                            triggerEvents(events)
+                        }
                     }
                 }
             }
 
             mqttTriggerDeviceGroupEventListener = listener
             MqttClientController.addListener(listener)
+            Log.d("MQTT_DEBUG", "Listener active on topic = $topic")
         } else {
             Log.w(javaClass.name, "Device group id not set, cannot listen for device group events")
         }
-        Log.d("MQTT_DEBUG", "Listener active on topic = ${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/$deviceGroupId")
-        pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
-        applyEventTriggers(pageView.page.eventTriggers)
     }
 
     /**
@@ -290,7 +296,9 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     private fun applyEventTriggers(eventTriggers: Array<ExhibitionPageEventTrigger>) {
         deviceGroupEvents.clear()
-        eventTriggers.map(this::applyEventTrigger)
+        eventTriggers.forEach { trigger ->
+            applyEventTrigger(trigger)
+        }
     }
 
     /**
@@ -322,7 +330,10 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     private fun applyEventTrigger(eventTrigger: ExhibitionPageEventTrigger) {
         val events = eventTrigger.events
-        events ?: return
+        if (events == null) {
+            Log.d("MQTT_DEBUG", "eventTrigger.events is null, returning")
+            return
+        }
 
         val delay: Long = eventTrigger.delay ?: 0
         if (delay > 0) {
@@ -338,8 +349,12 @@ abstract class MuistiActivity : AppCompatActivity() {
         val deviceGroupEvent = eventTrigger.deviceGroupEvent
 
         if (deviceGroupEvent != null) {
-            val deviceGroupEventList = deviceGroupEvents.get(deviceGroupEvent) ?: arrayOf()
+            Log.d("MQTT_DEBUG", "Registering deviceGroupEvent key = $deviceGroupEvent")
+            val deviceGroupEventList = deviceGroupEvents[deviceGroupEvent] ?: arrayOf()
             deviceGroupEvents[deviceGroupEvent] = deviceGroupEventList.plus(events)
+
+        } else {
+            Log.d("MQTT_DEBUG", "No deviceGroupEvent on this trigger")
         }
 
         val keyCodeUp = eventTrigger.keyUp

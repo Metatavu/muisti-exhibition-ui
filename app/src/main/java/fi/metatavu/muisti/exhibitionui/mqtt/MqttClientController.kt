@@ -1,5 +1,6 @@
 package fi.metatavu.muisti.exhibitionui.mqtt
 
+import android.util.Log
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fi.metatavu.muisti.api.client.infrastructure.UUIDAdapter
@@ -15,13 +16,20 @@ class MqttClientController {
 
     companion object {
 
+        private const val TAG = "MQTT_DEBUG"
+
         private val client = MuistiMqttClient(BuildConfig.MQTT_URLS.split(","))
         private val listeners = mutableListOf<MqttTopicListener<*>>()
 
-        private val trigger : (topic: String?, message : String) -> Unit = { topic, message ->
-            listeners.forEach {
-                if (it.topic == topic)
-                    it.handleMessage(message)
+        private val trigger: (topic: String?, message: String) -> Unit = { topic, message ->
+            Log.d(TAG, "Raw MQTT arrived topic = $topic")
+            Log.d(TAG, "Raw MQTT arrived message = $message")
+
+            listeners.forEach { listener ->
+                if (listener.topic == topic) {
+                    Log.d(TAG, "Dispatching MQTT to listener topic = ${listener.topic}")
+                    listener.handleMessage(message)
+                }
             }
         }
 
@@ -48,6 +56,10 @@ class MqttClientController {
             val moshi = Moshi.Builder().add(UUIDAdapter()).add(KotlinJsonAdapterFactory()).build()
             val adapter = moshi.adapter(payload.javaClass)
             val message = adapter.toJson(payload)
+
+            Log.d(TAG, "Publishing MQTT topic = $topic")
+            Log.d(TAG, "Publishing MQTT message = $message")
+
             client.publish(topic, message)
         }
 
@@ -57,7 +69,7 @@ class MqttClientController {
          * @param newListeners new listeners
          */
         fun addListeners(newListeners: List<MqttTopicListener<*>>) {
-            listeners.addAll(newListeners)
+            newListeners.forEach { addListener(it) }
         }
 
         /**
@@ -66,7 +78,15 @@ class MqttClientController {
          * @param newListener new listener
          */
         fun addListener(newListener: MqttTopicListener<*>): MqttTopicListener<*> {
-            listeners.add(newListener)
+            val alreadyExists = listeners.any { it === newListener }
+
+            if (!alreadyExists) {
+                listeners.add(newListener)
+                Log.d(TAG, "Added listener for topic = ${newListener.topic}")
+            } else {
+                Log.d(TAG, "Listener already exists for topic = ${newListener.topic}")
+            }
+
             return newListener
         }
 
@@ -76,7 +96,11 @@ class MqttClientController {
          * @param removeListener listener to be removed
          */
         fun removeListener(removeListener: MqttTopicListener<*>) {
-            listeners.remove(removeListener)
+            val removed = listeners.remove(removeListener)
+
+            if (removed) {
+                Log.d(TAG, "Removed listener for topic = ${removeListener.topic}")
+            }
         }
 
         /**
