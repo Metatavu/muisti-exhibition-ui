@@ -19,11 +19,9 @@ class MqttClientController {
         private const val TAG = "MQTT_DEBUG"
 
         private val client = MuistiMqttClient(BuildConfig.MQTT_URLS.split(","))
-        private val listeners = mutableListOf<MqttTopicListener<*>>()
+        private val listeners = java.util.concurrent.CopyOnWriteArrayList<MqttTopicListener<*>>()
 
         private val trigger: (topic: String?, message: String) -> Unit = { topic, message ->
-            Log.d(TAG, "Raw MQTT arrived topic = $topic")
-            Log.d(TAG, "Raw MQTT arrived message = $message")
 
             listeners.forEach { listener ->
                 if (listener.topic == topic) {
@@ -56,9 +54,6 @@ class MqttClientController {
             val moshi = Moshi.Builder().add(UUIDAdapter()).add(KotlinJsonAdapterFactory()).build()
             val adapter = moshi.adapter(payload.javaClass)
             val message = adapter.toJson(payload)
-
-            Log.d(TAG, "Publishing MQTT topic = $topic")
-            Log.d(TAG, "Publishing MQTT message = $message")
 
             client.publish(topic, message)
         }

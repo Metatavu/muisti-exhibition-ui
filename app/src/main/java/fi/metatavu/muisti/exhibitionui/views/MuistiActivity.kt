@@ -52,7 +52,6 @@ import fi.metatavu.muisti.exhibitionui.visitors.VisibleTagsContainer
 import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
 import kotlinx.android.synthetic.main.activity_page.root
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -237,7 +236,7 @@ abstract class MuistiActivity : AppCompatActivity() {
         if (deviceGroupId != null) {
             val topic = "${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/$deviceGroupId"
             val listener = MqttTopicListener(
-                "${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/$deviceGroupId",
+                topic,
                 MqttTriggerDeviceGroupEvent::class.java
             ) {
                 val key = it.event
@@ -253,7 +252,7 @@ abstract class MuistiActivity : AppCompatActivity() {
 
             mqttTriggerDeviceGroupEventListener = listener
             MqttClientController.addListener(listener)
-            Log.d("MQTT_DEBUG", "Listener active on topic = $topic")
+            Log.d(javaClass.name, "Listener active on topic = $topic")
         } else {
             Log.w(javaClass.name, "Device group id not set, cannot listen for device group events")
         }
@@ -331,7 +330,7 @@ abstract class MuistiActivity : AppCompatActivity() {
     private fun applyEventTrigger(eventTrigger: ExhibitionPageEventTrigger) {
         val events = eventTrigger.events
         if (events == null) {
-            Log.d("MQTT_DEBUG", "eventTrigger.events is null, returning")
+            Log.d(javaClass.name, "eventTrigger.events is null, returning")
             return
         }
 
@@ -349,12 +348,12 @@ abstract class MuistiActivity : AppCompatActivity() {
         val deviceGroupEvent = eventTrigger.deviceGroupEvent
 
         if (deviceGroupEvent != null) {
-            Log.d("MQTT_DEBUG", "Registering deviceGroupEvent key = $deviceGroupEvent")
+            Log.d(javaClass.name, "Registering deviceGroupEvent key = $deviceGroupEvent")
             val deviceGroupEventList = deviceGroupEvents[deviceGroupEvent] ?: arrayOf()
             deviceGroupEvents[deviceGroupEvent] = deviceGroupEventList.plus(events)
 
         } else {
-            Log.d("MQTT_DEBUG", "No deviceGroupEvent on this trigger")
+            Log.d(javaClass.name, "No deviceGroupEvent on this trigger")
         }
 
         val keyCodeUp = eventTrigger.keyUp
