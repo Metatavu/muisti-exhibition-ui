@@ -1,6 +1,4 @@
 package fi.metatavu.muisti.exhibitionui.mqtt
-
-import android.util.Log
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fi.metatavu.muisti.api.client.infrastructure.UUIDAdapter
@@ -16,8 +14,6 @@ class MqttClientController {
 
     companion object {
 
-        private const val TAG = "MQTT_DEBUG"
-
         private val client = MuistiMqttClient(BuildConfig.MQTT_URLS.split(","))
         private val listeners = java.util.concurrent.CopyOnWriteArrayList<MqttTopicListener<*>>()
 
@@ -25,7 +21,6 @@ class MqttClientController {
 
             listeners.forEach { listener ->
                 if (listener.topic == topic) {
-                    Log.d(TAG, "Dispatching MQTT to listener topic = ${listener.topic}")
                     listener.handleMessage(message)
                 }
             }
@@ -73,15 +68,7 @@ class MqttClientController {
          * @param newListener new listener
          */
         fun addListener(newListener: MqttTopicListener<*>): MqttTopicListener<*> {
-            val alreadyExists = listeners.any { it === newListener }
-
-            if (!alreadyExists) {
-                listeners.add(newListener)
-                Log.d(TAG, "Added listener for topic = ${newListener.topic}")
-            } else {
-                Log.d(TAG, "Listener already exists for topic = ${newListener.topic}")
-            }
-
+            listeners.add(newListener)
             return newListener
         }
 
@@ -91,11 +78,7 @@ class MqttClientController {
          * @param removeListener listener to be removed
          */
         fun removeListener(removeListener: MqttTopicListener<*>) {
-            val removed = listeners.remove(removeListener)
-
-            if (removed) {
-                Log.d(TAG, "Removed listener for topic = ${removeListener.topic}")
-            }
+            listeners.remove(removeListener)
         }
 
         /**
