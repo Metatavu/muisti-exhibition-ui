@@ -1,5 +1,4 @@
 package fi.metatavu.muisti.exhibitionui.mqtt
-
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fi.metatavu.muisti.api.client.infrastructure.UUIDAdapter
@@ -16,12 +15,14 @@ class MqttClientController {
     companion object {
 
         private val client = MuistiMqttClient(BuildConfig.MQTT_URLS.split(","))
-        private val listeners = mutableListOf<MqttTopicListener<*>>()
+        private val listeners = java.util.concurrent.CopyOnWriteArrayList<MqttTopicListener<*>>()
 
-        private val trigger : (topic: String?, message : String) -> Unit = { topic, message ->
-            listeners.forEach {
-                if (it.topic == topic)
-                    it.handleMessage(message)
+        private val trigger: (topic: String?, message: String) -> Unit = { topic, message ->
+
+            listeners.forEach { listener ->
+                if (listener.topic == topic) {
+                    listener.handleMessage(message)
+                }
             }
         }
 
@@ -48,6 +49,7 @@ class MqttClientController {
             val moshi = Moshi.Builder().add(UUIDAdapter()).add(KotlinJsonAdapterFactory()).build()
             val adapter = moshi.adapter(payload.javaClass)
             val message = adapter.toJson(payload)
+
             client.publish(topic, message)
         }
 
@@ -57,7 +59,7 @@ class MqttClientController {
          * @param newListeners new listeners
          */
         fun addListeners(newListeners: List<MqttTopicListener<*>>) {
-            listeners.addAll(newListeners)
+            newListeners.forEach { addListener(it) }
         }
 
         /**

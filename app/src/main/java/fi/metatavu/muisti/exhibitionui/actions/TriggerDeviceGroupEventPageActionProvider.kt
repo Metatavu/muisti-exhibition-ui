@@ -16,7 +16,7 @@ import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
  * @constructor constructor
  * @param properties event properties
  */
-class TriggerDeviceGroupEventPageActionProvider(properties: Array<ExhibitionPageEventProperty>): AbstractPageActionProvider(properties) {
+class TriggerDeviceGroupEventPageActionProvider(properties: Array<ExhibitionPageEventProperty>) : AbstractPageActionProvider(properties) {
 
     override fun performAction(activity: MuistiActivity) {
 
@@ -29,9 +29,7 @@ class TriggerDeviceGroupEventPageActionProvider(properties: Array<ExhibitionPage
         } else {
             Log.w(javaClass.name, "Device group id not set, cannot trigger device group event")
         }
-
     }
 
-    override val action: ExhibitionPageEventActionType get() = ExhibitionPageEventActionType.navigate
-
+    override val action: ExhibitionPageEventActionType get() = ExhibitionPageEventActionType.triggerdevicegroupevent
 }
