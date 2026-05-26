@@ -122,12 +122,18 @@ abstract class MuistiActivity : AppCompatActivity() {
 
         currentPageView?.lifecycleListeners?.forEach { it.onResume() }
         val activity = this
+        val previous = ExhibitionUIApplication.instance.getCurrentActivity()
+
+        setCurrentActivity(activity)
+
         lifecycleScope.launch(Dispatchers.Main) {
-            val previous = getCurrentActivity()
             delay(transitionTime)
-            previous?.finish()
+
+            if (previous != null && previous !== activity && !previous.isFinishing) {
+                previous.finish()
+            }
+
             pageInteractable = true
-            setCurrentActivity(activity)
         }
     }
 
@@ -216,46 +222,38 @@ abstract class MuistiActivity : AppCompatActivity() {
      * @param pageView
      */
     protected open fun openView(pageView: PageView) {
-        pageView.view.layoutParams?.height = ConstraintLayout.LayoutParams.MATCH_PARENT
-        pageView.view.layoutParams?.width = ConstraintLayout.LayoutParams.MATCH_PARENT
+        pageInteractable = false
 
-        releaseView(pageView.view)
-        currentPageView = pageView
-        this.root.addView(pageView.view)
-        setSharedElementTransitions(pageView.page.enterTransitions)
-        setSharedElementTransitions(pageView.page.exitTransitions)
-
-        if (ExhibitionUIApplication.instance.forcedPortraitMode != true) {
-            requestedOrientation = pageView.orientation
+        mqttTriggerDeviceGroupEventListener?.let {
+            MqttClientController.removeListener(it)
+            mqttTriggerDeviceGroupEventListener = null
         }
+
+        currentPageView = pageView
+        this.root.removeAllViews() // Varmistetaan puhdas pöytä
+        this.root.addView(pageView.view)
 
         pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
         applyEventTriggers(pageView.page.eventTriggers)
 
-        val deviceGroupId = ExhibitionUIApplication.instance.deviceGroupId
-        if (deviceGroupId != null) {
-            val topic = "${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/$deviceGroupId"
-            val listener = MqttTopicListener(
-                topic,
-                MqttTriggerDeviceGroupEvent::class.java
-            ) {
-                val key = it.event
-                if (key != null) {
-                    val events = deviceGroupEvents[key]
-                    if (events != null) {
-                        runOnUiThread {
-                            triggerEvents(events)
-                        }
-                    }
-                }
-            }
+        val deviceGroupId = ExhibitionUIApplication.instance.deviceGroupId ?: return
+        val topic = "${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/$deviceGroupId"
 
-            mqttTriggerDeviceGroupEventListener = listener
-            MqttClientController.addListener(listener)
-            Log.d(javaClass.name, "Listener active on topic = $topic")
-        } else {
-            Log.w(javaClass.name, "Device group id not set, cannot listen for device group events")
+        mqttTriggerDeviceGroupEventListener?.let { MqttClientController.removeListener(it) }
+
+        val listener = MqttTopicListener(topic, MqttTriggerDeviceGroupEvent::class.java) {
+            val eventData = it
+            runOnUiThread {
+                if (!pageInteractable || isFinishing) return@runOnUiThread
+                val key = eventData.event ?: return@runOnUiThread
+                val events = deviceGroupEvents[key] ?: return@runOnUiThread
+
+                triggerEvents(events)
+            }
         }
+
+        mqttTriggerDeviceGroupEventListener = listener
+        MqttClientController.addListener(listener)
     }
 
     /**
@@ -270,7 +268,10 @@ abstract class MuistiActivity : AppCompatActivity() {
         }
 
         handler.removeCallbacksAndMessages(null)
-        currentPageView?.lifecycleListeners?.forEach { it.onPageDeactivate(this) }
+        currentPageView?.lifecycleListeners?.forEach {
+            it.onPause()
+            it.onPageDeactivate(this)
+        }
         removeSettingsAndIndexListeners()
     }
 
@@ -441,7 +442,11 @@ abstract class MuistiActivity : AppCompatActivity() {
      * @param events events to be triggered
      */
     private fun triggerEvents(events: Array<ExhibitionPageEvent>) {
-        events.forEach(this::triggerEvent)
+        if (isFinishing || isDestroyed) return
+
+        runOnUiThread {
+            events.forEach(this::triggerEvent)
+        }
     }
 
     /**
