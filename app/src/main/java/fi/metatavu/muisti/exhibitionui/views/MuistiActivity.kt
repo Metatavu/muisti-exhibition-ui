@@ -79,6 +79,7 @@ abstract class MuistiActivity : AppCompatActivity() {
     var pageInteractable = false
     var transitionTime = 300L
     private var currentActivityUpdateJob: Job? = null
+    private var pendingPageId: UUID? = null
 
 
     private var mqttTriggerDeviceGroupEventListener: MqttTopicListener<MqttTriggerDeviceGroupEvent>? = null
@@ -106,6 +107,7 @@ abstract class MuistiActivity : AppCompatActivity() {
 
     override fun finish() {
         cancelCurrentActivityUpdate()
+        pendingPageId = null
         disableClickEvents(currentPageView?.page?.eventTriggers)
         this.closeView()
 
@@ -572,7 +574,13 @@ abstract class MuistiActivity : AppCompatActivity() {
             return
         }
 
+        if (pendingPageId == pageId) {
+            Log.d(javaClass.name, "Navigation to page $pageId is already pending")
+            return
+        }
+
         pageInteractable = false
+        pendingPageId = pageId
         val intent = Intent(this, PageActivity::class.java).apply {
             putExtra("pageId", pageId.toString())
         }
