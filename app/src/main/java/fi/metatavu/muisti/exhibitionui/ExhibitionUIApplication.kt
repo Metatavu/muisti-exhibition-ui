@@ -24,6 +24,7 @@ import java.lang.Exception
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 
 /**
  * Main application for exhibition UI application
