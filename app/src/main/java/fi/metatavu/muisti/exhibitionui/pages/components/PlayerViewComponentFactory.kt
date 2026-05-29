@@ -12,13 +12,8 @@ import android.widget.FrameLayout
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.ui.PlayerControlView
 import com.google.android.exoplayer2.ui.PlayerView
-import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.util.Util
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
@@ -96,7 +91,6 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
         val showPreviousButton = getBooleanProperty(buildContext = buildContext, propertyName = "showPreviousButton") ?: false
         val showNextButton = getBooleanProperty(buildContext = buildContext, propertyName = "showNextButton") ?: false
 
-        val context = buildContext.context
         val parent = buildContext.parents.lastOrNull()
 
         val view = PlayerComponentContainer(
@@ -117,12 +111,10 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
 
         val offlineFile = getResourceOfflineFile(buildContext, "src")
         if (offlineFile != null) {
-            val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(context, Util.getUserAgent(context, "ExhibitionUIApplication"))
             val mediaItem = MediaItem.fromUri(Uri.fromFile(offlineFile))
-            val videoSource: MediaSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
 
             buildContext.addLifecycleListener(PlayerPageViewLifecycleListener(
-                videoSource = videoSource,
+                mediaItem = mediaItem,
                 view = view,
                 autoPlay = autoPlay,
                 autoPlayDelay = autoPlayDelay
@@ -162,7 +154,7 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
  * @property autoPlay whether player should start automatically
  */
 private class PlayerPageViewLifecycleListener(
-    val videoSource: MediaSource,
+    val mediaItem: MediaItem,
     val view: PlayerComponentContainer,
     val autoPlay: Boolean,
     val autoPlayDelay: Long
@@ -190,7 +182,7 @@ private class PlayerPageViewLifecycleListener(
             player.playWhenReady = autoPlay
         }
 
-        player.setMediaSource(videoSource)
+        player.setMediaItem(mediaItem)
         player.prepare()
         player.repeatMode = Player.REPEAT_MODE_ALL
 
