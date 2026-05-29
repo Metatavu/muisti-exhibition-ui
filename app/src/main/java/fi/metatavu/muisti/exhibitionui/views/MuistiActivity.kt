@@ -254,8 +254,12 @@ abstract class MuistiActivity : AppCompatActivity() {
 
                 val key = it.event
                 if (key != null) {
+                    Log.d(javaClass.name, "Received MQTT group event for topic $topic with eventName $key")
+
                     val events = deviceGroupEvents[key]
                     if (events != null) {
+                        Log.d(javaClass.name, "Executing ${events.size} events based on topic $topic and eventName $key")
+
                         runOnUiThread {
                             triggerEvents(events)
                         }
