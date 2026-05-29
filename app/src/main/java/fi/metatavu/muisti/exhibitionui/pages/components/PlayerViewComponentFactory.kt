@@ -167,16 +167,20 @@ private class PlayerPageViewLifecycleListener(
     val autoPlay: Boolean,
     val autoPlayDelay: Long
 ): PageViewLifecycleListener {
-
+    private val autoPlayHandler = Handler(Looper.getMainLooper())
+    private var autoPlayRunnable: Runnable? = null
     override fun onPageActivate(activity: MuistiActivity) {
         val context: Context = activity
 
         val player = SimpleExoPlayer.Builder(context).build()
 
         if (autoPlay && autoPlayDelay > 0) {
-            Handler(Looper.getMainLooper()).postDelayed({
+            val runnable = Runnable {
                 player.playWhenReady = true
-            }, autoPlayDelay)
+            }
+
+            autoPlayRunnable = runnable
+            autoPlayHandler.postDelayed(runnable, autoPlayDelay)
         } else {
             player.playWhenReady = autoPlay
         }
@@ -199,6 +203,8 @@ private class PlayerPageViewLifecycleListener(
     }
 
     override fun onPageDeactivate(activity: MuistiActivity) {
+        autoPlayRunnable?.let { autoPlayHandler.removeCallbacks(it) }
+        autoPlayRunnable = null
         activity.runOnUiThread {
             view.playerView.player?.release()
         }
