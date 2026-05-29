@@ -122,7 +122,7 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
             Log.d(
                 PLAYER_LOG_TAG,
                 "build pageId=${buildContext.page.pageId} pageName=${buildContext.page.name} " +
-                    "orientation=${buildContext.pageLayoutView.style.orientation} src=${offlineFile.absolutePath} " +
+                    "viewId=${buildContext.pageLayoutView.id} viewName=${buildContext.pageLayoutView.name} src=${offlineFile.absolutePath} " +
                     "size=${offlineFile.length()} autoPlay=$autoPlay autoPlayDelay=$autoPlayDelay " +
                     "showPlaybackControls=$showPlaybackControls showRewindButton=$showRewindButton " +
                     "showFastForwardButton=$showFastForwardButton showPreviousButton=$showPreviousButton " +
