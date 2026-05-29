@@ -12,6 +12,7 @@ import android.widget.FrameLayout
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.ui.PlayerControlView
 import com.google.android.exoplayer2.ui.PlayerView
@@ -95,6 +96,7 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
         val showPreviousButton = getBooleanProperty(buildContext = buildContext, propertyName = "showPreviousButton") ?: false
         val showNextButton = getBooleanProperty(buildContext = buildContext, propertyName = "showNextButton") ?: false
 
+        val context = buildContext.context
         val parent = buildContext.parents.lastOrNull()
 
         val view = PlayerComponentContainer(
@@ -115,8 +117,12 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
 
         val offlineFile = getResourceOfflineFile(buildContext, "src")
         if (offlineFile != null) {
+            val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(context, Util.getUserAgent(context, "ExhibitionUIApplication"))
+            val mediaItem = MediaItem.fromUri(Uri.fromFile(offlineFile))
+            val videoSource: MediaSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+
             buildContext.addLifecycleListener(PlayerPageViewLifecycleListener(
-                videoUri = Uri.fromFile(offlineFile),
+                videoSource = videoSource,
                 view = view,
                 autoPlay = autoPlay,
                 autoPlayDelay = autoPlayDelay
@@ -156,7 +162,7 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
  * @property autoPlay whether player should start automatically
  */
 private class PlayerPageViewLifecycleListener(
-    val videoUri: Uri,
+    val videoSource: MediaSource,
     val view: PlayerComponentContainer,
     val autoPlay: Boolean,
     val autoPlayDelay: Long
@@ -174,9 +180,6 @@ private class PlayerPageViewLifecycleListener(
 
         val player = SimpleExoPlayer.Builder(context).build()
         this.player = player
-        val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(context, Util.getUserAgent(context, "ExhibitionUIApplication"))
-        val mediaItem = MediaItem.fromUri(videoUri)
-        val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
 
         if (autoPlay && autoPlayDelay > 0) {
             autoPlayRunnable = Runnable {
