@@ -26,6 +26,7 @@ import android.view.animation.LinearInterpolator
 import android.view.animation.OvershootInterpolator
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.github.rongi.rotate_layout.layout.RotateLayout
@@ -52,6 +53,7 @@ import fi.metatavu.muisti.exhibitionui.visitors.VisibleTagsContainer
 import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
 import kotlinx.android.synthetic.main.activity_page.root
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -76,6 +78,7 @@ abstract class MuistiActivity : AppCompatActivity() {
     val transitionElements: MutableList<View> = mutableListOf()
     var pageInteractable = false
     var transitionTime = 300L
+    private var currentActivityUpdateJob: Job? = null
 
 
     private var mqttTriggerDeviceGroupEventListener: MqttTopicListener<MqttTriggerDeviceGroupEvent>? = null
@@ -102,6 +105,7 @@ abstract class MuistiActivity : AppCompatActivity() {
     }
 
     override fun finish() {
+        cancelCurrentActivityUpdate()
         disableClickEvents(currentPageView?.page?.eventTriggers)
         this.closeView()
 
@@ -122,10 +126,16 @@ abstract class MuistiActivity : AppCompatActivity() {
 
         currentPageView?.lifecycleListeners?.forEach { it.onResume() }
         val activity = this
-        lifecycleScope.launch(Dispatchers.Main) {
+        currentActivityUpdateJob?.cancel()
+        currentActivityUpdateJob = lifecycleScope.launch(Dispatchers.Main) {
             val previous = getCurrentActivity()
             delay(transitionTime)
-            previous?.finish()
+            if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                return@launch
+            }
+            previous
+                ?.takeIf { it != activity }
+                ?.finish()
             pageInteractable = true
             setCurrentActivity(activity)
         }
@@ -133,6 +143,7 @@ abstract class MuistiActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        cancelCurrentActivityUpdate()
 
         this.closeView()
 
@@ -609,6 +620,14 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     private fun setCurrentActivity(activity: MuistiActivity?) {
         ExhibitionUIApplication.instance.setCurrentActivity(activity)
+    }
+
+    /**
+     * Cancels pending delayed current activity updates.
+     */
+    private fun cancelCurrentActivityUpdate() {
+        currentActivityUpdateJob?.cancel()
+        currentActivityUpdateJob = null
     }
 
     /**
