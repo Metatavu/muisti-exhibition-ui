@@ -250,6 +250,8 @@ abstract class MuistiActivity : AppCompatActivity() {
                 topic,
                 MqttTriggerDeviceGroupEvent::class.java
             ) {
+                Log.d(javaClass.name, "Received MQTT group event for topic $topic")
+
                 val key = it.event
                 if (key != null) {
                     val events = deviceGroupEvents[key]
