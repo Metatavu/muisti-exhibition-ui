@@ -9,6 +9,7 @@ import android.util.Log
 import android.util.Xml
 import android.view.View
 import android.widget.FrameLayout
+import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -21,6 +22,9 @@ import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleListener
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import org.xmlpull.v1.XmlPullParser
+
+private const val PLAYER_LOG_TAG = "PlayerViewComponent"
+
 /**
  * Component container for player view
  *
@@ -109,16 +113,43 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
             this.setProperty(buildContext, parent, view, it)
         }
 
+        val propertySummary = buildContext.pageLayoutView.properties
+            .joinToString(separator = ", ") { "${it.name}=${it.value}(${it.type.value})" }
+
         val offlineFile = getResourceOfflineFile(buildContext, "src")
         if (offlineFile != null) {
             val mediaItem = MediaItem.fromUri(Uri.fromFile(offlineFile))
+            Log.d(
+                PLAYER_LOG_TAG,
+                "build pageId=${buildContext.page.pageId} pageName=${buildContext.page.name} " +
+                    "orientation=${buildContext.pageLayoutView.style.orientation} src=${offlineFile.absolutePath} " +
+                    "size=${offlineFile.length()} autoPlay=$autoPlay autoPlayDelay=$autoPlayDelay " +
+                    "showPlaybackControls=$showPlaybackControls showRewindButton=$showRewindButton " +
+                    "showFastForwardButton=$showFastForwardButton showPreviousButton=$showPreviousButton " +
+                    "showNextButton=$showNextButton properties=[$propertySummary]"
+            )
 
             buildContext.addLifecycleListener(PlayerPageViewLifecycleListener(
                 mediaItem = mediaItem,
                 view = view,
                 autoPlay = autoPlay,
-                autoPlayDelay = autoPlayDelay
+                autoPlayDelay = autoPlayDelay,
+                pageId = buildContext.page.pageId.toString(),
+                pageName = buildContext.page.name,
+                sourcePath = offlineFile.absolutePath,
+                sourceSize = offlineFile.length(),
+                propertySummary = propertySummary,
+                showPlaybackControls = showPlaybackControls,
+                showRewindButton = showRewindButton,
+                showFastForwardButton = showFastForwardButton,
+                showPreviousButton = showPreviousButton,
+                showNextButton = showNextButton
             ))
+        } else {
+            Log.w(
+                PLAYER_LOG_TAG,
+                "build pageId=${buildContext.page.pageId} pageName=${buildContext.page.name} missing offline file properties=[$propertySummary]"
+            )
         }
 
         return view
@@ -157,7 +188,17 @@ private class PlayerPageViewLifecycleListener(
     val mediaItem: MediaItem,
     val view: PlayerComponentContainer,
     val autoPlay: Boolean,
-    val autoPlayDelay: Long
+    val autoPlayDelay: Long,
+    val pageId: String,
+    val pageName: String,
+    val sourcePath: String,
+    val sourceSize: Long,
+    val propertySummary: String,
+    val showPlaybackControls: Boolean,
+    val showRewindButton: Boolean,
+    val showFastForwardButton: Boolean,
+    val showPreviousButton: Boolean,
+    val showNextButton: Boolean
 ): PageViewLifecycleListener {
 
     private val autoPlayHandler = Handler(Looper.getMainLooper())
@@ -172,9 +213,40 @@ private class PlayerPageViewLifecycleListener(
 
         val player = SimpleExoPlayer.Builder(context).build()
         this.player = player
+        player.addListener(object : Player.EventListener {
+            override fun onLoadingChanged(isLoading: Boolean) {
+                Log.d(PLAYER_LOG_TAG, "loading pageId=$pageId pageName=$pageName isLoading=$isLoading")
+            }
+
+            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+                Log.d(
+                    PLAYER_LOG_TAG,
+                    "state pageId=$pageId pageName=$pageName playWhenReady=$playWhenReady " +
+                        "state=${playbackStateToString(playbackState)}"
+                )
+            }
+
+            override fun onPlayerError(error: ExoPlaybackException) {
+                Log.e(
+                    PLAYER_LOG_TAG,
+                    "error pageId=$pageId pageName=$pageName type=${error.type} message=${error.localizedMessage}",
+                    error
+                )
+            }
+        })
+
+        Log.d(
+            PLAYER_LOG_TAG,
+            "activate pageId=$pageId pageName=$pageName src=$sourcePath size=$sourceSize " +
+                "autoPlay=$autoPlay autoPlayDelay=$autoPlayDelay showPlaybackControls=$showPlaybackControls " +
+                "showRewindButton=$showRewindButton showFastForwardButton=$showFastForwardButton " +
+                "showPreviousButton=$showPreviousButton showNextButton=$showNextButton " +
+                "properties=[$propertySummary]"
+        )
 
         if (autoPlay && autoPlayDelay > 0) {
             autoPlayRunnable = Runnable {
+                Log.d(PLAYER_LOG_TAG, "autoplay-trigger pageId=$pageId pageName=$pageName delay=$autoPlayDelay")
                 player.playWhenReady = true
             }
             autoPlayHandler.postDelayed(autoPlayRunnable!!, autoPlayDelay)
@@ -197,12 +269,18 @@ private class PlayerPageViewLifecycleListener(
         }
 
         playerView.player = player
+        Log.d(
+            PLAYER_LOG_TAG,
+            "view pageId=$pageId pageName=$pageName useController=${playerView.useController} " +
+                "controllerAutoShow=${playerView.controllerAutoShow} keepContentOnPlayerReset=${playerView.keepContentOnPlayerReset}"
+        )
     }
 
     override fun onPageDeactivate(activity: MuistiActivity) {
         cancelPendingAutoplay()
         val playerToRelease = player
         player = null
+        Log.d(PLAYER_LOG_TAG, "deactivate pageId=$pageId pageName=$pageName releasing=${playerToRelease != null}")
 
         if (view.playerControlView?.player === playerToRelease) {
             view.playerControlView?.player = null
@@ -242,6 +320,16 @@ private class PlayerPageViewLifecycleListener(
     private fun cancelPendingAutoplay() {
         autoPlayRunnable?.let(autoPlayHandler::removeCallbacks)
         autoPlayRunnable = null
+    }
+
+    private fun playbackStateToString(playbackState: Int): String {
+        return when (playbackState) {
+            Player.STATE_IDLE -> "IDLE"
+            Player.STATE_BUFFERING -> "BUFFERING"
+            Player.STATE_READY -> "READY"
+            Player.STATE_ENDED -> "ENDED"
+            else -> playbackState.toString()
+        }
     }
 
 }
