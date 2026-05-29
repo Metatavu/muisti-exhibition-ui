@@ -201,12 +201,18 @@ private class PlayerPageViewLifecycleListener(
 
     override fun onPageDeactivate(activity: MuistiActivity) {
         cancelPendingAutoplay()
-        activity.runOnUiThread {
-            player?.release()
-            player = null
+        val playerToRelease = player
+        player = null
+
+        if (view.playerControlView?.player === playerToRelease) {
             view.playerControlView?.player = null
+        }
+
+        if (view.playerView.player === playerToRelease) {
             view.playerView.player = null
         }
+
+        playerToRelease?.release()
     }
 
     override fun onLowMemory() {
