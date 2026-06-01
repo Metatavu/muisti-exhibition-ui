@@ -4,6 +4,8 @@ import android.animation.TimeInterpolator
 import android.app.Activity
 import android.app.ActivityOptions
 import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
 import android.os.PersistableBundle
@@ -80,6 +82,7 @@ abstract class MuistiActivity : AppCompatActivity() {
     var transitionTime = 300L
     private var currentActivityUpdateJob: Job? = null
     private var pendingPageId: UUID? = null
+    private var pendingPageActivation: PageView? = null
 
 
     private var mqttTriggerDeviceGroupEventListener: MqttTopicListener<MqttTriggerDeviceGroupEvent>? = null
@@ -103,6 +106,17 @@ abstract class MuistiActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
         super.onSaveInstanceState(outState, outPersistentState)
         currentPageView?.lifecycleListeners?.forEach { it.onSaveInstanceState(outState) }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+        val pageView = pendingPageActivation ?: return
+        if (newConfig.orientation == getConfigurationOrientation(pageView.orientation)) {
+            pendingPageActivation = null
+            Log.d(javaClass.name, "Orientation has settled.")
+            activatePageView(pageView)
+        }
     }
 
     override fun finish() {
@@ -238,11 +252,21 @@ abstract class MuistiActivity : AppCompatActivity() {
         setSharedElementTransitions(pageView.page.enterTransitions)
         setSharedElementTransitions(pageView.page.exitTransitions)
 
-        if (ExhibitionUIApplication.instance.forcedPortraitMode != true) {
+        val shouldWaitForOrientation = ExhibitionUIApplication.instance.forcedPortraitMode != true
+            && resources.configuration.orientation != getConfigurationOrientation(pageView.orientation)
+
+        pendingPageActivation = if (shouldWaitForOrientation) pageView else null
+
+        if (ExhibitionUIApplication.instance.forcedPortraitMode != true && requestedOrientation != pageView.orientation) {
             requestedOrientation = pageView.orientation
         }
 
-        pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
+        if (!shouldWaitForOrientation) {
+            activatePageView(pageView)
+        } else {
+            Log.d(javaClass.name, "Delaying activation due to pending orientation change")
+        }
+
         applyEventTriggers(pageView.page.eventTriggers)
 
         val deviceGroupId = ExhibitionUIApplication.instance.deviceGroupId
@@ -288,9 +312,34 @@ abstract class MuistiActivity : AppCompatActivity() {
             mqttTriggerDeviceGroupEventListener = null
         }
 
+        pendingPageActivation = null
         handler.removeCallbacksAndMessages(null)
         currentPageView?.lifecycleListeners?.forEach { it.onPageDeactivate(this) }
         removeSettingsAndIndexListeners()
+    }
+
+    /**
+     * Activates page lifecycle listeners after orientation-dependent layout is ready.
+     *
+     * @param pageView page view to activate
+     */
+    private fun activatePageView(pageView: PageView) {
+        Log.d(javaClass.name, "Activating page lifecycle listeners")
+        pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
+    }
+
+    /**
+     * Maps requested screen orientation to configuration orientation.
+     *
+     * @param orientation requested activity orientation
+     * @return matching configuration orientation
+     */
+    private fun getConfigurationOrientation(orientation: Int): Int {
+        return if (orientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+            Configuration.ORIENTATION_LANDSCAPE
+        } else {
+            Configuration.ORIENTATION_PORTRAIT
+        }
     }
 
     /**
