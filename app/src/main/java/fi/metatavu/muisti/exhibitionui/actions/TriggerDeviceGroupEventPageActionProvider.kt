@@ -25,6 +25,7 @@ class TriggerDeviceGroupEventPageActionProvider(properties: Array<ExhibitionPage
 
         val deviceGroupId = ExhibitionUIApplication.instance.deviceGroupId
         if (deviceGroupId != null) {
+            Log.d(javaClass.name, "Triggering device group event $eventName to device group $deviceGroupId")
             MqttClientController.publish("events/deviceGroup/$deviceGroupId", payload)
         } else {
             Log.w(javaClass.name, "Device group id not set, cannot trigger device group event")

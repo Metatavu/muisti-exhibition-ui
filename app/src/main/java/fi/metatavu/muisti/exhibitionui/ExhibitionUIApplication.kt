@@ -24,6 +24,7 @@ import java.lang.Exception
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 
 /**
  * Main application for exhibition UI application
@@ -105,8 +106,16 @@ class ExhibitionUIApplication : Application() {
      * @param activity activity
      */
     fun setCurrentActivity(activity: Activity?) {
+        val previousActivity = currentActivity
+        val previousPageId = if (previousActivity is PageActivity) previousActivity.pageId else null
+        val newPageId = if (activity is PageActivity) activity.pageId else null
+        val previousPageName = if (previousPageId != null) PageViewContainer.getPageView(previousPageId)?.page?.name else null
+        val newPageName = if (newPageId != null) PageViewContainer.getPageView(newPageId)?.page?.name else null
+
+        Log.d(javaClass.name, "Current activity changed from page $previousPageName ($previousPageId) to page $newPageName ($newPageId)")
         currentActivity = activity
     }
+    
 
     /**
      * Logs out the current visitor session

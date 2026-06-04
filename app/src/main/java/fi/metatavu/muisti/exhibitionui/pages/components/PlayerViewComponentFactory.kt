@@ -9,16 +9,12 @@ import android.util.Log
 import android.util.Xml
 import android.view.View
 import android.widget.FrameLayout
+import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.ui.PlayerControlView
 import com.google.android.exoplayer2.ui.PlayerView
-import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.util.Util
 import fi.metatavu.muisti.api.client.models.PageLayoutViewProperty
 import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.R
@@ -26,6 +22,7 @@ import fi.metatavu.muisti.exhibitionui.pages.PageViewLifecycleListener
 import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import org.xmlpull.v1.XmlPullParser
+
 /**
  * Component container for player view
  *
@@ -96,7 +93,6 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
         val showPreviousButton = getBooleanProperty(buildContext = buildContext, propertyName = "showPreviousButton") ?: false
         val showNextButton = getBooleanProperty(buildContext = buildContext, propertyName = "showNextButton") ?: false
 
-        val context = buildContext.context
         val parent = buildContext.parents.lastOrNull()
 
         val view = PlayerComponentContainer(
@@ -117,16 +113,20 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
 
         val offlineFile = getResourceOfflineFile(buildContext, "src")
         if (offlineFile != null) {
-            val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(context, Util.getUserAgent(context, "ExhibitionUIApplication"))
             val mediaItem = MediaItem.fromUri(Uri.fromFile(offlineFile))
-            val videoSource: MediaSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-
             buildContext.addLifecycleListener(PlayerPageViewLifecycleListener(
-                videoSource = videoSource,
+                mediaItem = mediaItem,
                 view = view,
                 autoPlay = autoPlay,
-                autoPlayDelay = autoPlayDelay
+                autoPlayDelay = autoPlayDelay,
+                pageId = buildContext.page.pageId.toString(),
+                pageName = buildContext.page.name
             ))
+        } else {
+            Log.w(
+                javaClass.name,
+                "build pageId=${buildContext.page.pageId} pageName=${buildContext.page.name} missing offline file"
+            )
         }
 
         return view
@@ -146,42 +146,53 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
                 else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
-            Log.d(PlayerViewComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
+            Log.w(javaClass.name, "Failed to set property ${property.name} to ${property.value}", e)
         }
     }
 
 }
 
-/**
- * Lifecycle listener for player page view component.
- *
- * Listener class is responsible of
- *
- * @property videoSource video source
- * @property view player component container
- * @property autoPlay whether player should start automatically
- */
 private class PlayerPageViewLifecycleListener(
-    val videoSource: MediaSource,
+    val mediaItem: MediaItem,
     val view: PlayerComponentContainer,
     val autoPlay: Boolean,
-    val autoPlayDelay: Long
+    val autoPlayDelay: Long,
+    val pageId: String,
+    val pageName: String
 ): PageViewLifecycleListener {
+
+    private val autoPlayHandler = Handler(Looper.getMainLooper())
+    private var autoPlayRunnable: Runnable? = null
+    private var player: SimpleExoPlayer? = null
 
     override fun onPageActivate(activity: MuistiActivity) {
         val context: Context = activity
 
+        cancelPendingAutoplay()
+        player?.release()
+
         val player = SimpleExoPlayer.Builder(context).build()
+        this.player = player
+        player.addListener(object : Player.EventListener {
+            override fun onPlayerError(error: ExoPlaybackException) {
+                Log.e(
+                    javaClass.name,
+                    "error pageId=$pageId pageName=$pageName type=${error.type} message=${error.localizedMessage}",
+                    error
+                )
+            }
+        })
 
         if (autoPlay && autoPlayDelay > 0) {
-            Handler(Looper.getMainLooper()).postDelayed({
+            autoPlayRunnable = Runnable {
                 player.playWhenReady = true
-            }, autoPlayDelay)
+            }
+            autoPlayHandler.postDelayed(autoPlayRunnable!!, autoPlayDelay)
         } else {
             player.playWhenReady = autoPlay
         }
 
-        player.setMediaSource(videoSource)
+        player.setMediaItem(mediaItem)
         player.prepare()
         player.repeatMode = Player.REPEAT_MODE_ALL
 
@@ -199,9 +210,19 @@ private class PlayerPageViewLifecycleListener(
     }
 
     override fun onPageDeactivate(activity: MuistiActivity) {
-        activity.runOnUiThread {
-            view.playerView.player?.release()
+        cancelPendingAutoplay()
+        val playerToRelease = player
+        player = null
+
+        if (view.playerControlView?.player === playerToRelease) {
+            view.playerControlView?.player = null
         }
+
+        if (view.playerView.player === playerToRelease) {
+            view.playerView.player = null
+        }
+
+        playerToRelease?.release()
     }
 
     override fun onLowMemory() {
@@ -226,6 +247,11 @@ private class PlayerPageViewLifecycleListener(
 
     override fun onDestroy() {
         //No need to implement currently
+    }
+
+    private fun cancelPendingAutoplay() {
+        autoPlayRunnable?.let(autoPlayHandler::removeCallbacks)
+        autoPlayRunnable = null
     }
 
 }
