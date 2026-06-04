@@ -119,31 +119,13 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
         val offlineFile = getResourceOfflineFile(buildContext, "src")
         if (offlineFile != null) {
             val mediaItem = MediaItem.fromUri(Uri.fromFile(offlineFile))
-            Log.d(
-                PLAYER_LOG_TAG,
-                "build pageId=${buildContext.page.pageId} pageName=${buildContext.page.name} " +
-                    "viewId=${buildContext.pageLayoutView.id} viewName=${buildContext.pageLayoutView.name} src=${offlineFile.absolutePath} " +
-                    "size=${offlineFile.length()} autoPlay=$autoPlay autoPlayDelay=$autoPlayDelay " +
-                    "showPlaybackControls=$showPlaybackControls showRewindButton=$showRewindButton " +
-                    "showFastForwardButton=$showFastForwardButton showPreviousButton=$showPreviousButton " +
-                    "showNextButton=$showNextButton properties=[$propertySummary]"
-            )
-
             buildContext.addLifecycleListener(PlayerPageViewLifecycleListener(
                 mediaItem = mediaItem,
                 view = view,
                 autoPlay = autoPlay,
                 autoPlayDelay = autoPlayDelay,
                 pageId = buildContext.page.pageId.toString(),
-                pageName = buildContext.page.name,
-                sourcePath = offlineFile.absolutePath,
-                sourceSize = offlineFile.length(),
-                propertySummary = propertySummary,
-                showPlaybackControls = showPlaybackControls,
-                showRewindButton = showRewindButton,
-                showFastForwardButton = showFastForwardButton,
-                showPreviousButton = showPreviousButton,
-                showNextButton = showNextButton
+                pageName = buildContext.page.name
             ))
         } else {
             Log.w(
@@ -169,7 +151,7 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
                 else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
-            Log.d(PlayerViewComponentFactory::javaClass.name, "Failed to set property ${property.name} to ${property.value}}", e)
+            Log.w(PLAYER_LOG_TAG, "Failed to set property ${property.name} to ${property.value}", e)
         }
     }
 
@@ -190,15 +172,7 @@ private class PlayerPageViewLifecycleListener(
     val autoPlay: Boolean,
     val autoPlayDelay: Long,
     val pageId: String,
-    val pageName: String,
-    val sourcePath: String,
-    val sourceSize: Long,
-    val propertySummary: String,
-    val showPlaybackControls: Boolean,
-    val showRewindButton: Boolean,
-    val showFastForwardButton: Boolean,
-    val showPreviousButton: Boolean,
-    val showNextButton: Boolean
+    val pageName: String
 ): PageViewLifecycleListener {
 
     private val autoPlayHandler = Handler(Looper.getMainLooper())
@@ -214,18 +188,6 @@ private class PlayerPageViewLifecycleListener(
         val player = SimpleExoPlayer.Builder(context).build()
         this.player = player
         player.addListener(object : Player.EventListener {
-            override fun onLoadingChanged(isLoading: Boolean) {
-                Log.d(PLAYER_LOG_TAG, "loading pageId=$pageId pageName=$pageName isLoading=$isLoading")
-            }
-
-            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                Log.d(
-                    PLAYER_LOG_TAG,
-                    "state pageId=$pageId pageName=$pageName playWhenReady=$playWhenReady " +
-                        "state=${playbackStateToString(playbackState)}"
-                )
-            }
-
             override fun onPlayerError(error: ExoPlaybackException) {
                 Log.e(
                     PLAYER_LOG_TAG,
@@ -235,18 +197,8 @@ private class PlayerPageViewLifecycleListener(
             }
         })
 
-        Log.d(
-            PLAYER_LOG_TAG,
-            "activate pageId=$pageId pageName=$pageName src=$sourcePath size=$sourceSize " +
-                "autoPlay=$autoPlay autoPlayDelay=$autoPlayDelay showPlaybackControls=$showPlaybackControls " +
-                "showRewindButton=$showRewindButton showFastForwardButton=$showFastForwardButton " +
-                "showPreviousButton=$showPreviousButton showNextButton=$showNextButton " +
-                "properties=[$propertySummary]"
-        )
-
         if (autoPlay && autoPlayDelay > 0) {
             autoPlayRunnable = Runnable {
-                Log.d(PLAYER_LOG_TAG, "autoplay-trigger pageId=$pageId pageName=$pageName delay=$autoPlayDelay")
                 player.playWhenReady = true
             }
             autoPlayHandler.postDelayed(autoPlayRunnable!!, autoPlayDelay)
@@ -269,18 +221,12 @@ private class PlayerPageViewLifecycleListener(
         }
 
         playerView.player = player
-        Log.d(
-            PLAYER_LOG_TAG,
-            "view pageId=$pageId pageName=$pageName useController=${playerView.useController} " +
-                "controllerAutoShow=${playerView.controllerAutoShow} keepContentOnPlayerReset=${playerView.keepContentOnPlayerReset}"
-        )
     }
 
     override fun onPageDeactivate(activity: MuistiActivity) {
         cancelPendingAutoplay()
         val playerToRelease = player
         player = null
-        Log.d(PLAYER_LOG_TAG, "deactivate pageId=$pageId pageName=$pageName releasing=${playerToRelease != null}")
 
         if (view.playerControlView?.player === playerToRelease) {
             view.playerControlView?.player = null
@@ -320,16 +266,6 @@ private class PlayerPageViewLifecycleListener(
     private fun cancelPendingAutoplay() {
         autoPlayRunnable?.let(autoPlayHandler::removeCallbacks)
         autoPlayRunnable = null
-    }
-
-    private fun playbackStateToString(playbackState: Int): String {
-        return when (playbackState) {
-            Player.STATE_IDLE -> "IDLE"
-            Player.STATE_BUFFERING -> "BUFFERING"
-            Player.STATE_READY -> "READY"
-            Player.STATE_ENDED -> "ENDED"
-            else -> playbackState.toString()
-        }
     }
 
 }

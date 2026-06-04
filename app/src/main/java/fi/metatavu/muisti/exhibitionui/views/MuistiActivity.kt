@@ -114,7 +114,6 @@ abstract class MuistiActivity : AppCompatActivity() {
         val pageView = pendingPageActivation ?: return
         if (newConfig.orientation == getConfigurationOrientation(pageView.orientation)) {
             pendingPageActivation = null
-            Log.d(javaClass.name, "Orientation has settled.")
             activatePageView(pageView)
         }
     }
@@ -263,8 +262,6 @@ abstract class MuistiActivity : AppCompatActivity() {
 
         if (!shouldWaitForOrientation) {
             activatePageView(pageView)
-        } else {
-            Log.d(javaClass.name, "Delaying activation due to pending orientation change")
         }
 
         applyEventTriggers(pageView.page.eventTriggers)
@@ -324,7 +321,6 @@ abstract class MuistiActivity : AppCompatActivity() {
      * @param pageView page view to activate
      */
     private fun activatePageView(pageView: PageView) {
-        Log.d(javaClass.name, "Activating page lifecycle listeners")
         pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
     }
 
