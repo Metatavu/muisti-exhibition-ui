@@ -23,8 +23,6 @@ import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
 import org.xmlpull.v1.XmlPullParser
 
-private const val PLAYER_LOG_TAG = "PlayerViewComponent"
-
 /**
  * Component container for player view
  *
@@ -113,9 +111,6 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
             this.setProperty(buildContext, parent, view, it)
         }
 
-        val propertySummary = buildContext.pageLayoutView.properties
-            .joinToString(separator = ", ") { "${it.name}=${it.value}(${it.type.value})" }
-
         val offlineFile = getResourceOfflineFile(buildContext, "src")
         if (offlineFile != null) {
             val mediaItem = MediaItem.fromUri(Uri.fromFile(offlineFile))
@@ -129,8 +124,8 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
             ))
         } else {
             Log.w(
-                PLAYER_LOG_TAG,
-                "build pageId=${buildContext.page.pageId} pageName=${buildContext.page.name} missing offline file properties=[$propertySummary]"
+                javaClass.name,
+                "build pageId=${buildContext.page.pageId} pageName=${buildContext.page.name} missing offline file"
             )
         }
 
@@ -151,21 +146,12 @@ class PlayerViewComponentFactory : AbstractComponentFactory<PlayerComponentConta
                 else -> super.setProperty(buildContext, parent, view, property)
             }
         } catch (e: Exception) {
-            Log.w(PLAYER_LOG_TAG, "Failed to set property ${property.name} to ${property.value}", e)
+            Log.w(javaClass.name, "Failed to set property ${property.name} to ${property.value}", e)
         }
     }
 
 }
 
-/**
- * Lifecycle listener for player page view component.
- *
- * Listener class is responsible of
- *
- * @property videoSource video source
- * @property view player component container
- * @property autoPlay whether player should start automatically
- */
 private class PlayerPageViewLifecycleListener(
     val mediaItem: MediaItem,
     val view: PlayerComponentContainer,
@@ -190,7 +176,7 @@ private class PlayerPageViewLifecycleListener(
         player.addListener(object : Player.EventListener {
             override fun onPlayerError(error: ExoPlaybackException) {
                 Log.e(
-                    PLAYER_LOG_TAG,
+                    javaClass.name,
                     "error pageId=$pageId pageName=$pageName type=${error.type} message=${error.localizedMessage}",
                     error
                 )
