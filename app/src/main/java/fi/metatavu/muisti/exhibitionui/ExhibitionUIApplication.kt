@@ -24,6 +24,7 @@ import java.lang.Exception
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import fi.metatavu.muisti.exhibitionui.pages.PageViewContainer
 
 /**
  * Main application for exhibition UI application
@@ -39,6 +40,7 @@ class ExhibitionUIApplication : Application() {
     private var allowVisitorSessionCreation = false
     private var antennaListeners = emptyList<MqttTopicListener<*>>()
     var idlePageId: UUID? = null
+    var deviceGroupId: UUID? = null
     var forcedPortraitMode: Boolean? = null
         private set
     private var loginAllowed = true
@@ -104,8 +106,16 @@ class ExhibitionUIApplication : Application() {
      * @param activity activity
      */
     fun setCurrentActivity(activity: Activity?) {
+        val previousActivity = currentActivity
+        val previousPageId = if (previousActivity is PageActivity) previousActivity.pageId else null
+        val newPageId = if (activity is PageActivity) activity.pageId else null
+        val previousPageName = if (previousPageId != null) PageViewContainer.getPageView(previousPageId)?.page?.name else null
+        val newPageName = if (newPageId != null) PageViewContainer.getPageView(newPageId)?.page?.name else null
+
+        Log.d(javaClass.name, "Current activity changed from page $previousPageName ($previousPageId) to page $newPageName ($newPageId)")
         currentActivity = activity
     }
+    
 
     /**
      * Logs out the current visitor session
@@ -198,11 +208,13 @@ class ExhibitionUIApplication : Application() {
                 deviceImageLoadStrategy = getDeviceImageLoadStrategy(deviceSettings[DeviceSettingKey.dEVICEIMAGELOADSTRATEGY])
                 indexPageTimeout = deviceSettings[DeviceSettingKey.iNDEXPAGETIMEOUT]?.toLongOrNull()
                 idlePageId = getUUID(deviceSettings[DeviceSettingKey.iDLEPAGEID])
+                deviceGroupId = getUUID(deviceSettings[DeviceSettingKey.dEVICEGROUPID])
 
                 Log.d(javaClass.name, "Device id: $deviceId")
                 Log.d(javaClass.name, "Visitor session end timeout set to: $visitorSessionEndTimeout")
                 Log.d(javaClass.name, "Allow visitor session creation is set to: $allowVisitorSessionCreation")
                 Log.d(javaClass.name, "Device image load strategy is set to: $deviceImageLoadStrategy")
+                Log.d(javaClass.name, "Device group id: $deviceGroupId")
             } catch (e: Exception) {
                 Log.e(javaClass.name, "Could not read device settings from API", e)
             }

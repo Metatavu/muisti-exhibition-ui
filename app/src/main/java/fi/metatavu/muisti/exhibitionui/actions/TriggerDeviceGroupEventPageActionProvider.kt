@@ -1,11 +1,12 @@
 package fi.metatavu.muisti.exhibitionui.actions
 
+import android.util.Log
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventActionType
 import fi.metatavu.muisti.api.client.models.ExhibitionPageEventProperty
 import fi.metatavu.muisti.api.client.models.MqttTriggerDeviceGroupEvent
+import fi.metatavu.muisti.exhibitionui.ExhibitionUIApplication
 import fi.metatavu.muisti.exhibitionui.mqtt.MqttClientController
 import fi.metatavu.muisti.exhibitionui.views.MuistiActivity
-import fi.metatavu.muisti.exhibitionui.views.PageActivity
 
 /**
  * Page action provider for group event triggers
@@ -15,15 +16,21 @@ import fi.metatavu.muisti.exhibitionui.views.PageActivity
  * @constructor constructor
  * @param properties event properties
  */
-class TriggerDeviceGroupEventPageActionProvider(properties: Array<ExhibitionPageEventProperty>): AbstractPageActionProvider(properties) {
+class TriggerDeviceGroupEventPageActionProvider(properties: Array<ExhibitionPageEventProperty>) : AbstractPageActionProvider(properties) {
 
     override fun performAction(activity: MuistiActivity) {
+
         val eventName = getPropertyString("name") ?: return
         val payload = MqttTriggerDeviceGroupEvent(event = eventName)
-        // TODO: Publish to actual device group
-        MqttClientController.publish("events/deviceGroup/deviceGroupId", payload)
+
+        val deviceGroupId = ExhibitionUIApplication.instance.deviceGroupId
+        if (deviceGroupId != null) {
+            Log.d(javaClass.name, "Triggering device group event $eventName to device group $deviceGroupId")
+            MqttClientController.publish("events/deviceGroup/$deviceGroupId", payload)
+        } else {
+            Log.w(javaClass.name, "Device group id not set, cannot trigger device group event")
+        }
     }
 
-    override val action: ExhibitionPageEventActionType get() = ExhibitionPageEventActionType.navigate
-
+    override val action: ExhibitionPageEventActionType get() = ExhibitionPageEventActionType.triggerdevicegroupevent
 }

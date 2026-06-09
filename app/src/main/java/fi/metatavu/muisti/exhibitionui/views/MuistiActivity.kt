@@ -4,6 +4,8 @@ import android.animation.TimeInterpolator
 import android.app.Activity
 import android.app.ActivityOptions
 import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
 import android.os.PersistableBundle
@@ -26,7 +28,9 @@ import android.view.animation.LinearInterpolator
 import android.view.animation.OvershootInterpolator
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.github.rongi.rotate_layout.layout.RotateLayout
 import fi.metatavu.muisti.api.client.models.Animation
 import fi.metatavu.muisti.api.client.models.AnimationTimeInterpolation
@@ -50,7 +54,8 @@ import fi.metatavu.muisti.exhibitionui.settings.DeviceSettings
 import fi.metatavu.muisti.exhibitionui.visitors.VisibleTagsContainer
 import fi.metatavu.muisti.exhibitionui.visitors.VisitorSessionContainer
 import kotlinx.android.synthetic.main.activity_page.root
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -75,17 +80,12 @@ abstract class MuistiActivity : AppCompatActivity() {
     val transitionElements: MutableList<View> = mutableListOf()
     var pageInteractable = false
     var transitionTime = 300L
+    private var currentActivityUpdateJob: Job? = null
+    private var pendingPageId: UUID? = null
+    private var pendingPageActivation: PageView? = null
 
-    // TODO: Listen only device group messages
-    private val mqttTriggerDeviceGroupEventListener = MqttTopicListener("${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/deviceGroupId", MqttTriggerDeviceGroupEvent::class.java) {
-        val key = it.event
-        if (key != null) {
-            val events = deviceGroupEvents.get(key)
-            if (events != null) {
-                triggerEvents(events)
-            }
-        }
-    }
+
+    private var mqttTriggerDeviceGroupEventListener: MqttTopicListener<MqttTriggerDeviceGroupEvent>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -108,7 +108,19 @@ abstract class MuistiActivity : AppCompatActivity() {
         currentPageView?.lifecycleListeners?.forEach { it.onSaveInstanceState(outState) }
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+        val pageView = pendingPageActivation ?: return
+        if (newConfig.orientation == getConfigurationOrientation(pageView.orientation)) {
+            pendingPageActivation = null
+            activatePageView(pageView)
+        }
+    }
+
     override fun finish() {
+        cancelCurrentActivityUpdate()
+        pendingPageId = null
         disableClickEvents(currentPageView?.page?.eventTriggers)
         this.closeView()
 
@@ -129,10 +141,16 @@ abstract class MuistiActivity : AppCompatActivity() {
 
         currentPageView?.lifecycleListeners?.forEach { it.onResume() }
         val activity = this
-        GlobalScope.launch {
+        currentActivityUpdateJob?.cancel()
+        currentActivityUpdateJob = lifecycleScope.launch(Dispatchers.Main) {
             val previous = getCurrentActivity()
             delay(transitionTime)
-            previous?.finish()
+            if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                return@launch
+            }
+            previous
+                ?.takeIf { it != activity }
+                ?.finish()
             pageInteractable = true
             setCurrentActivity(activity)
         }
@@ -140,6 +158,7 @@ abstract class MuistiActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        cancelCurrentActivityUpdate()
 
         this.closeView()
 
@@ -232,13 +251,51 @@ abstract class MuistiActivity : AppCompatActivity() {
         setSharedElementTransitions(pageView.page.enterTransitions)
         setSharedElementTransitions(pageView.page.exitTransitions)
 
-        if (ExhibitionUIApplication.instance.forcedPortraitMode != true) {
+        val shouldWaitForOrientation = ExhibitionUIApplication.instance.forcedPortraitMode != true
+            && resources.configuration.orientation != getConfigurationOrientation(pageView.orientation)
+
+        pendingPageActivation = if (shouldWaitForOrientation) pageView else null
+
+        if (ExhibitionUIApplication.instance.forcedPortraitMode != true && requestedOrientation != pageView.orientation) {
             requestedOrientation = pageView.orientation
         }
 
-        MqttClientController.addListener(mqttTriggerDeviceGroupEventListener)
-        pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
+        if (!shouldWaitForOrientation) {
+            activatePageView(pageView)
+        }
+
         applyEventTriggers(pageView.page.eventTriggers)
+
+        val deviceGroupId = ExhibitionUIApplication.instance.deviceGroupId
+        if (deviceGroupId != null) {
+            val topic = "${BuildConfig.MQTT_BASE_TOPIC}/events/deviceGroup/$deviceGroupId"
+            val listener = MqttTopicListener(
+                topic,
+                MqttTriggerDeviceGroupEvent::class.java
+            ) {
+                Log.d(javaClass.name, "Received MQTT group event for topic $topic")
+
+                val key = it.event
+                if (key != null) {
+                    Log.d(javaClass.name, "Received MQTT group event for topic $topic with eventName $key")
+
+                    val events = deviceGroupEvents[key]
+                    if (events != null) {
+                        Log.d(javaClass.name, "Executing ${events.size} events based on topic $topic and eventName $key")
+
+                        runOnUiThread {
+                            triggerEvents(events)
+                        }
+                    }
+                }
+            }
+
+            mqttTriggerDeviceGroupEventListener = listener
+            MqttClientController.addListener(listener)
+            Log.d(javaClass.name, "Listener active on topic = $topic")
+        } else {
+            Log.w(javaClass.name, "Device group id not set, cannot listen for device group events")
+        }
     }
 
     /**
@@ -247,10 +304,38 @@ abstract class MuistiActivity : AppCompatActivity() {
      * Method cancels all pending scheduled events
      */
     private fun closeView() {
-        MqttClientController.removeListener(mqttTriggerDeviceGroupEventListener)
+        mqttTriggerDeviceGroupEventListener?.let {
+            MqttClientController.removeListener(it)
+            mqttTriggerDeviceGroupEventListener = null
+        }
+
+        pendingPageActivation = null
         handler.removeCallbacksAndMessages(null)
         currentPageView?.lifecycleListeners?.forEach { it.onPageDeactivate(this) }
         removeSettingsAndIndexListeners()
+    }
+
+    /**
+     * Activates page lifecycle listeners after orientation-dependent layout is ready.
+     *
+     * @param pageView page view to activate
+     */
+    private fun activatePageView(pageView: PageView) {
+        pageView.lifecycleListeners.forEach { it.onPageActivate(this) }
+    }
+
+    /**
+     * Maps requested screen orientation to configuration orientation.
+     *
+     * @param orientation requested activity orientation
+     * @return matching configuration orientation
+     */
+    private fun getConfigurationOrientation(orientation: Int): Int {
+        return if (orientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+            Configuration.ORIENTATION_LANDSCAPE
+        } else {
+            Configuration.ORIENTATION_PORTRAIT
+        }
     }
 
     /**
@@ -274,7 +359,9 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     private fun applyEventTriggers(eventTriggers: Array<ExhibitionPageEventTrigger>) {
         deviceGroupEvents.clear()
-        eventTriggers.map(this::applyEventTrigger)
+        eventTriggers.forEach { trigger ->
+            applyEventTrigger(trigger)
+        }
     }
 
     /**
@@ -306,7 +393,10 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     private fun applyEventTrigger(eventTrigger: ExhibitionPageEventTrigger) {
         val events = eventTrigger.events
-        events ?: return
+        if (events == null) {
+            Log.d(javaClass.name, "eventTrigger.events is null, returning")
+            return
+        }
 
         val delay: Long = eventTrigger.delay ?: 0
         if (delay > 0) {
@@ -322,8 +412,12 @@ abstract class MuistiActivity : AppCompatActivity() {
         val deviceGroupEvent = eventTrigger.deviceGroupEvent
 
         if (deviceGroupEvent != null) {
-            val deviceGroupEventList = deviceGroupEvents.get(deviceGroupEvent) ?: arrayOf()
+            Log.d(javaClass.name, "Registering deviceGroupEvent key = $deviceGroupEvent")
+            val deviceGroupEventList = deviceGroupEvents[deviceGroupEvent] ?: arrayOf()
             deviceGroupEvents[deviceGroupEvent] = deviceGroupEventList.plus(events)
+
+        } else {
+            Log.d(javaClass.name, "No deviceGroupEvent on this trigger")
         }
 
         val keyCodeUp = eventTrigger.keyUp
@@ -525,7 +619,13 @@ abstract class MuistiActivity : AppCompatActivity() {
             return
         }
 
+        if (pendingPageId == pageId) {
+            Log.d(javaClass.name, "Navigation to page $pageId is already pending")
+            return
+        }
+
         pageInteractable = false
+        pendingPageId = pageId
         val intent = Intent(this, PageActivity::class.java).apply {
             putExtra("pageId", pageId.toString())
         }
@@ -579,6 +679,14 @@ abstract class MuistiActivity : AppCompatActivity() {
      */
     private fun setCurrentActivity(activity: MuistiActivity?) {
         ExhibitionUIApplication.instance.setCurrentActivity(activity)
+    }
+
+    /**
+     * Cancels pending delayed current activity updates.
+     */
+    private fun cancelCurrentActivityUpdate() {
+        currentActivityUpdateJob?.cancel()
+        currentActivityUpdateJob = null
     }
 
     /**
